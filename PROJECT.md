@@ -322,14 +322,17 @@ the reported lag remains pending; next investigate steering/window latency if it
 persists despite stable frame presentation.
 
 GitHub publication (2026-10-06): user requested a public repository and all
-project changes. Prepared `Yoko-ship/mahalla-cruise` with `main` as the default
+project changes. Created the public [Yoko-ship/mahalla-cruise](https://github.com/Yoko-ship/mahalla-cruise)
+repository with `main` as the default
 branch and repository-local GitHub no-reply commit identity. Included source,
 scenes, typed resources, original/imported assets with source records, tests,
 tooling, and project documentation. Existing ignore rules exclude build outputs,
 Godot caches, the Python environment, signing keys, and environment secrets;
 player saves are already outside the repository. File review found no credential
 patterns. Latest validation passed 307 game checks and four tooling tests.
-Next: confirm the initial push and continue physical Android playtesting.
+Published all 147 project files in initial commit `75f3a11`; verified public
+visibility and `main` tracking `origin/main`. Next: continue physical Android
+playtesting and push subsequent work to this repository.
 
 ## Running and Checking the Starter
 
