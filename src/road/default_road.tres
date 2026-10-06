@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="RoadSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/road/road_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+scroll_speed = 220.0
+left_edge = 124.0
+right_edge = 308.0
+pixels_per_metre = 20.0

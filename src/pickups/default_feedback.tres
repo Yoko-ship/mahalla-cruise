@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PickupFeedbackSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/pickups/feedback_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+sound_enabled = true
+haptics_enabled = true
+volume_db = -8.0
+minimum_interval_ms = 80
+som_vibration_ms = 16
+dollar_vibration_ms = 26
+vibration_strength = 0.25

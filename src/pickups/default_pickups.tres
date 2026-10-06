@@ -1,0 +1,67 @@
+[gd_resource type="Resource" script_class="PickupSettings" load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://src/pickups/pickup_settings.gd" id="1"]
+[ext_resource type="Script" path="res://src/pickups/banknote_definition.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/money/som_1000.jpg" id="som_1000"]
+[ext_resource type="Texture2D" path="res://assets/money/som_5000.jpg" id="som_5000"]
+[ext_resource type="Texture2D" path="res://assets/money/som_10000.jpg" id="som_10000"]
+[ext_resource type="Texture2D" path="res://assets/money/som_50000.jpg" id="som_50000"]
+[ext_resource type="Texture2D" path="res://assets/money/som_100000.jpg" id="som_100000"]
+[ext_resource type="Texture2D" path="res://assets/money/usd_1.jpg" id="usd_1"]
+
+[sub_resource type="Resource" id="som_1000"]
+script = ExtResource("2")
+is_dollar = false
+face_value = 1000
+spawn_weight = 50.0
+texture = ExtResource("som_1000")
+
+[sub_resource type="Resource" id="som_5000"]
+script = ExtResource("2")
+is_dollar = false
+face_value = 5000
+spawn_weight = 28.0
+texture = ExtResource("som_5000")
+
+[sub_resource type="Resource" id="som_10000"]
+script = ExtResource("2")
+is_dollar = false
+face_value = 10000
+spawn_weight = 16.0
+texture = ExtResource("som_10000")
+
+[sub_resource type="Resource" id="som_50000"]
+script = ExtResource("2")
+is_dollar = false
+face_value = 50000
+spawn_weight = 5.0
+texture = ExtResource("som_50000")
+
+[sub_resource type="Resource" id="som_100000"]
+script = ExtResource("2")
+is_dollar = false
+face_value = 100000
+spawn_weight = 1.0
+texture = ExtResource("som_100000")
+
+[sub_resource type="Resource" id="usd_1"]
+script = ExtResource("2")
+is_dollar = true
+face_value = 1
+spawn_weight = 1.0
+texture = ExtResource("usd_1")
+
+[resource]
+script = ExtResource("1")
+som_notes = Array[ExtResource("2")]([SubResource("som_1000"), SubResource("som_5000"), SubResource("som_10000"), SubResource("som_50000"), SubResource("som_100000")])
+dollar_note = SubResource("usd_1")
+som_per_point = 1000
+dollar_points_per_unit = 10
+dollar_chance = 0.12
+first_spawn_distance = 80.0
+spawn_distance = 200.0
+max_pickups = 6
+spawn_y = -32.0
+despawn_y = 816.0
+collision_half_size = Vector2(17, 12)
+traffic_clearance = 80.0

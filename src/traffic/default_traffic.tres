@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="TrafficSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/traffic/traffic_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+first_spawn_distance = 150.0
+spawn_distance_min = 550.0
+spawn_distance_max = 720.0
+relative_speed = 0.62
+max_vehicles = 3
+spawn_y = -60.0
+despawn_y = 840.0
+minimum_gap = 180.0
+collision_half_size = Vector2(20, 36)
+difficulty_start_metres = 150.0
+difficulty_full_metres = 900.0
+minimum_spawn_scale = 0.72

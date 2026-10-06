@@ -1,0 +1,10 @@
+.godot/
+.venv/
+__pycache__/
+.DS_Store
+build/
+*.keystore
+*.jks
+.env
+.env.*
+!.env.example

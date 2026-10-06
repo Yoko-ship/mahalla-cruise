@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- Original geometric debug launcher icon; replace when game artwork is approved. -->
+  <rect width="256" height="256" rx="48" fill="#78a88c"/>
+  <path d="M64 0h128v256H64z" fill="#555b60"/>
+  <path d="M128 0v256" stroke="#ead7a2" stroke-width="5" stroke-dasharray="20 18"/>
+  <rect x="90" y="62" width="76" height="139" rx="16" fill="#30393d" opacity=".3"/>
+  <rect x="86" y="54" width="76" height="139" rx="16" fill="#f5f1df"/>
+  <rect x="95" y="78" width="58" height="34" rx="6" fill="#78a7b2"/>
+  <rect x="96" y="124" width="56" height="43" rx="6" fill="#e3decd"/>
+  <path d="M97 65h12m30 0h12" stroke="#f4d585" stroke-width="6"/>
+</svg>

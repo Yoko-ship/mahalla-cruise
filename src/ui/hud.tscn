@@ -1,0 +1,287 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://src/ui/hud.gd" id="1"]
+
+[ext_resource type="PackedScene" path="res://src/ui/run_menu.tscn" id="2"]
+[ext_resource type="Resource" path="res://src/ui/default_hud.tres" id="3"]
+
+[sub_resource type="StyleBoxFlat" id="CardStyle"]
+bg_color = Color(0.12549, 0.243137, 0.219608, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_left = 20
+corner_radius_bottom_right = 20
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 12
+
+[sub_resource type="StyleBoxFlat" id="ButtonStyle"]
+bg_color = Color(0.88, 0.81, 0.57, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+
+[sub_resource type="StyleBoxFlat" id="ButtonHover"]
+bg_color = Color(0.98, 0.90, 0.67, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+
+[sub_resource type="StyleBoxFlat" id="ButtonFocus"]
+bg_color = Color(0, 0, 0, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.97, 0.85, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+
+[sub_resource type="StyleBoxFlat" id="DistanceStyle"]
+bg_color = Color(0.21, 0.23, 0.19, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.88, 0.84, 0.7, 0.7)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_left = 18
+corner_radius_bottom_right = 18
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1")
+settings = ExtResource("3")
+
+[node name="Title" type="Label" parent="."]
+offset_left = 18.0
+offset_top = 20.0
+offset_right = 165.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_shadow_color = Color(0.15, 0.17, 0.13, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 23
+text = "Mahalla\nCruise"
+mouse_filter = 2
+
+[node name="Distance" type="Label" parent="."]
+offset_left = 321.0
+offset_top = 23.0
+offset_right = 414.0
+offset_bottom = 64.0
+theme_override_colors/font_color = Color(1, 0.96, 0.85, 1)
+theme_override_font_sizes/font_size = 21
+theme_override_styles/normal = SubResource("DistanceStyle")
+text = "0 m"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="Score" type="Label" parent="."]
+offset_left = 294.0
+offset_top = 72.0
+offset_right = 414.0
+offset_bottom = 108.0
+theme_override_colors/font_color = Color(1, 0.85, 0.47, 1)
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("DistanceStyle")
+text = "0 pts"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="Best" type="Label" parent="."]
+offset_left = 266.0
+offset_top = 116.0
+offset_right = 414.0
+offset_bottom = 148.0
+theme_override_colors/font_color = Color(1, 0.96, 0.85, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("DistanceStyle")
+text = "Best: 0"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="SoundToggle" type="Button" parent="."]
+offset_left = 18.0
+offset_top = 88.0
+offset_right = 113.0
+offset_bottom = 126.0
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.85, 0.47, 1)
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("DistanceStyle")
+theme_override_styles/hover = SubResource("DistanceStyle")
+theme_override_styles/pressed = SubResource("DistanceStyle")
+toggle_mode = true
+button_pressed = true
+text = "Sound on"
+
+[node name="HapticsToggle" type="Button" parent="."]
+offset_left = 18.0
+offset_top = 132.0
+offset_right = 113.0
+offset_bottom = 170.0
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.85, 0.47, 1)
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("DistanceStyle")
+theme_override_styles/hover = SubResource("DistanceStyle")
+theme_override_styles/pressed = SubResource("DistanceStyle")
+toggle_mode = true
+button_pressed = true
+text = "Vibration on"
+
+[node name="Pause" type="Button" parent="."]
+offset_left = 18.0
+offset_top = 180.0
+offset_right = 113.0
+offset_bottom = 224.0
+focus_mode = 0
+theme_override_colors/font_color = Color(1, 0.96, 0.85, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("DistanceStyle")
+theme_override_styles/hover = SubResource("DistanceStyle")
+theme_override_styles/pressed = SubResource("DistanceStyle")
+text = "Pause"
+
+[node name="PickupFeedback" type="Label" parent="."]
+visible = false
+offset_left = 60.0
+offset_top = 510.0
+offset_right = 372.0
+offset_bottom = 540.0
+theme_override_colors/font_color = Color(1, 0.9, 0.6, 1)
+theme_override_colors/font_outline_color = Color(0.2, 0.23, 0.18, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 17
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="Controls" type="Label" parent="."]
+offset_left = 12.0
+offset_top = 714.0
+offset_right = 420.0
+offset_bottom = 756.0
+theme_override_colors/font_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_shadow_color = Color(0.15, 0.17, 0.13, 0.8)
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 13
+text = "Drag to steer\nArrow keys also work"
+horizontal_alignment = 1
+mouse_filter = 2
+
+[node name="GameOver" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Shade" type="ColorRect" parent="GameOver"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.035, 0.09, 0.08, 0.7)
+
+[node name="Card" type="PanelContainer" parent="GameOver"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -172.0
+offset_top = -202.0
+offset_right = 172.0
+offset_bottom = 202.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("CardStyle")
+
+[node name="Margin" type="MarginContainer" parent="GameOver/Card"]
+layout_mode = 2
+theme_override_constants/margin_left = 26
+theme_override_constants/margin_top = 26
+theme_override_constants/margin_right = 26
+theme_override_constants/margin_bottom = 26
+
+[node name="Content" type="VBoxContainer" parent="GameOver/Card/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="Title" type="Label" parent="GameOver/Card/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.85, 1)
+theme_override_font_sizes/font_size = 34
+text = "Game over"
+horizontal_alignment = 1
+
+[node name="Message" type="Label" parent="GameOver/Card/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.86, 0.81, 1)
+theme_override_font_sizes/font_size = 16
+text = "You hit another car."
+horizontal_alignment = 1
+
+[node name="Result" type="Label" parent="GameOver/Card/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.85, 0.58, 1)
+theme_override_font_sizes/font_size = 18
+text = "0 m travelled"
+horizontal_alignment = 1
+
+[node name="ScoreResult" type="Label" parent="GameOver/Card/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.47, 1)
+theme_override_font_sizes/font_size = 30
+text = "0 points"
+horizontal_alignment = 1
+
+[node name="BestResult" type="Label" parent="GameOver/Card/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.47, 1)
+theme_override_font_sizes/font_size = 16
+text = "Best: 0"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="MoneyResult" type="Label" parent="GameOver/Card/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.91, 0.83, 1)
+theme_override_font_sizes/font_size = 16
+text = "soʻm × 0    ·    $ × 0"
+horizontal_alignment = 1
+
+[node name="Restart" type="Button" parent="GameOver/Card/Margin/Content"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.1, 0.2, 0.17, 1)
+theme_override_colors/font_hover_color = Color(0.1, 0.2, 0.17, 1)
+theme_override_colors/font_pressed_color = Color(0.1, 0.2, 0.17, 1)
+theme_override_colors/font_focus_color = Color(0.1, 0.2, 0.17, 1)
+theme_override_font_sizes/font_size = 19
+theme_override_styles/normal = SubResource("ButtonStyle")
+theme_override_styles/hover = SubResource("ButtonHover")
+theme_override_styles/pressed = SubResource("ButtonStyle")
+theme_override_styles/focus = SubResource("ButtonFocus")
+text = "Drive again"
+color = Color(0.12549, 0.243137, 0.219608, 1)
+
+[node name="RunMenu" parent="." instance=ExtResource("2")]

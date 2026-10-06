@@ -1,0 +1,18 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://src/pickups/pickup_feedback.gd" id="1"]
+[ext_resource type="Resource" path="res://src/pickups/default_feedback.tres" id="2"]
+[ext_resource type="AudioStream" path="res://assets/audio/som_pickup.wav" id="3"]
+[ext_resource type="AudioStream" path="res://assets/audio/dollar_pickup.wav" id="4"]
+
+[node name="PickupFeedback" type="Node"]
+script = ExtResource("1")
+settings = ExtResource("2")
+
+[node name="SomSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("3")
+max_polyphony = 2
+
+[node name="DollarSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4")
+max_polyphony = 2
