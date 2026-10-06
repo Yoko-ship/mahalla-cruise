@@ -71,6 +71,7 @@ func _new_game() -> CruiseGame:
 	game.pickup_settings = game.pickup_settings.duplicate() as PickupSettings
 	game.pickup_settings.spawn_distance = 10000.0
 	root.add_child(game)
+	game.set_language("en")
 	game.start_run()
 	game.set_process(false)
 	game.player.set_physics_process(false)

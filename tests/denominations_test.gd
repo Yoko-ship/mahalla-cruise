@@ -76,6 +76,7 @@ func _test_mixed_collections() -> void:
 	game.traffic_settings.first_spawn_distance = 100000.0
 	(game.get_node("Progress") as LocalProgressStore).save_path = ""
 	root.add_child(game)
+	game.set_language("en")
 	game.start_run()
 	game.set_process(false)
 	game.player.set_physics_process(false)

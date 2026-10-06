@@ -5,12 +5,14 @@ import importlib.metadata
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
+from godot import find_engine
 
 ROOT = Path(__file__).resolve().parent.parent
-BIN = ROOT / ".venv" / "bin"
-GODOT = str(ROOT / "scripts" / "godot.sh")
+BIN = ROOT / ".venv" / ("Scripts" if os.name == "nt" else "bin")
+SUFFIX = ".exe" if os.name == "nt" else ""
 ENGINE_VERSION = "4.7.2"
 TOOLKIT_VERSION = "4.5.0"
 ENGINE_ERROR = re.compile(r"(?:SCRIPT ERROR:|ERROR:|Parse Error:)")
@@ -24,6 +26,7 @@ def run(label, command, *, godot=False, test=False):
         cwd=ROOT,
         env={**os.environ, "NO_COLOR": "1"},
         text=True,
+        encoding="utf-8",
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         timeout=60,
@@ -45,7 +48,8 @@ def run(label, command, *, godot=False, test=False):
 def main():
     if importlib.metadata.version("gdtoolkit") != TOOLKIT_VERSION:
         raise RuntimeError("Tool version mismatch. Run ./scripts/setup_tools.sh")
-    version = run("Engine version", [GODOT, "--version"])
+    engine = find_engine()
+    version = run("Engine version", [engine, "--version"])
     if not version.startswith(ENGINE_VERSION + ".stable."):
         raise RuntimeError(f"Expected Godot {ENGINE_VERSION} stable, got {version}")
     files = sorted(str(path.relative_to(ROOT)) for path in (ROOT / "src").rglob("*.gd"))
@@ -54,23 +58,28 @@ def main():
     if not files or not tests:
         raise RuntimeError("Source scripts and at least one *_test.gd suite are required")
     all_scripts = files + test_scripts
-    run("GDScript formatting", [str(BIN / "gdformat"), "--check", *all_scripts])
-    run("GDScript lint", [str(BIN / "gdlint"), *all_scripts])
+    run("GDScript formatting", [str(BIN / ("gdformat" + SUFFIX)), "--check", *all_scripts])
+    run("GDScript lint", [str(BIN / ("gdlint" + SUFFIX)), *all_scripts])
+    shell = shutil.which("sh")
+    if not shell and os.name == "nt":
+        shell = str(Path(os.environ.get("ProgramFiles", "C:/Program Files")) / "Git/bin/sh.exe")
+    if not shell or not Path(shell).is_file():
+        raise RuntimeError("A POSIX shell is required for shell syntax checks (Git for Windows).")
     for script in sorted((ROOT / "scripts").glob("*.sh")):
-        run(f"Shell syntax: {script.name}", ["sh", "-n", str(script)])
+        run(f"Shell syntax: {script.name}", [shell, "-n", str(script)])
     run("Python tooling tests", [sys.executable, "-m", "unittest", "discover",
                                  "-s", "tests", "-p", "*_test.py"])
-    run("Godot project import", [GODOT, "--headless", "--editor", "--path", ".", "--quit"], godot=True)
+    run("Godot project import", [engine, "--headless", "--editor", "--path", ".", "--quit"], godot=True)
     for script in all_scripts:
         run(
             f"Godot parse: {script}",
-            [GODOT, "--headless", "--path", ".", "--check-only", "--script", script],
+            [engine, "--headless", "--path", ".", "--check-only", "--script", script],
             godot=True,
         )
     for test_path in tests:
         run(
             f"Behavior tests: {test_path}",
-            [GODOT, "--headless", "--path", ".", "--script", test_path],
+            [engine, "--headless", "--path", ".", "--script", test_path],
             godot=True,
             test=True,
         )

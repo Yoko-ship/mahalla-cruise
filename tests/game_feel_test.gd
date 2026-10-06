@@ -32,6 +32,7 @@ func _new_game() -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
 	(game.get_node("Progress") as LocalProgressStore).save_path = ""
 	root.add_child(game)
+	game.set_language("en")
 	game.start_run()
 	game.set_process(false)
 	game.player.set_physics_process(false)
@@ -59,17 +60,17 @@ func _test_feedback() -> void:
 	feedback.play_pickup(false)
 	_check(not feedback.som_sound.playing, "Background collections cannot make sounds")
 	feedback.notification(Node.NOTIFICATION_APPLICATION_FOCUS_IN)
-	game.hud.sound_button.button_pressed = false
+	game.hud.menu.preferences.sound_button.button_pressed = false
 	_check(not feedback.sound_enabled, "HUD sound toggle routes through main to feedback")
 	feedback.play_pickup(false)
 	_check(not feedback.som_sound.playing, "Muted collections do not start audio")
-	game.hud.haptics_button.button_pressed = false
+	game.hud.menu.preferences.haptics_button.button_pressed = false
 	_check(not feedback.haptics_enabled, "Vibration has an independent runtime toggle")
 	_check(
 		feedback.settings.sound_enabled and feedback.settings.haptics_enabled,
 		"Toggles never mutate shared defaults"
 	)
-	game.hud.sound_button.button_pressed = true
+	game.hud.menu.preferences.sound_button.button_pressed = true
 	feedback.stop()
 	feedback.play_pickup(false)
 	_check(feedback.som_sound.playing, "Sound can be enabled again")
@@ -97,8 +98,8 @@ func _test_collection_feedback_and_restart() -> void:
 	var frozen := game.traffic.difficulty_progress
 	game.advance(1000.0)
 	_check(game.traffic.difficulty_progress == frozen, "Difficulty stops advancing at game over")
-	game.hud.sound_button.button_pressed = false
-	game.hud.haptics_button.button_pressed = false
+	game.hud.menu.preferences.sound_button.button_pressed = false
+	game.hud.menu.preferences.haptics_button.button_pressed = false
 	game.restart_run()
 	game.player.set_physics_process(false)
 	_check(is_zero_approx(game.traffic.difficulty_progress), "Restart restores initial difficulty")
@@ -110,7 +111,10 @@ func _test_collection_feedback_and_restart() -> void:
 		not feedback.som_sound.playing and not feedback.dollar_sound.playing,
 		"Restart has no leftover sounds"
 	)
-	_check(game.hud.sound_button.text == "Sound off", "HUD retains the selected mute state")
+	_check(
+		game.hud.menu.preferences.sound_button.text == "Sound off",
+		"HUD retains the selected mute state"
+	)
 	game.free()
 
 
@@ -185,7 +189,10 @@ func _measure_traffic(distance: float) -> int:
 		if not cars.is_empty() and cars.back().get_instance_id() != last_id:
 			last_id = cars.back().get_instance_id()
 			spawns += 1
-			alternating = alternating and cars.back().position.x != previous_x
+			if previous_x >= 0.0:
+				alternating = (
+					alternating and (cars.back().position.x < 216.0) != (previous_x < 216.0)
+				)
 			previous_x = cars.back().position.x
 	_check(safe, "Traffic preserves the minimum gap at this difficulty")
 	_check(bounded, "Traffic preserves the active car cap at this difficulty")

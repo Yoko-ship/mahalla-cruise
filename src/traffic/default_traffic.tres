@@ -13,6 +13,7 @@ spawn_y = -60.0
 despawn_y = 840.0
 minimum_gap = 180.0
 collision_half_size = Vector2(20, 36)
+lane_inset_pixels = 12.0
 difficulty_start_metres = 150.0
 difficulty_full_metres = 900.0
 minimum_spawn_scale = 0.72

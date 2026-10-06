@@ -7,9 +7,14 @@ Built with **Godot 4.7.2 Standard and GDScript** using the Compatibility rendere
 
 Tap **Play** on the start screen to drive a white Damas past mahalla gates, non
 shops, and choyxonas. The start screen shows your locally saved best score.
+The interface opens in **Uzbek Latin** (**Boshlash** starts a drive). Choose
+**Русский** or **English** from the start or pause menu. Menus, scoring, hints,
+pickup feedback, and results use the selected language, which survives relaunch.
 Drag with a mouse or one
 finger to steer; the left and right arrow keys also work on a computer. The car
-stays inside the road. Light traffic alternates between two lanes. Collect real
+stays inside the road. Light traffic alternates between two lanes with small
+placement variations, so occasional steering is needed even from the center.
+Cars hold their line once visible. Collect real
 banknote images: **1,000/5,000/10,000/50,000/100,000 soʻm** earn **1/5/10/50/100
 points**. Larger notes appear less often. **$1 earns 10 points**; dollars appear
 in 12% of spawns. These are game values. [Artwork sources](assets/money/README.md).
@@ -27,7 +32,11 @@ An OS-killed app opens at the start screen; unfinished runs are not restored.
 
 Pickups play short chimes: soʻm and dollars have different sounds. Android also
 uses a light vibration pulse. Use **Sound on/off** and **Vibration on/off** to
-toggle feedback; choices last until the app closes. Traffic gradually becomes
+toggle feedback in the start/pause menu; choices persist across app launches.
+Vibration controls appear on Android. Android Back pauses an active drive.
+Scenery fills taller phone screens without black bands. The road keeps its authored
+width, menus remain centered, and resizing pauses the drive safely.
+Traffic gradually becomes
 busier from 150 m to 900 m, then stops increasing. Its speed, minimum gap, and
 three-car limit stay fixed.
 
@@ -40,6 +49,34 @@ cd mahalla-cruise
 
 Source, assets, tests, and documentation are included. Install the development
 tools locally; builds, engine caches, signing keys, and player saves are excluded.
+
+## Run on Windows
+
+With Python 3 and Git for Windows installed, run from PowerShell in the project:
+
+```powershell
+.\scripts\setup_tools.ps1
+.\.venv\Scripts\python.exe scripts/godot.py --path .
+```
+
+Setup installs the pinned formatter/linter in `.venv/` and the official Godot
+4.7.2 Windows engine in `.tools/godot/`, verifying its SHA-512 checksum. No engine
+upgrade or game runtime dependency is introduced. Add `--editor` to open Godot.
+Run the complete checks with `.\scripts\check.ps1`, or `./scripts/check.sh` in
+Git Bash. Format with `.\.venv\Scripts\gdformat.exe src tests`.
+
+Install Android tooling inside the project, then build and play in its emulator:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/setup_android.py
+.\.venv\Scripts\python.exe scripts/android.py run
+```
+
+Java, SDK, export templates, emulator data, editor settings, and the debug key stay
+under ignored `.tools/`. SDK setup presents Google's licenses. Windows emulation
+requires working hardware virtualization and Windows Hypervisor Platform.
+Use `scripts/android.py build` for the ARM64 phone APK, or `build --emulator` for
+the x86_64 emulator APK. See [Android setup and checks](docs/ANDROID.md).
 
 ## Run on Mac
 
@@ -90,7 +127,7 @@ and a 300-line script limit; `.editorconfig` records whitespace conventions.
 Tests cover pointer and keyboard steering, road boundaries, focus loss, settings
 resources, synchronized scrolling, and HUD updates. Traffic tests check spawning,
 spacing, node cleanup, and swept collisions. Game-over tests verify that crashes
-freeze the run and that mouse and simulated touch restart it cleanly. A rendered Mac preview must
+freeze the run and that mouse and simulated touch restart it cleanly. Rendered output must
 also be inspected for visual changes. Physical Android input and performance
 have not been tested yet. Pickup tests cover denomination values, single collection,
 misses, traffic avoidance, bounded cleanup, crash priority, and score reset.
@@ -98,6 +135,12 @@ Feedback tests cover audio selection, mute toggles, burst limits, focus loss,
 crash/restart cleanup, the distance curve, and safe traffic at both ends of it.
 Session tests cover mouse/touch Play, pause, background/foreground notifications,
 frozen traffic and pickups, stale gesture prevention, and first-run persistence.
+Preference tests cover mouse/touch language selection, relaunch, mute/haptics,
+Android Back notifications, damaged settings, backup recovery, protected future
+saves, and failed-write retries. Localization tests verify all three catalogues,
+format placeholders, large scores, and start/pause/result layout bounds. Viewport
+tests cover original/tall/wide portrait layouts, resize pause, gesture cleanup,
+offscreen spawning/removal, safe pickup predictions, and restart placement.
 Save tests cover fresh installs, round trips, backup recovery, invalid data,
 newer-version protection, unknown fields, failed writes, and gameplay integration.
 Tests use isolated paths and never modify the player save.
@@ -141,7 +184,7 @@ for decisions and progress.
 
 ## Run on the Android emulator
 
-The Android toolchain is configured on this Mac. To build, start the virtual
+Android tooling supports Apple Silicon Mac and Windows. To build, start the virtual
 phone, install, and launch the game:
 
 ```sh
@@ -151,7 +194,8 @@ phone, install, and launch the game:
 The emulator launcher uses GPU acceleration and a lighter 720 × 1520 display.
 Use `./scripts/android.sh run --native-resolution` for native Pixel 4 resolution
 checks (1080 × 2280). These settings affect the emulator, not the exported game.
-The debug APK is written to `build/android/mahalla-cruise-debug.apk`.
-See [docs/ANDROID.md](docs/ANDROID.md) for installation on a new Mac, individual
+The ARM64 phone APK is written to `build/android/mahalla-cruise-debug.apk`;
+Windows `run` builds `build/android/mahalla-cruise-emulator.apk` for its x86_64 AVD.
+See [docs/ANDROID.md](docs/ANDROID.md) for installation, individual
 commands, toolchain locations, and troubleshooting. This is a local debug build;
 production signing and store publishing are not configured.

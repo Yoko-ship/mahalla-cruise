@@ -8,6 +8,9 @@ the best. Closing the app before a crash does not save the unfinished run.
 The HUD shows `Best`; game over shows `New best!` for an improvement.
 First play also saves whether the driving hint has been shown. The hint lasts
 six seconds of active play and is not repeated after restart or app relaunch.
+Language, sound, and vibration choices are saved from the start/pause menus.
+New installs use Uzbek Latin with sound and vibration enabled. Russian and English
+are available immediately; saved choices take effect before starting a drive.
 
 Saves are local to the installation. No account, cloud sync, or automatic-backup
 integration has been added by this feature. Android update/restore behavior still
@@ -28,12 +31,22 @@ On this Mac the default directory is
   },
   "onboarding": {
     "driving_hint_seen": true
+  },
+  "preferences": {
+    "language": "uz",
+    "sound_enabled": true,
+    "haptics_enabled": true
   }
 }
 ```
 
 `onboarding` is an optional extension to version 1. Existing v1 files without it
 load with the hint unseen and retain their best score. The flag must be boolean.
+
+`preferences` is also optional in v1. Language accepts `uz`, `ru`, or `en`;
+feedback flags must be booleans. Invalid or absent preference values fall back
+individually to defaults without losing a valid best score or onboarding flag.
+Unknown fields in a valid preferences object are retained when choices change.
 
 Scores must be whole numbers from 0 to 2,147,483,647. Unknown fields in a supported
 document are retained. Missing or malformed data falls back to a valid `.bak`
@@ -51,6 +64,9 @@ is not a guarantee against every storage or power failure.
 On write failure the best remains in memory, results say `(unsaved)`, and the next
 completed run retries the pending save. Unreadable files and newer schema versions
 block writes for that session, preserving data the current build cannot handle.
+Menu preferences show a localized save warning on failure and remain usable for
+the session. Choosing an option again or finishing a run retries unsaved data.
+An unchanged choice with no pending failure does not rewrite the document.
 
 ## Extending the Feature
 

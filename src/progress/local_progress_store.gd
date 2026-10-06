@@ -9,6 +9,9 @@ const MAX_FILE_BYTES: int = 1048576
 
 var best_score: int = 0
 var driving_hint_seen: bool = false
+var language: String = "uz"
+var sound_enabled: bool = true
+var haptics_enabled: bool = true
 var last_error: Error = OK
 var has_unsaved_changes: bool = false
 var _document: Dictionary = ProgressData.defaults()
@@ -18,6 +21,9 @@ var _write_blocked: bool = false
 func load_progress() -> void:
 	best_score = 0
 	driving_hint_seen = false
+	language = "uz"
+	sound_enabled = true
+	haptics_enabled = true
 	last_error = OK
 	has_unsaved_changes = false
 	_write_blocked = false
@@ -33,6 +39,28 @@ func load_progress() -> void:
 		_document = document
 		best_score = int(document.stats.best_score)
 		driving_hint_seen = document.get("onboarding", {}).get("driving_hint_seen", false)
+		var options := ProgressData.preferences(document)
+		language = options.language
+		sound_enabled = options.sound_enabled
+		haptics_enabled = options.haptics_enabled
+
+
+func set_preferences(locale: String, sound: bool, haptics: bool) -> void:
+	if locale not in ProgressData.LANGUAGES:
+		return
+	var changed := language != locale or sound_enabled != sound or haptics_enabled != haptics
+	if not changed and not has_unsaved_changes:
+		return
+	language = locale
+	sound_enabled = sound
+	haptics_enabled = haptics
+	if not _document.get("preferences") is Dictionary:
+		_document.preferences = {}
+	_document.preferences.merge(
+		{"language": locale, "sound_enabled": sound, "haptics_enabled": haptics}, true
+	)
+	last_error = _save()
+	has_unsaved_changes = last_error != OK
 
 
 func mark_driving_hint_seen() -> void:

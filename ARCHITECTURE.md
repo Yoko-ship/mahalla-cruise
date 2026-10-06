@@ -7,8 +7,13 @@ adding cars and scenery while keeping the first Android game manageable.
 ## Engine and Entry Point
 
 Use **Godot 4.7.2 Standard**, GDScript, and the Compatibility renderer.
-`project.godot` starts `src/main.tscn`. The current portrait canvas is 432 × 768;
-Godot scales it to the window. Artwork and HUD layout are authored for that canvas.
+`project.godot` starts `src/main.tscn`. Artwork and driving coordinates are authored
+for 432 × 768. Godot's canvas-items expand mode fills other aspect ratios. Main
+centers that playfield, supplies visible bounds to road/scenery, and passes vertical
+padding to traffic/pickups so objects enter and leave outside the expanded view.
+HUD values follow the playfield; menu/result overlays center in the full viewport.
+Resize pauses an active drive and clears steering gestures. Settings resources and
+local collision coordinates stay unchanged; taller screens reveal more road.
 
 ## Feature Ownership
 
@@ -108,7 +113,7 @@ No wallet is implemented.
 calls it after a successful collection and stops it on crash/restart. It owns two
 bounded AudioStreamPlayers and brief Android vibration pulses. Focus loss also
 stops audio. HUD toggle signals route through main; runtime sound/vibration
-preferences survive a run restart but reset to resource defaults on app launch.
+preferences persist through the progress store and load before the first drive.
 No sibling lookups, global audio service, or new dependency is used.
 
 ## Session and Menu Flow
@@ -119,12 +124,27 @@ The start screen shows the Damas atlas artwork, local best, and Play. The actual
 road car becomes visible when the run starts. Pause shows the current score and
 distance with Resume. Native buttons support keyboard and emulated touch input.
 
+`RunMenu` owns a `MenuPreferences` child for Uzbek Latin, Russian, and English
+selection plus sound/vibration toggles. Choices signal through menu and HUD to
+main, which writes through `LocalProgressStore` and updates audio and presentation.
+The HUD registers three native `Translation` resources and main selects the saved
+locale through Godot's built-in translation server; no autoload is added. Dynamic
+scores, hints, pickup feedback, and menu summaries refresh when language changes.
+Uzbek is the first-install default. The native language names remain untranslated.
+Instructions stay accessible in start/pause menus after the first-drive hint expires.
+Feedback controls appear in menus, leaving only Pause and run values over gameplay.
+Result overlays hide the gameplay labels, wrap large totals, and put unsaved status
+on its own line. HUD numeric labels reduce their font size for long values.
+
 Main responds to focus loss and application suspension by entering PAUSED,
 disabling player input, and stopping pickup feedback. Returning only restores
 focus eligibility; the player must explicitly resume. Pause preserves distance,
 score, world positions, difficulty, and note animation. Player input is cleared
 on every disable/enable, preventing old gestures from continuing. The tree stays
 active for menu input; this feature does not use `SceneTree.paused`.
+Android Back also pauses PLAYING and leaves an already paused run paused. Automatic
+quit-on-back is disabled. Notifications and Android emulator navigation are tested;
+physical-phone navigation verification remains pending.
 
 HUD owns presentation and the first-run hint timer, using `default_hud.tres`
 (six seconds). Main advances that timer only during PLAYING. HUD clears transient
@@ -155,6 +175,13 @@ the next completed run. Unknown fields in supported saves survive round trips.
 Newer schema versions are preserved without writes. See [docs/SAVES.md](docs/SAVES.md)
 for format, recovery limits, and how to extend storage or introduce migrations.
 
+The optional v1 `preferences` object stores language, sound, and haptics. Missing
+or invalid preference fields fall back individually without rejecting a valid
+record. Unknown preference fields survive writes. Menu actions save changes;
+unchanged choices perform no write unless retrying a failure. Save failures keep
+session preferences usable and show a localized menu warning. Collection/frame
+updates still perform no file I/O.
+
 ## Data and Tuning
 
 `CarSettings` contains speed, drag sensitivity, road margin, and lean tuning.
@@ -167,6 +194,10 @@ ignore decorative car lean.
 
 Spawning follows distance travelled, alternates lanes, and requires an open
 vertical gap. It adds at most one car per update, including after a long frame.
+`TrafficSettings.lane_x()` maps a random roll to a position up to 12 pixels inward
+from that lane's center. The position is chosen once at spawn; cars never swerve
+after appearing. Both lanes still have passing room. This closes the previously
+permanently safe center path without changing collision sizes or traffic speed.
 Traffic uses a swept vertical rectangle to catch contact between frames and
 frees passed vehicles during play. On collision it places the struck car at the
 contact point, marks it, and stops the update before any additional spawning.
@@ -220,11 +251,14 @@ requests that work. Do not prebuild a general framework for hypothetical modes.
 
 ## Android Packaging
 
-`export_presets.cfg` builds an ARM64 debug APK using the prebuilt Godot template.
+`export_presets.cfg` builds an ARM64 phone debug APK and a separate x86_64 emulator
+APK using the prebuilt Godot template.
 Export all game resources, including scenes loaded by scripts; exclude `tests/`,
 `scripts/`, and development documents. `scripts/android.sh run` runs the quality
 gate, builds the APK, and installs it on the project emulator. Machine-specific
-SDK paths and signing keys stay outside the repository. See `docs/ANDROID.md`.
+SDK paths and signing keys stay out of version control. Windows installations,
+emulator data, Java, templates, editor settings, and the debug key live in ignored
+`.tools/`; the existing Mac locations remain supported. See `docs/ANDROID.md`.
 
 Android export enables the VIBRATE permission. The emulator launcher allows audio
 output; physical vibration strength still needs a real phone check.
@@ -240,6 +274,18 @@ Architecture boundaries and task scope also require review against these rules;
 the linter cannot establish them. Mac rendering and simulated touch checks do not
 establish Android performance or physical-device compatibility.
 
-The debug APK has been checked on the Pixel 4 API 35 ARM64 emulator for portrait
-layout, touch dragging, collision game over, frozen state, and touch restart.
+Windows uses the same pinned engine/toolkit and gate through `scripts/check.ps1`
+or Git Bash's `scripts/check.sh`. `scripts/setup_tools.ps1` installs tooling under
+`.venv/` and verifies the official Godot SHA-512 checksum before extracting to
+`.tools/godot/`; both directories are ignored. `scripts/godot.py` handles executable
+discovery without shell interpolation. The Android installer supports Windows and
+Mac. Windows uses the private engine's self-contained editor configuration, without
+changing another Godot installation. Export checks the full gate, engine output,
+APK existence, and signature before replacing a previous successful build.
+Installation uses `adb install -r` on a verified project AVD identity and serial.
+
+The debug APK has been checked on Pixel 4 API 35 emulators (ARM64 on Mac and x86_64
+on Windows) for portrait layout, touch dragging, collision game over, frozen state,
+and touch restart. Windows verification also covers expanded phone layout,
+localized preferences, Home/Back pause, and save retention across APK replacement.
 Emulated input and emulator rendering do not establish physical-phone performance.

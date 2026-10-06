@@ -1,6 +1,11 @@
 #!/bin/sh
 set -eu
 
+project_root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+if [ -x "$project_root/.venv/Scripts/python.exe" ]; then
+    exec "$project_root/.venv/Scripts/python.exe" "$project_root/scripts/godot.py" "$@"
+fi
+
 if [ -n "${GODOT_BIN:-}" ]; then
     exec "$GODOT_BIN" "$@"
 fi

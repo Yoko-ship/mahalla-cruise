@@ -1,11 +1,26 @@
 # Android Development
 
-The Android preset builds a local ARM64 debug APK for Mahalla Cruise. Development
-uses Godot 4.7.2 Standard and an Android 15 virtual phone on an Apple Silicon Mac.
+The Android preset builds a local ARM64 phone debug APK for Mahalla Cruise.
+A separate Android Emulator preset builds x86_64 for Windows emulation.
+Both use Godot 4.7.2 Standard and an Android 15 virtual phone. Apple Silicon Mac
+and Windows development are supported; physical-phone validation is still pending.
 
 ## Install the Toolchain
 
-Godot itself and Python 3.9 or newer must already be installed. From the repository root:
+On Windows, first run `scripts/setup_tools.ps1`, then from the repository root:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/setup_android.py
+```
+
+The Windows installer keeps all tools under ignored `.tools/`: `android-sdk/`,
+`java/`, `android-avd/`, `android-user/`, and `godot/editor_data/`. It enables
+self-contained mode only for the project-local Godot engine. Downloads are
+checksum-verified and cached in `.tools/downloads/`; no global environment changes
+are made. Hardware virtualization and Windows Hypervisor Platform must be enabled
+for the accelerated emulator. No system feature is enabled by this installer.
+
+On Apple Silicon Mac, Godot itself and Python 3.9 or newer must already be installed:
 
 ```sh
 python3 scripts/setup_android.py
@@ -14,17 +29,18 @@ python3 scripts/setup_android.py
 The installer downloads Java 17, Android command-line tools 19.0, and the Android
 export templates matching Godot 4.7.2. It checks the base archives against their
 publishers' checksums. Android's SDK manager installs Platform 35, Build Tools
-35.0.1, Platform Tools, the emulator, and the Google APIs ARM64 Android 35 image.
+35.0.1, Platform Tools, the emulator, and a Google APIs Android 35 image
+(ARM64 on Mac; x86_64 on Windows).
 SDK licenses are shown interactively; `--accept-sdk-licenses` accepts them without
 prompts when that is intended. No shell profile changes are required.
 
-The installer creates `Mahalla_API_35`, a Pixel 4 virtual device. Existing
+The installer creates a dedicated Pixel 4 virtual device. Existing
 toolchain directories and an existing AVD are reused. Packages come from
 [Google's SDK tools](https://developer.android.com/tools/sdkmanager),
 [Adoptium](https://github.com/adoptium/temurin17-binaries), and the
 [matching Godot release](https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable).
 
-| Component | Default local location |
+| Component | Default Mac location |
 | --- | --- |
 | Android SDK | `~/Library/Android/sdk` |
 | Java 17 | `~/Library/Java/JavaVirtualMachines/mahalla-temurin-17.jdk/Contents/Home` |
@@ -43,10 +59,12 @@ when adding native plugins or changing the export method.
 ./scripts/android.sh run
 ```
 
-This runs the full quality gate, builds and verifies the signed debug APK, starts
-the project emulator, installs the APK, and opens the game. The emulator uses the Mac GPU (`-gpu host`) with Guest ANGLE for Android
-OpenGL ES compatibility. It starts with a fresh boot each time; startup can take
-around 20 seconds. Close the emulator window when finished.
+On Windows PowerShell, use `.\.venv\Scripts\python.exe scripts/android.py run`.
+This runs the full quality gate, builds and verifies the appropriate signed debug
+APK, starts the project emulator, installs the APK, and opens the game. Both hosts
+use `-gpu host`; Mac also uses Guest ANGLE for Android OpenGL ES compatibility.
+Fresh boots can take a minute. Close the emulator window when finished.
+Use `--headless` with `emulator` or `run` for a virtual device without a window.
 
 Audio output is enabled for pickup chimes. If an older emulator session was
 started with `-no-audio`, close it and start it through this launcher again.
@@ -60,18 +78,32 @@ Individual steps are also available:
 ./scripts/android.sh devices
 ```
 
-`install` installs and launches the existing APK; run `build` first after edits.
-`run` always builds current code. The launcher targets only `Mahalla_API_35` on
-`emulator-5554` and refuses to install into a different emulator. If another AVD
-occupies port 5554, close it before starting this one.
+`build` produces the ARM64 phone APK. On Windows, `build --emulator` produces the
+x86_64 APK that `install` uses. `run` selects the host's emulator build automatically.
+`install` replaces the existing package without clearing its saved data and opens
+it; build first after edits. `run` always builds current code. The launcher verifies
+both the AVD name and serial before installation:
 
-`ANDROID_HOME` and `JAVA_HOME` can override the default build-tool locations.
+| Host | AVD | Serial |
+| --- | --- | --- |
+| Mac | `Mahalla_API_35` | `emulator-5554` |
+| Windows | `Mahalla_Windows_API_35` | `emulator-5580` |
+
+If another AVD occupies that port, close it before starting this one.
+
+On Mac, `ANDROID_HOME` and `JAVA_HOME` can override the default build-tool locations.
 Building updates only the Java and Android SDK paths in Godot's local editor
-settings. The debug key is created on first build and stays outside the repository.
+settings. Windows builds require the project-local engine and update only its
+private editor settings, including `shutdown_adb_on_exit=false` so build completion
+does not disconnect a running emulator. Godot's export plugin otherwise can
+[stop the ADB service on exit](https://github.com/godotengine/godot/blob/master/platform/android/export/export_plugin.cpp).
+The debug key is created on first build and is ignored
+by Git. The signing key must stay the same to replace an installed debug build.
 
 ## Outputs and Diagnostics
 
 - APK: `build/android/mahalla-cruise-debug.apk`.
+- Windows emulator APK: `build/android/mahalla-cruise-emulator.apk`.
 - Godot export output: `build/android/export.log`.
 - Emulator output: `build/android/emulator.log`.
 - Verification screenshots: `build/android/screenshots/` when captured.
@@ -115,7 +147,7 @@ Evidence is in `build/android/feedback-*.log` and
 
 ## Graphics Performance
 
-Use the checked-in launcher to enable `-gpu host -feature GuestAngle` together.
+On Mac, use the checked-in launcher to enable `-gpu host -feature GuestAngle` together.
 It also persists `hw.gpu.enabled=yes` and `hw.gpu.mode=host` in the project AVD.
 Setup updates these keys for existing AVDs too; it retains all emulator user data.
 The previous saved AVD configuration had GPU disabled even though the launcher
@@ -124,7 +156,7 @@ See the official [graphics acceleration guide](https://developer.android.com/stu
 
 Daily development now uses a **720 × 1520** Android display override at 293 dpi.
 This keeps the Pixel 4 aspect ratio and approximately the same logical Android
-UI size while reducing rendered pixels by 56%. Resizing the Mac window alone
+UI size while reducing rendered pixels by 56%. Resizing the emulator window alone
 does not reduce Android's rendering resolution. The exported game is unchanged.
 
 ```sh
@@ -168,3 +200,47 @@ Evidence: `build/android/screenshots/session-*.png` and `session-app.log` in
 The first visible emulator disconnected; validation completed with the same AVD
 running without a window. This verifies emulator lifecycle behavior, not physical
 phone performance. An OS-killed process starts a fresh run from the start screen.
+
+## Windows localization and viewport validation (2026-10-06)
+
+The current signed phone build is 32.3 MiB (ARM64); the emulator build is 34.9 MiB
+(x86_64). The full gate passes 559 game checks and 19 Python tooling tests.
+The project-local Pixel 4 API 35 emulator booted using Windows Hypervisor Platform
+and the host GPU. No physical phone was connected or modified.
+
+- Touch language selection, sound/vibration toggles, Play, left/right steering,
+  collection, collision results, and restart work in the Android package.
+- Home/app return and Android Back pause active play. Paused screenshots remain
+  byte-identical two seconds apart.
+- Replacing the package retained an earned 5-point record, onboarding, Russian,
+  and disabled sound/haptics. This is debug APK replacement, not a store upgrade.
+- Scenery fills the entire 720 × 1520 and 1080 × 2280 display. Start, pause,
+  results, and gameplay were inspected; native-resolution Uzbek gameplay was
+  also checked. A display-density change briefly produced a black transition
+  before the app rendered normally.
+- Runtime logs have no script errors or fatal exceptions. Export inspection
+  confirms separate ABIs, VIBRATE as the only declared permission, and no tests
+  or development scripts in the package.
+
+Evidence: `build/android/screenshots/windows-*.png`,
+`build/android/windows-responsive-app.log`, `build/android/build-manifest.json`,
+and `build/android-final-check.log`. Godot's private editor is configured to keep
+ADB alive after an observed post-build disconnect; commands remained connected
+after the final gate. No claim about physical frame rate, vibration feel, battery
+use, or production update compatibility follows from these emulator checks.
+
+## Traffic placement follow-up (2026-10-06)
+
+The latest 32.3 MiB phone and 34.9 MiB emulator APKs include bounded placement
+variation within the same two lanes. The full gate now passes 583 game checks and
+19 tooling tests. Two-minute steering simulations pass through maximum difficulty
+at 60 and 15 updates per second; those are simulation rates, not measured phone FPS.
+
+On the Windows emulator, touch steering passed cars on both sides, collected
+23 points by 111 m, and Android Back froze the scene. Paused screenshots two seconds
+apart were identical. Gameplay rendering was inspected and no script errors or
+fatal exceptions appeared. The first tap shortly after a cold launch did not
+activate Play; the next tap did. Include startup responsiveness in phone playtests.
+Evidence: `build/android/screenshots/traffic-*.png`, `traffic-app.log`, and
+`build/traffic-final-check.log`. See [PLAYTEST.md](PLAYTEST.md) for the pending
+physical-device and native-speaker session plan.

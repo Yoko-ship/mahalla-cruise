@@ -25,6 +25,7 @@ func _new_game() -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
 	(game.get_node("Progress") as LocalProgressStore).save_path = ""
 	root.add_child(game)
+	game.set_language("en")
 	game.start_run()
 	game.set_process(false)
 	game.player.set_physics_process(false)
@@ -61,7 +62,10 @@ func _test_spawning_and_cleanup() -> void:
 				var gap := absf(cars[index].position.y - cars[index - 1].position.y)
 				spaced = spaced and gap >= game.traffic_settings.minimum_gap
 		if not cars.is_empty() and cars.back().get_instance_id() != last_id:
-			alternating = alternating and not is_equal_approx(cars.back().position.x, last_lane_x)
+			var middle := (game.road_settings.left_edge + game.road_settings.right_edge) * 0.5
+			alternating = (
+				alternating and (cars.back().position.x < middle) != (last_lane_x < middle)
+			)
 			last_lane_x = cars.back().position.x
 			last_id = cars.back().get_instance_id()
 			spawns += 1

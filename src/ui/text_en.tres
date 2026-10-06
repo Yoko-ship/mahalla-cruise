@@ -1,0 +1,31 @@
+[gd_resource type="Translation" format=3]
+
+[resource]
+messages = {
+[&"", &"hint"]: [&"Drag to steer\nCollect money · Avoid cars"],
+[&"", &"restart"]: [&"Drive again"],
+[&"", &"points"]: [&"%d points"],
+[&"", &"play"]: [&"Play"],
+[&"", &"resume"]: [&"Resume"],
+[&"", &"pause"]: [&"Pause"],
+[&"", &"distance"]: [&"%d m"],
+[&"", &"paused"]: [&"Paused"],
+[&"", &"settings"]: [&"Make yourself comfortable"],
+[&"", &"save_warning"]: [&"Changes could not be saved."],
+[&"", &"pickup"]: [&"%s  +%d pts"],
+[&"", &"notes"]: [&"soʻm × %d    ·    $ × %d"],
+[&"", &"haptics_off"]: [&"Vibration off"],
+[&"", &"haptics_on"]: [&"Vibration on"],
+[&"", &"sound_off"]: [&"Sound off"],
+[&"", &"sound_on"]: [&"Sound on"],
+[&"", &"crash_message"]: [&"You hit another car."],
+[&"", &"game_over"]: [&"Game over"],
+[&"", &"run_summary"]: [&"%d pts · %d m"],
+[&"", &"travelled"]: [&"%d m travelled"],
+[&"", &"points_short"]: [&"%d pts"],
+[&"", &"unsaved"]: [&" (unsaved)"],
+[&"", &"new_best"]: [&"New best! %d"],
+[&"", &"best"]: [&"Best: %d"],
+[&"", &"pause_message"]: [&"Continue when you\'re ready."],
+[&"", &"tagline"]: [&"A little drive. A familiar place."]
+}

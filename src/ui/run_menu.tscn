@@ -1,7 +1,8 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://src/ui/run_menu.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/cars/vehicles_aligned.png" id="2"]
+[ext_resource type="PackedScene" path="res://src/ui/menu_preferences.tscn" id="3"]
 
 [sub_resource type="StyleBoxFlat" id="CardStyle"]
 bg_color = Color(0.12549, 0.243137, 0.219608, 1)
@@ -87,7 +88,7 @@ theme_override_constants/margin_bottom = 28
 
 [node name="Content" type="VBoxContainer" parent="Center/Card/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Center/Card/Margin/Content"]
 layout_mode = 2
@@ -101,11 +102,12 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.78, 0.86, 0.81, 1)
 theme_override_font_sizes/font_size = 16
-text = "A little drive. A familiar place."
+text = "tagline"
 horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="Car" type="TextureRect" parent="Center/Card/Margin/Content"]
-custom_minimum_size = Vector2(0, 128)
+custom_minimum_size = Vector2(0, 110)
 layout_mode = 2
 texture_filter = 4
 texture = SubResource("DamasAtlas")
@@ -119,6 +121,7 @@ theme_override_colors/font_color = Color(1, 0.85, 0.47, 1)
 theme_override_font_sizes/font_size = 20
 text = "Best: 0"
 horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="Primary" type="Button" parent="Center/Card/Margin/Content"]
 custom_minimum_size = Vector2(0, 56)
@@ -132,4 +135,15 @@ theme_override_styles/normal = SubResource("ButtonStyle")
 theme_override_styles/hover = SubResource("ButtonHover")
 theme_override_styles/pressed = SubResource("ButtonPressed")
 theme_override_styles/focus = SubResource("ButtonFocus")
-text = "Play"
+text = "play"
+
+[node name="Instructions" type="Label" parent="Center/Card/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.86, 0.81, 1)
+theme_override_font_sizes/font_size = 13
+text = "hint"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Preferences" parent="Center/Card/Margin/Content" instance=ExtResource("3")]
+layout_mode = 2

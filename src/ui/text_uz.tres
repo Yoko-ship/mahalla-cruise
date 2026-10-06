@@ -1,0 +1,32 @@
+[gd_resource type="Translation" format=3]
+
+[resource]
+messages = {
+[&"", &"hint"]: [&"Surib boshqaring\nPul yigʻing · Mashinalardan qoching"],
+[&"", &"restart"]: [&"Yana haydash"],
+[&"", &"points"]: [&"%d ball"],
+[&"", &"play"]: [&"Boshlash"],
+[&"", &"resume"]: [&"Davom etish"],
+[&"", &"pause"]: [&"Pauza"],
+[&"", &"distance"]: [&"%d m"],
+[&"", &"paused"]: [&"Tanaffus"],
+[&"", &"settings"]: [&"Oʻzingizga moslang"],
+[&"", &"save_warning"]: [&"Oʻzgarishlar saqlanmadi."],
+[&"", &"pickup"]: [&"%s  +%d ball"],
+[&"", &"notes"]: [&"soʻm × %d    ·    $ × %d"],
+[&"", &"haptics_off"]: [&"Tebranish yoʻq"],
+[&"", &"haptics_on"]: [&"Tebranish bor"],
+[&"", &"sound_off"]: [&"Ovoz yoʻq"],
+[&"", &"sound_on"]: [&"Ovoz bor"],
+[&"", &"crash_message"]: [&"Mashina bilan toʻqnashdingiz."],
+[&"", &"game_over"]: [&"Safar tugadi"],
+[&"", &"run_summary"]: [&"%d ball · %d m"],
+[&"", &"travelled"]: [&"%d m yoʻl bosildi"],
+[&"", &"points_short"]: [&"%d ball"],
+[&"", &"unsaved"]: [&" (saqlanmadi)"],
+[&"", &"new_best"]: [&"Yangi rekord! %d"],
+[&"", &"best"]: [&"Rekord: %d"],
+[&"", &"pause_message"]: [&"Tayyor boʻlsangiz davom eting."],
+[&"", &"tagline"]: [&"Oʻz mahallang. Oʻz yoʻling."]
+}
+locale = "uz"

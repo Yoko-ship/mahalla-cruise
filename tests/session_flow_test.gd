@@ -30,6 +30,7 @@ func _new_game(path: String = "") -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
 	(game.get_node("Progress") as LocalProgressStore).save_path = path
 	root.add_child(game)
+	game.set_language("en")
 	game.set_process(false)
 	game.player.set_physics_process(false)
 	return game

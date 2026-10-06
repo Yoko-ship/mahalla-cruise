@@ -11,6 +11,7 @@ const SOURCE_RIGHT: float = 674.0
 
 var scroll_offset: float = 0.0
 var _settings: RoadSettings
+var _view_bounds := Rect2(0, 0, 432, 768)
 
 
 func configure(settings: RoadSettings) -> void:
@@ -24,15 +25,22 @@ func advance(travel_pixels: float) -> void:
 	queue_redraw()
 
 
+func set_view_bounds(bounds: Rect2) -> void:
+	_view_bounds = bounds
+	queue_redraw()
+
+
 func _draw() -> void:
 	if _settings == null:
 		return
-	for index in range(-1, 2):
+	var first := floori((_view_bounds.position.y - scroll_offset) / REPEAT_DISTANCE)
+	var last := ceili((_view_bounds.end.y - scroll_offset) / REPEAT_DISTANCE)
+	for index in range(first, last):
 		var y := index * REPEAT_DISTANCE + scroll_offset
 		# Map each curb to the route resource; alternate road widths stay aligned.
-		_draw_strip(y, 0.0, _settings.left_edge, 0.0, SOURCE_LEFT)
+		_draw_strip(y, _view_bounds.position.x, _settings.left_edge, 0.0, SOURCE_LEFT)
 		_draw_strip(y, _settings.left_edge, _settings.right_edge, SOURCE_LEFT, SOURCE_RIGHT)
-		_draw_strip(y, _settings.right_edge, 432.0, SOURCE_RIGHT, STREET.get_width())
+		_draw_strip(y, _settings.right_edge, _view_bounds.end.x, SOURCE_RIGHT, STREET.get_width())
 		_draw_bakery_sign(y)
 
 

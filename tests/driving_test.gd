@@ -14,6 +14,7 @@ func _run() -> void:
 	var scene := MAIN_SCENE.instantiate() as CruiseGame
 	(scene.get_node("Progress") as LocalProgressStore).save_path = ""
 	root.add_child(scene)
+	scene.set_language("en")
 	scene.start_run()
 	var car := scene.get_node("PlayerCar") as PlayerCar
 	scene.set_process(false)
@@ -171,6 +172,7 @@ func _test_resource_configuration() -> void:
 	scene.road_settings.scroll_speed = 100.0
 	(scene.get_node("Progress") as LocalProgressStore).save_path = ""
 	root.add_child(scene)
+	scene.set_language("en")
 	scene.start_run()
 	scene.set_process(false)
 	car.set_physics_process(false)

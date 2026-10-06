@@ -13,6 +13,7 @@ var _settings: PickupSettings
 var _distance_until_spawn: float = 0.0
 var _next_lane: int = 1
 var _random := RandomNumberGenerator.new()
+var _vertical_padding: float = 0.0
 
 
 func configure(road: RoadSettings, settings: PickupSettings) -> void:
@@ -24,6 +25,10 @@ func configure(road: RoadSettings, settings: PickupSettings) -> void:
 	_settings = settings
 	_distance_until_spawn = settings.first_spawn_distance
 	_next_lane = 1
+
+
+func set_vertical_padding(pixels: float) -> void:
+	_vertical_padding = maxf(0.0, pixels)
 
 
 func advance(
@@ -39,7 +44,7 @@ func advance(
 		if previous.merge(item.collection_bounds()).intersects(player_bounds):
 			_remove_item(index)
 			collected.emit(item.points, item.denomination)
-		elif item.position.y > _settings.despawn_y:
+		elif item.position.y > _settings.despawn_y + _vertical_padding:
 			_remove_item(index)
 	_distance_until_spawn = maxf(0.0, _distance_until_spawn - travel_pixels)
 	if _distance_until_spawn <= 0.0 and items.size() < _settings.max_pickups:
@@ -62,7 +67,7 @@ func _try_spawn(
 		if not _is_clear(x, player_bounds, traffic_bounds, traffic_speed_ratio):
 			continue
 		var item := MONEY_SCENE.instantiate() as MoneyPickup
-		item.position = Vector2(x, _settings.spawn_y)
+		item.position = Vector2(x, _settings.spawn_y - _vertical_padding)
 		add_child(item)
 		var dollar := _random.randf() < _settings.dollar_chance
 		var note := _settings.select_note(dollar, _random.randf())
@@ -78,12 +83,13 @@ func _is_clear(
 ) -> bool:
 	# Check the full relative path up to collection, including the gap for steering.
 	# New traffic behind a note cannot catch it because traffic moves more slowly.
-	var travel_to_player := maxf(0.0, player_bounds.get_center().y - _settings.spawn_y)
+	var spawn_y := _settings.spawn_y - _vertical_padding
+	var travel_to_player := maxf(0.0, player_bounds.get_center().y - spawn_y)
 	var half_width := maxf(player_bounds.size.x * 0.5, _settings.collision_half_size.x)
 	for obstacle in traffic_bounds:
 		if obstacle.end.x < x - half_width - 4.0 or obstacle.position.x > x + half_width + 4.0:
 			continue
-		var start_gap := obstacle.get_center().y - _settings.spawn_y
+		var start_gap := obstacle.get_center().y - spawn_y
 		var end_gap := start_gap - travel_to_player * (1.0 - traffic_speed_ratio)
 		var clearance := _settings.traffic_clearance + obstacle.size.y * 0.5
 		clearance += _settings.collision_half_size.y

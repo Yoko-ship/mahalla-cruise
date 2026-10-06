@@ -6,7 +6,24 @@ Mahalla Cruise is a planned 2D Android game for people in Uzbekistan. The goal i
 
 ## Current Status
 
-**Stage: start screen, pause/resume, and first-run guidance implemented.**
+**Stage: localized Android build, full-screen phone layouts, and varied gentle traffic.**
+
+The game now defaults to Uzbek Latin, with Russian and English selectable before
+play or while paused. Menus, instructions, run values, pickups, and results are
+translated. Language, sound, and vibration choices persist across relaunch without
+resetting old records. Feedback controls now sit in the menus with 48-pixel touch
+targets; the road HUD is clearer. Android Back pauses active play. Large result
+values wrap, unsaved records use a separate status line, and HUD values fit their
+badges. The existing game rules and feature ownership remain intact.
+
+On this Windows checkout, Godot 4.7.2 is installed under `.tools/godot/` and pinned
+development tools under `.venv/`. The same full quality gate works through Git Bash
+or `scripts/check.ps1`. Installation verifies the official engine archive checksum.
+Java, Android SDK, emulator, matching export templates, editor settings, and debug
+signing also live under ignored `.tools/`. Windows builds both an ARM64 phone APK
+and an x86_64 emulator APK. Full-screen scenery replaces tall-phone letterboxing;
+road geometry and relative steering remain anchored to the original playfield.
+Current validation results are recorded in the latest work-log entry below.
 
 The game opens on a Damas start screen with the saved best and Play. Pause and
 Resume preserve the active run; app switching pauses automatically and requires
@@ -21,10 +38,13 @@ schema, backup recovery, and protection for saves from newer game versions.
 Player saves live outside the repository in `user://`; tests use isolated paths.
 
 Soʻm and dollars now play distinct short chimes. Android requests 16 ms/26 ms
-vibration pulses at 0.25 strength; sound and vibration have separate HUD toggles.
+vibration pulses at 0.25 strength; sound and vibration have separate menu toggles.
 Traffic ramps from its initial spacing at 150 m to 72% spacing at 900 m, with
 the same three-car cap, minimum gap, and vehicle speed. Restart resets difficulty
-and retains feedback preferences for the current app session.
+and retains saved feedback preferences across app sessions.
+Traffic positions vary up to 12 pixels inward within the existing alternating
+lanes. Each vehicle holds that path once visible; staying in the center is no
+longer permanently safe. Reaction time and passing gaps remain generous.
 
 Collect official banknote images: 1,000/5,000/10,000/50,000/100,000 soʻm award
 1/5/10/50/100 points, with weights 50/28/16/5/1 within soʻm spawns. $1 awards 10.
@@ -48,14 +68,18 @@ describes the boundaries, `AGENTS.md` defines the AI workflow, and
 `./scripts/check.sh` runs the local quality gate. Development tooling uses
 gdtoolkit 4.5.0 in `.venv`.
 
-**Next task:** test pickup audio volume, vibration feel, and the difficulty ramp
-on a physical Android phone. Verify best-score retention across an Android app
-update and relaunch. Cloud saving is not implemented.
+**Next task:** test the complete Uzbek/Russian flow on a physical Android phone,
+including Back, touch targets, readability, audio/vibration feel, and difficulty.
+Verify record and preference retention across an update on that phone; emulator
+APK replacement and relaunch already preserve the earned record and preferences.
+Gather short native-speaker playtests using [docs/PLAYTEST.md](docs/PLAYTEST.md)
+before deciding further gameplay scope.
+Cloud saving is not implemented.
 The intermittent initial emulator launch exit remains outstanding.
 
 ## Agreed Direction
 
-- Target Android phones; development takes place on a Mac.
+- Target Android phones; support Windows development alongside the existing Mac tooling.
 - Build Mahalla Cruise in 2D.
 - Use an angled 2D view showing the Damas body and sides, with matching road, buildings, and traffic. Review one complete gameplay concept before rebuilding individual assets.
 - Use Godot 4 with GDScript. The starter is configured and tested with Godot 4.7.2 Standard and the Compatibility renderer.
@@ -73,6 +97,8 @@ The intermittent initial emulator launch exit remains outstanding.
 - Persist the best completed score locally, keeping save format and storage modular
   for later expansion. Cloud sync and additional saved progression remain future work.
 - Add a start screen, pause/resume when interrupted, and a brief first-drive hint.
+- Default to Uzbek Latin, offer Russian and English, and save language and feedback
+  preferences locally. Keep instructions available in start/pause menus.
 - Add pickup sounds/light vibration and gradual traffic difficulty, as requested
   by the user. Keep the traffic increase capped and maintain generous gaps.
 
@@ -114,7 +140,7 @@ Track asset sources and applicable usage terms when assets are added. Keep sourc
 - Exact art style and first neighborhood or city reference.
 - Final steering feel; current input is relative one-finger dragging.
 - Final traffic, collision, collectible, audio, and vibration tuning.
-- Offline behavior, saving, and language options. Uzbek Latin and optional Russian were suggested earlier, but are not finalized.
+- Any future cloud save behavior; the current game and preferences work locally.
 - Monetization and release plans.
 
 ## Progress Checklist
@@ -144,6 +170,14 @@ Track asset sources and applicable usage terms when assets are added. Keep sourc
 - [x] Add a start screen with Damas, saved best, and Play.
 - [x] Add manual and app-background pause with explicit Resume.
 - [x] Add a timed first-drive hint with compatible local persistence.
+- [x] Add Uzbek Latin, Russian, and English UI with menu language selection.
+- [x] Persist language, sound, and vibration without invalidating older records.
+- [x] Improve menu touch targets, instructions, long-value layouts, and Android Back handling.
+- [x] Install pinned tools inside this Windows project and port the full validation gate.
+- [x] Install project-local Windows Android tools and build separate phone/emulator APKs.
+- [x] Fill tall/wide portrait screens and keep spawning, menus, and resize pause coherent.
+- [x] Verify Windows Android touch, Back/Home pause, localized saves, and APK replacement.
+- [x] Remove the permanently safe center path with bounded within-lane traffic variation.
 - [ ] Test touch controls and performance on a physical Android phone.
 - [ ] Have a few players try it without instructions and record feedback.
 
@@ -333,6 +367,121 @@ patterns. Latest validation passed 307 game checks and four tooling tests.
 Published all 147 project files in initial commit `75f3a11`; verified public
 visibility and `main` tracking `origin/main`. Next: continue physical Android
 playtesting and push subsequent work to this repository.
+
+Uzbekistan usability and Windows update (2026-10-06): read the architecture,
+tracker, feature implementations, and existing behavior suites before choosing
+improvements to the current driving loop. Added Uzbek Latin (default), Russian,
+and English through native translation resources. Start/pause menus expose
+language, sound, vibration, and persistent instructions with larger touch targets.
+Main routes choices to the existing progress and feedback modules. Added optional
+v1 preferences with per-field fallback, unknown-field preservation, backup recovery,
+and visible save-failure feedback. Older records and onboarding remain compatible.
+Android Back now pauses play. Removed feedback buttons from the road HUD, hid
+duplicate HUD values behind results, and handled long scores/unsaved records.
+
+Installed the pinned Godot 4.7.2 Windows engine under `.tools/godot/` after checking
+its official SHA-512, and gdtoolkit 4.5.0 under `.venv/`. Added Windows setup/check
+entry points and shared engine discovery; all full-gate error/timeout/completion
+checks remain active. Downloads and installations are ignored by Git. No engine
+upgrade, game dependency, new feature boundary, or gameplay economy was added.
+
+Validation: the original 307 game checks passed before runtime edits. The updated
+full gate passes **496 game checks and 11 Python tooling tests**, including 189
+new localization/preferences checks and seven new tooling tests. Real mouse and
+simulated touch dispatch exercise language selection; tests cover relaunch,
+malformed preferences, protected newer saves, failed writes/retries, Android Back
+notifications, frozen pause, full translation catalogues, and long-value layouts.
+All pre-existing assertions remain. A fresh copy without `.godot/` imports without
+engine errors. PowerShell entry points passed syntax checks. Reviewed Windows
+Compatibility-renderer screenshots of all three menus and results, gameplay, and
+maximum/unsaved records under `build/previews/`; the Android haptics row was made
+visible for layout inspection only. `build/final-check.log` records the final gate.
+
+No new Android APK was built or run during this Windows pass. Phone performance,
+physical vibration, Android app-update retention, and native-speaker playtests
+remain pending. Next: validate those on a real phone and use observed player
+feedback to choose the next gameplay improvement; market leadership is not an
+outcome established by local automated tests.
+
+Windows Android and viewport update (2026-10-06): installed checksum-verified Java
+17, Android CLI 19.0, SDK/build tools, x86_64 API 35 emulator, and matching Godot
+Android templates under ignored `.tools/`. The user authorized project-local
+installation. Added host-specific tool locations and a Windows installer without
+global environment changes. Windows uses its own AVD/serial and private Godot
+editor settings. Added an x86_64 export preset; ARM64 remains the phone build.
+Exports require the full gate and valid signing before replacing the previous APK.
+Installation verifies the project emulator and uses package replacement without
+clearing data. Disabled Godot's ADB shutdown only in the private Windows editor
+after observing connection loss immediately after builds.
+
+The emulator exposed black bands on tall phones. Enabled canvas expansion and
+centered the original driving playfield. Road/scenery cover the visible bounds;
+traffic and money spawn/despawn beyond the extended edges. Pickup traffic
+prediction uses the actual spawn position. Menu/results use the full viewport,
+HUD follows the road, and resize pauses safely and clears an old drag. Resources,
+lane widths, collision coordinates, and steering values remain unchanged. Tall
+screens reveal additional road; physical-device difficulty comparison is pending.
+
+Validation: the full gate passes **559 game checks and 19 Python tooling tests**,
+including 63 new viewport checks and eight new Android tooling tests. No existing
+assertion was removed. Localization layout tests explicitly use the original
+432 × 768 viewport; expanded sizes have separate regression coverage.
+Reviewed tall and wide portrait Windows renders. On the dedicated Windows API 35
+emulator, verified touch language/feedback selection, Play, left/right drags,
+collection, collision at 61 m with a saved 5-point record, and touch restart.
+Home/app return and Android Back both paused, with identical screenshots two
+seconds apart. Replacing the APK retained the earned record, onboarding, language,
+sound, and vibration choices. Reviewed 720 × 1520 and native 1080 × 2280 output.
+Runtime logs contain no script errors or fatal exceptions. Evidence is in
+`build/android/screenshots/windows-*.png` and `windows-responsive-app.log`.
+Signed outputs: 32.3 MiB ARM64 phone APK and 34.9 MiB x86_64 emulator APK. Verified
+their ABI separation, VIBRATE-only declared permission, and exclusion of source
+tests/tooling. SHA-256 checksums are in `build/android/build-manifest.json`; the
+final gate is recorded in `build/android-final-check.log`. Android commands
+remained connected after the gate with the private ADB shutdown option disabled.
+
+Phone hardware, audible/haptic feel, battery/thermal behavior, release signing,
+store readiness, and native-speaker playtests remain unverified. This is an
+improved testable prototype; market leadership is not established. Next: run the
+ARM64 debug build on a physical phone and gather short Uzbek/Russian playtests
+before expanding the gameplay loop.
+
+Traffic play-quality update (2026-10-06): a five-minute simulation on both the
+original and tall-phone viewports showed that a motionless center car could travel
+3,300 m and earn 1,425/1,415 points without encountering traffic. The two fixed lane
+centers left a permanently safe gap. Added typed `lane_inset_pixels` tuning (12 px)
+and a bounded placement sampler. Cars still alternate the same two lanes, remain
+inside their lane, and keep a straight path. Spawn rate, speed, collision boxes,
+vehicle cap, and minimum spacing stay the same. New sample center runs encountered
+traffic after 8.1/8.8 seconds; those are observed samples, not guaranteed timers.
+
+Validation: the full gate passes **583 game checks and 19 tooling tests**. The 24
+new checks cover both placement extremes, passing room, stationary-path coverage,
+resource immutability, actual lane alternation, straight trajectories, and two-minute
+steered runs through maximum difficulty at 60 and 15 simulation updates per second.
+Existing alternation assertions now compare lane sides rather than unequal x
+coordinates. No failing assertion was removed. The low-rate simulation establishes
+control feasibility, not physical-phone FPS or subjective fairness.
+
+Rebuilt both signed APKs. On the Windows API 35 emulator, two opposite touch drags
+passed visible traffic and collected 23 points by 111 m. Android Back froze the run;
+screenshots two seconds apart were identical. Inspected the 720 × 1520 gameplay
+render, and runtime logs show no script errors or fatal exceptions. An initial tap
+soon after cold launch did not start play; a repeated tap worked. Startup input
+readiness remains a phone-playtest observation rather than a diagnosed game defect.
+Evidence: `build/play-quality-baseline.json`, `play-quality-varied.json`,
+`build/traffic-final-check.log`, `build/android/screenshots/traffic-*.png`, and
+`build/android/traffic-app.log`. Updated APKs remain under `build/android/`.
+
+For market context, the current developer listings for
+[Uzbek Driver](https://play.google.com/store/apps/details?id=com.theabdullayev.uzbekgamings)
+and [SNG Traffic Racing](https://play.google.com/store/apps/details?id=com.tisoft.uztrafficracing2)
+emphasize car tuning and multiple driving modes. These listings describe competitors;
+they do not prove which features our audience wants. The working product hypothesis
+remains a quick offline mahalla drive with one-finger controls and local languages.
+Added a ten-minute phone playtest guide with observation prompts and a results table.
+No player feedback, market demand, or retention result is claimed. Next: use real
+phone and native-speaker evidence to tune reaction time, collision clarity, and feel.
 
 ## Running and Checking the Starter
 

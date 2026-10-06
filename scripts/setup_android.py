@@ -114,6 +114,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--accept-sdk-licenses', action='store_true')
     args = parser.parse_args()
+    if sys.platform == 'win32':
+        from setup_android_windows import setup
+        setup(args.accept_sdk_licenses)
+        return
     if sys.platform != 'darwin' or platform.machine() != 'arm64':
         raise SystemExit('This installer targets Apple Silicon macOS; see docs/ANDROID.md.')
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as pool:

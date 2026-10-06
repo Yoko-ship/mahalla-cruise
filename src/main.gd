@@ -47,14 +47,33 @@ func _ready() -> void:
 	hud.resume_requested.connect(resume_run)
 	hud.sound_toggled.connect(_on_sound_toggled)
 	hud.haptics_toggled.connect(_on_haptics_toggled)
-	hud.set_feedback_options(pickup_feedback.sound_enabled, pickup_feedback.haptics_enabled)
+	hud.language_selected.connect(set_language)
 	hud.set_distance(distance_metres)
 	hud.set_score(score, som_collected, dollars_collected)
 	progress.load_progress()
+	_apply_preferences()
 	hud.set_best(progress.best_score)
 	player.set_driving_enabled(false)
 	player.hide()
 	hud.show_start(progress.best_score)
+	get_viewport().size_changed.connect(_layout_world)
+	_layout_world()
+
+
+func _layout_world() -> void:
+	var design_size := Vector2(
+		ProjectSettings.get_setting("display/window/size/viewport_width"),
+		ProjectSettings.get_setting("display/window/size/viewport_height")
+	)
+	var viewport_size := get_viewport_rect().size
+	position = (viewport_size - design_size) * 0.5
+	var visible_bounds := Rect2(-position, viewport_size)
+	road.set_view_bounds(visible_bounds)
+	scenery.set_view_bounds(visible_bounds)
+	traffic.set_vertical_padding(position.y)
+	pickups.set_vertical_padding(position.y)
+	pause_run()
+	hud.set_playfield_offset(position)
 
 
 func start_run() -> void:
@@ -94,6 +113,8 @@ func _notification(what: int) -> void:
 		pause_run()
 	elif what == NOTIFICATION_APPLICATION_FOCUS_IN or what == NOTIFICATION_APPLICATION_RESUMED:
 		_focused = true
+	elif what == NOTIFICATION_WM_GO_BACK_REQUEST:
+		pause_run()
 
 
 func _process(delta: float) -> void:
@@ -156,13 +177,28 @@ func _on_money_collected(points: int, note: BanknoteDefinition) -> void:
 
 
 func _on_sound_toggled(enabled: bool) -> void:
-	pickup_feedback.set_sound_enabled(enabled)
-	hud.set_feedback_options(pickup_feedback.sound_enabled, pickup_feedback.haptics_enabled)
+	progress.set_preferences(progress.language, enabled, progress.haptics_enabled)
+	_apply_preferences()
 
 
 func _on_haptics_toggled(enabled: bool) -> void:
-	pickup_feedback.set_haptics_enabled(enabled)
-	hud.set_feedback_options(pickup_feedback.sound_enabled, pickup_feedback.haptics_enabled)
+	progress.set_preferences(progress.language, progress.sound_enabled, enabled)
+	_apply_preferences()
+
+
+func set_language(locale: String) -> void:
+	progress.set_preferences(locale, progress.sound_enabled, progress.haptics_enabled)
+	_apply_preferences()
+
+
+func _apply_preferences() -> void:
+	TranslationServer.set_locale(progress.language)
+	pickup_feedback.set_sound_enabled(progress.sound_enabled)
+	pickup_feedback.set_haptics_enabled(progress.haptics_enabled)
+	hud.refresh_text()
+	hud.set_feedback_options(
+		progress.sound_enabled, progress.haptics_enabled, progress.has_unsaved_changes
+	)
 
 
 func _on_traffic_contacted() -> void:

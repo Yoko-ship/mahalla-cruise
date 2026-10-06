@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and run the debug APK on the project's ARM64 Android emulator."""
+"""Build and run signed debug APKs on the dedicated project Android emulator."""
 
 import argparse
 import json
@@ -10,18 +10,22 @@ import subprocess
 import sys
 import time
 
-from emulator_config import avd_config_path, configure_gpu
+from android_paths import ROOT, TOOLS, WINDOWS, environment, executable, tool_paths
+from emulator_config import configure_gpu
+from godot import find_engine
 
-ROOT = Path(__file__).resolve().parent.parent
-SDK = Path(os.environ.get("ANDROID_HOME", Path.home() / "Library/Android/sdk"))
-JAVA = Path(os.environ.get("JAVA_HOME", Path.home() / "Library/Java/JavaVirtualMachines/mahalla-temurin-17.jdk/Contents/Home"))
-ENV = {**os.environ, "JAVA_HOME": str(JAVA), "ANDROID_HOME": str(SDK), "ANDROID_SDK_ROOT": str(SDK)}
+PATHS = tool_paths()
+SDK = PATHS["sdk"]
+JAVA = PATHS["java"]
+ENV = environment()
 BUILD = ROOT / "build/android"
 APK = BUILD / "mahalla-cruise-debug.apk"
-AVD = "Mahalla_API_35"
-SERIAL = "emulator-5554"
+EMULATOR_APK = BUILD / "mahalla-cruise-emulator.apk"
+AVD = PATHS["avd"]
+SERIAL = PATHS["serial"]
 PACKAGE = "com.example.mahallacruise"
-ADB = SDK / "platform-tools/adb"
+ADB = executable(SDK / "platform-tools/adb")
+SIGNER = executable(SDK / "build-tools/35.0.1/apksigner", batch=True)
 
 
 def run(arguments, **kwargs):
@@ -30,36 +34,45 @@ def run(arguments, **kwargs):
 
 
 def require_tools():
-    for path in (JAVA / "bin/java", ADB, SDK / "build-tools/35.0.1/apksigner"):
+    for path in (executable(JAVA / "bin/java"), ADB, SIGNER):
         if not path.is_file():
             raise RuntimeError(f"Missing {path}. Follow docs/ANDROID.md to set up the toolchain.")
 
 
 def configure_editor():
-    path = Path.home() / "Library/Application Support/Godot/editor_settings-4.7.tres"
+    path = PATHS["editor"]
+    if WINDOWS and Path(find_engine()).parent != TOOLS / "godot":
+        raise RuntimeError("Windows Android exports require the project-local Godot installation.")
     if not path.is_file():
-        run([ROOT / "scripts/godot.sh", "--headless", "--editor", "--path", ".", "--quit"])
-    contents = path.read_text()
-    for name, value in (("java_sdk_path", JAVA), ("android_sdk_path", SDK)):
+        run([find_engine(), "--headless", "--editor", "--path", ".", "--quit"])
+    contents = path.read_text(encoding="utf-8")
+    settings = {
+        "java_sdk_path": json.dumps(JAVA.as_posix()),
+        "android_sdk_path": json.dumps(SDK.as_posix()),
+    }
+    if WINDOWS:
+        # Only the private editor: exports must not disconnect the running AVD.
+        settings["shutdown_adb_on_exit"] = "false"
+    for name, value in settings.items():
         key = "export/android/" + name
-        replacement = key + " = " + json.dumps(str(value))
+        replacement = key + " = " + value
         pattern = re.compile(r"^" + re.escape(key) + r"\s*=.*$", re.MULTILINE)
         if pattern.search(contents):
             contents = pattern.sub(lambda match: replacement, contents)
         else:
             contents = contents.rstrip() + "\n" + replacement + "\n"
-    path.write_text(contents)
+    path.write_text(contents, encoding="utf-8")
 
 
-def build():
+def build(for_emulator=False):
     require_tools()
-    run([ROOT / "scripts/check.sh"])
+    run([sys.executable, ROOT / "scripts/check.py"])
     configure_editor()
-    key = Path.home() / "Library/Application Support/Godot/keystores/debug.keystore"
+    key = PATHS["key"]
     if not key.exists():
         key.parent.mkdir(parents=True, exist_ok=True)
         run([
-            JAVA / "bin/keytool", "-genkeypair", "-keystore", key,
+            executable(JAVA / "bin/keytool"), "-genkeypair", "-keystore", key,
             "-storepass", "android", "-keypass", "android", "-alias", "androiddebugkey",
             "-dname", "CN=Android Debug,O=Android,C=US", "-keyalg", "RSA", "-validity", "10000",
         ], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
@@ -70,18 +83,19 @@ def build():
     })
     BUILD.mkdir(parents=True, exist_ok=True)
     # Export to a temporary APK so a failed export cannot leave a stale success artifact.
-    pending = BUILD / "mahalla-cruise-pending.apk"
+    output = EMULATOR_APK if for_emulator else APK
+    pending = output.with_name(output.stem + "-pending.apk")
     pending.unlink(missing_ok=True)
     result = run([
-        ROOT / "scripts/godot.sh", "--headless", "--path", ".",
-        "--export-debug", "Android", pending,
-    ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, check=False)
-    (BUILD / "export.log").write_text(result.stdout)
+        find_engine(), "--headless", "--path", ".",
+        "--export-debug", "Android Emulator" if for_emulator else "Android", pending,
+    ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, encoding="utf-8", check=False)
+    (BUILD / "export.log").write_text(result.stdout, encoding="utf-8")
     if result.returncode or re.search(r"(?:SCRIPT ERROR:|ERROR:|Parse Error:)", result.stdout) or not pending.is_file():
         raise RuntimeError("Android export failed; see build/android/export.log")
-    run([SDK / "build-tools/35.0.1/apksigner", "verify", pending])
-    pending.replace(APK)
-    print(f"Built {APK} ({APK.stat().st_size / 1048576:.1f} MiB)")
+    run([SIGNER, "verify", pending])
+    pending.replace(output)
+    print(f"Built {output} ({output.stat().st_size / 1048576:.1f} MiB)")
 
 
 def device_is_ours():
@@ -92,22 +106,29 @@ def device_is_ours():
     return result.returncode == 0 and AVD in result.stdout.splitlines()
 
 
-def start_emulator(native_resolution=False):
+def start_emulator(native_resolution=False, headless=False):
     require_tools()
     process = None
     run([ADB, "start-server"], stdout=subprocess.DEVNULL)
     if not device_is_ours():
         devices = run([ADB, "devices"], stdout=subprocess.PIPE, text=True).stdout
         if SERIAL in devices:
-            raise RuntimeError("Port 5554 belongs to another device; close that emulator first.")
-        configure_gpu(avd_config_path(AVD))
+            raise RuntimeError(f"{SERIAL} belongs to another device; close that emulator first.")
+        avd_root = Path(ENV.get("ANDROID_AVD_HOME", Path.home() / ".android/avd"))
+        configure_gpu(avd_root / (AVD + ".avd/config.ini"))
         BUILD.mkdir(parents=True, exist_ok=True)
         with (BUILD / "emulator.log").open("w") as log:
-            process = subprocess.Popen([
-                str(SDK / "emulator/emulator"), "-avd", AVD, "-port", "5554",
+            arguments = [
+                str(executable(SDK / "emulator/emulator")), "-avd", AVD, "-port", SERIAL.split("-")[1],
                 "-memory", "2048", "-cores", "2", "-gpu", "host",
-                "-feature", "GuestAngle", "-no-snapshot", "-no-boot-anim",
-            ], env=ENV, stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
+                "-no-snapshot", "-no-boot-anim",
+            ]
+            if not WINDOWS:
+                arguments += ["-feature", "GuestAngle"]
+            if headless:
+                arguments += ["-no-window"]
+            launch_options = {"creationflags": subprocess.CREATE_NO_WINDOW} if WINDOWS else {"start_new_session": True}
+            process = subprocess.Popen(arguments, env=ENV, stdout=log, stderr=subprocess.STDOUT, **launch_options)
     print("Waiting for Android to boot...", flush=True)
     deadline = time.monotonic() + 180
     while time.monotonic() < deadline:
@@ -140,9 +161,10 @@ def install():
     require_tools()
     if not device_is_ours():
         raise RuntimeError("Start the project emulator with ./scripts/android.sh emulator")
-    if not APK.exists():
-        raise RuntimeError("Build the APK first with ./scripts/android.sh build")
-    run([ADB, "-s", SERIAL, "install", "-r", APK])
+    apk = EMULATOR_APK if WINDOWS else APK
+    if not apk.exists():
+        raise RuntimeError("Build the APK first (use build --emulator for the Windows emulator)")
+    run([ADB, "-s", SERIAL, "install", "-r", apk])
     run([ADB, "-s", SERIAL, "shell", "am", "force-stop", PACKAGE])
     run([
         ADB, "-s", SERIAL, "shell", "am", "start", "-W",
@@ -156,17 +178,19 @@ def main():
     parser.add_argument("command", choices=("build", "emulator", "install", "run", "devices"))
     parser.add_argument("--native-resolution", action="store_true",
                         help="Use the native Pixel 4 display with emulator/run; default is lighter 720p")
+    parser.add_argument("--emulator", action="store_true", help="Build x86_64 APK for emulator testing")
+    parser.add_argument("--headless", action="store_true", help="Start the emulator without a visible window")
     args = parser.parse_args()
     command = args.command
     if command == "build":
-        build()
+        build(args.emulator)
     elif command == "emulator":
-        start_emulator(args.native_resolution)
+        start_emulator(args.native_resolution, args.headless)
     elif command == "install":
         install()
     elif command == "run":
-        build()
-        start_emulator(args.native_resolution)
+        build(WINDOWS)
+        start_emulator(args.native_resolution, args.headless)
         install()
     else:
         require_tools()

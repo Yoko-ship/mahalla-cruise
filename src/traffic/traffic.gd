@@ -14,6 +14,7 @@ var _settings: TrafficSettings
 var _distance_until_spawn: float = 0.0
 var _next_lane: int = 0
 var _random := RandomNumberGenerator.new()
+var _vertical_padding: float = 0.0
 
 
 func configure(road: RoadSettings, settings: TrafficSettings) -> void:
@@ -27,6 +28,10 @@ func configure(road: RoadSettings, settings: TrafficSettings) -> void:
 	difficulty_progress = 0.0
 	_distance_until_spawn = settings.first_spawn_distance
 	_next_lane = _random.randi_range(0, 1)
+
+
+func set_vertical_padding(pixels: float) -> void:
+	_vertical_padding = maxf(0.0, pixels)
 
 
 func set_distance(metres: float) -> void:
@@ -55,7 +60,7 @@ func advance(travel_pixels: float, player_bounds: Rect2) -> void:
 			vehicle.mark_contacted()
 			contacted.emit()
 			return
-		if vehicle.position.y > _settings.despawn_y:
+		if vehicle.position.y > _settings.despawn_y + _vertical_padding:
 			vehicles.remove_at(index)
 			vehicle.queue_free()
 	_distance_until_spawn -= travel_pixels
@@ -67,7 +72,7 @@ func _can_spawn() -> bool:
 	if vehicles.size() >= _settings.max_vehicles:
 		return false
 	for vehicle in vehicles:
-		if vehicle.position.y - _settings.spawn_y < _settings.minimum_gap:
+		if vehicle.position.y - (_settings.spawn_y - _vertical_padding) < _settings.minimum_gap:
 			return false
 	return true
 
@@ -81,9 +86,9 @@ func blocking_bounds() -> Array[Rect2]:
 
 func _spawn_vehicle() -> void:
 	var vehicle := CAR_SCENE.instantiate() as TrafficCar
-	var lane_fraction := 0.25 if _next_lane == 0 else 0.75
 	vehicle.position = Vector2(
-		lerpf(_road.left_edge, _road.right_edge, lane_fraction), _settings.spawn_y
+		_settings.lane_x(_road.left_edge, _road.right_edge, _next_lane, _random.randf()),
+		_settings.spawn_y - _vertical_padding
 	)
 	add_child(vehicle)
 	vehicle.configure(

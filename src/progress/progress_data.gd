@@ -4,6 +4,7 @@ extends RefCounted
 
 const VERSION: int = 1
 const MAX_SCORE: int = 2147483647
+const LANGUAGES: Array[String] = ["uz", "ru", "en"]
 
 
 static func defaults() -> Dictionary:
@@ -36,6 +37,20 @@ static func is_supported(document: Dictionary) -> bool:
 static func is_newer(document: Dictionary) -> bool:
 	var version: Variant = document.get("version")
 	return is_integer(version) and version > VERSION
+
+
+static func preferences(document: Dictionary) -> Dictionary:
+	# Optional settings must never make an otherwise valid record unreadable.
+	var result := {"language": "uz", "sound_enabled": true, "haptics_enabled": true}
+	var saved: Variant = document.get("preferences", {})
+	if not saved is Dictionary:
+		return result
+	if saved.get("language") is String and saved.language in LANGUAGES:
+		result.language = saved.language
+	for key: String in ["sound_enabled", "haptics_enabled"]:
+		if saved.get(key) is bool:
+			result[key] = saved[key]
+	return result
 
 
 static func is_integer(value: Variant) -> bool:
