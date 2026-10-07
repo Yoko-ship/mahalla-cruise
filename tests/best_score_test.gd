@@ -29,24 +29,33 @@ func _run() -> void:
 	_crash(game)
 	_check(game.is_game_over, "Actual traffic collision ends the scored run")
 	_check(game.progress.best_score == expected, "Crash records the final score")
-	_check(game.hud.best_result.text == "New best! %d" % expected, "Record gets a celebration")
+	_check(
+		game.hud.game_over_panel.best_result.text == "New best! %d" % expected,
+		"Record gets a celebration"
+	)
 	_check(game.hud.best_label.text == "Best: %d" % expected, "HUD displays the saved record")
 	var saved := FileAccess.get_file_as_string(_path)
 	game.advance(50.0)
 	_check(FileAccess.get_file_as_string(_path) == saved, "Frozen frames never rewrite the record")
-	game.hud.restart_button.pressed.emit()
+	game.hud.game_over_panel.restart_button.pressed.emit()
 	game.player.set_physics_process(false)
 	_check(
 		game.score == 0 and game.progress.best_score == expected, "Restart retains only the best"
 	)
-	_check(game.hud.best_result.text == "Best: %d" % expected, "Restart clears the celebration")
+	_check(
+		game.hud.game_over_panel.best_result.text == "Best: %d" % expected,
+		"Restart clears the celebration"
+	)
 	game.free()
 	game = _new_game()
 	_check(game.progress.best_score == expected, "Reopening the scene loads persistent data")
 	_check(game.hud.best_label.text == "Best: %d" % expected, "Reopened HUD shows the record")
 	game.score = expected
 	_crash(game)
-	_check(game.hud.best_result.text == "Best: %d" % expected, "Ties do not show New best")
+	_check(
+		game.hud.game_over_panel.best_result.text == "Best: %d" % expected,
+		"Ties do not show New best"
+	)
 	game.restart_run()
 	game.player.set_physics_process(false)
 	_crash(game)

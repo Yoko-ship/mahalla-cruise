@@ -24,6 +24,29 @@ with a clear road. **Best** shows the highest completed run and persists locally
 across app launches. Beating it shows **New best!** on game over. Artwork,
 controls, and tuning remain provisional.
 
+**Close calls:** passing a car within a few pixels without touching earns 3
+points. Chaining close calls quickly builds a combo (×2 … ×5). Results show how
+many close calls the run had (when there was at least one).
+
+Close calls also play a rising whoosh (higher with each combo step) and, on
+Android, a 12 ms pulse; both follow the Sound/Vibration toggles.
+
+**Sheep crossing:** from 250 m, every 600–1,000 m a flock of two or three sheep
+walks across the road. One road edge always stays open; hitting a sheep ends the
+run ("The sheep had right of way!"). The sheep are simple drawn placeholders.
+
+**Daily tasks:** open **Tasks** on the start screen. Each day draws three tasks of
+different kinds (collect notes, close calls, distance or score in one run, number
+of drives) from a pool of ten. Progress updates when a run ends; finished tasks pay
+40–120 points into the wallet and are listed on the results screen.
+
+**Garage:** every finished run adds its points to a saved wallet. Open **Garage**
+from the start screen or results to buy and select cars. Each car has its own
+speed, control, and size: Damas (free), Matiz (300), Cobalt (1,000), and Gentra
+(2,500). Matiz, Cobalt, and Gentra currently use **temporary test art**: the
+traffic sedan repainted red, white, and black and resized to each car's size.
+Car stats and prices are in `src/garage/`.
+
 Use **Pause** (or **Escape** on desktop) to freeze the run, then **Resume** to
 continue. Switching apps also pauses; returning never resumes automatically.
 The first drive shows a six-second “Drag to steer / Collect money · Avoid cars”
@@ -157,7 +180,9 @@ CI is not configured; run the local quality gate before pushing.
 | `src/scenery/` | Decorative buildings and trees. |
 | `src/traffic/` | Spawning, contact detection, sedan sprites, and traffic settings. |
 | `src/pickups/` | Money spawning, collection, banknote visuals, and point values. |
-| `src/progress/` | Versioned save data, local persistence, and recovery. |
+| `src/progress/` | Versioned save data, local persistence, wallet, and recovery. |
+| `src/garage/` | Car roster, per-car stats and prices, and the garage screen. |
+| `src/daily/` | Daily task pool, today's draw and progress, and the tasks screen. |
 | `src/ui/` | HUD, shared start/pause menu, hint timing resource, and display logic. |
 | `tests/`, `scripts/` | Behavior checks and development commands. |
 

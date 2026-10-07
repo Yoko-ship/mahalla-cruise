@@ -17,3 +17,7 @@ lane_inset_pixels = 12.0
 difficulty_start_metres = 150.0
 difficulty_full_metres = 900.0
 minimum_spawn_scale = 0.72
+near_miss_gap = 10.0
+near_miss_points = 3
+near_miss_combo_pixels = 1600.0
+near_miss_max_combo = 5

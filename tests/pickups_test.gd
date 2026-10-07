@@ -95,9 +95,12 @@ func _test_crash_and_reset() -> void:
 	game.advance(0.5)
 	_check(game.is_game_over, "Collision still ends a run containing money")
 	_check(game.score == before, "Crash takes priority over a pickup in the same frame")
-	_check(game.hud.score_result.text == "%d points" % before, "Game over keeps the final score")
 	_check(
-		game.hud.money_result.text == "soʻm × 1    ·    $ × 0",
+		game.hud.game_over_panel.score_result.text == "%d points" % before,
+		"Game over keeps the final score"
+	)
+	_check(
+		game.hud.game_over_panel.money_result.text == "soʻm × 1    ·    $ × 0",
 		"Game over shows the currency counts"
 	)
 	_check(not game.hud.pickup_label.visible, "Game over clears transient collection feedback")
@@ -107,7 +110,7 @@ func _test_crash_and_reset() -> void:
 	_check(note.position == frozen_position, "Money stops moving after a crash")
 	_check(note.visual.phase == frozen_phase, "Collectible animation also freezes")
 	_check(game.score == before, "Game-over frames cannot change the score")
-	game.hud.restart_button.pressed.emit()
+	game.hud.game_over_panel.restart_button.pressed.emit()
 	_check(not game.is_game_over, "The restart signal starts a fresh scored run")
 	_check(
 		game.score == 0 and game.som_collected == 0 and game.dollars_collected == 0,

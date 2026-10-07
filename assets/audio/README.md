@@ -5,6 +5,8 @@ No recordings, third-party samples, or external packages are used.
 
 - `som_pickup.wav`: 0.20-second two-note chime.
 - `dollar_pickup.wav`: 0.30-second brighter three-note chime.
+- `close_call.wav`: 0.28-second rising filtered-noise whoosh for near misses.
+  Runtime pitch rises 6% per combo step; Android adds a 12 ms pulse.
 
 Both files are mono 44.1 kHz, 16-bit PCM WAV. Smooth attacks and tails avoid abrupt
 waveform edges. Source peak is 0.55; runtime gain defaults to -8 dB.

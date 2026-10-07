@@ -9,6 +9,8 @@ signal resume_requested
 signal sound_toggled(enabled: bool)
 signal haptics_toggled(enabled: bool)
 signal language_selected(locale: String)
+signal garage_requested
+signal car_chosen(id: String)
 
 const TRANSLATIONS: Array[Translation] = [
 	preload("res://src/ui/text_uz.tres"),
@@ -19,12 +21,9 @@ const TRANSLATIONS: Array[Translation] = [
 @export var settings: HUDSettings
 
 var _game_over: bool = false
-var _pickup_tween: Tween
 var _hint_remaining: float = 0.0
 var _metres: float = 0.0
 var _points: int = 0
-var _som: int = 0
-var _dollars: int = 0
 var _best: int = 0
 var _record: bool = false
 var _unsaved: bool = false
@@ -33,30 +32,33 @@ var _haptics: bool = true
 var _playfield_offset := Vector2.ZERO
 
 @onready var distance_label: Label = $Distance
-@onready var game_over_panel: Control = $GameOver
-@onready var result_label: Label = $GameOver/Card/Margin/Content/Result
-@onready var restart_button: Button = $GameOver/Card/Margin/Content/Restart
+@onready var game_over_panel: ResultsPanel = $GameOver
 @onready var controls_label: Label = $Controls
 @onready var score_label: Label = $Score
-@onready var pickup_label: Label = $PickupFeedback
-@onready var score_result: Label = $GameOver/Card/Margin/Content/ScoreResult
-@onready var money_result: Label = $GameOver/Card/Margin/Content/MoneyResult
+@onready var pickup_label: FeedbackPopup = $PickupFeedback
 @onready var best_label: Label = $Best
-@onready var best_result: Label = $GameOver/Card/Margin/Content/BestResult
 @onready var menu: RunMenu = $RunMenu
 @onready var pause_button: Button = $Pause
+@onready var garage_menu: GarageMenu = $GarageMenu
+@onready var daily_menu: DailyMenu = $DailyMenu
 
 
 func _ready() -> void:
 	assert(settings != null, "HUD requires HUDSettings")
 	for translation in TRANSLATIONS:
 		TranslationServer.add_translation(translation)
-	restart_button.pressed.connect(_on_restart_pressed)
+	game_over_panel.restart_pressed.connect(func() -> void: restart_requested.emit())
+	game_over_panel.garage_pressed.connect(func() -> void: garage_requested.emit())
 	menu.primary_pressed.connect(_on_menu_primary)
 	pause_button.pressed.connect(func() -> void: pause_requested.emit())
-	menu.sound_toggled.connect(_on_sound_toggled)
-	menu.haptics_toggled.connect(_on_haptics_toggled)
+	menu.sound_toggled.connect(func(enabled: bool) -> void: sound_toggled.emit(enabled))
+	menu.haptics_toggled.connect(func(enabled: bool) -> void: haptics_toggled.emit(enabled))
 	menu.language_selected.connect(func(locale: String) -> void: language_selected.emit(locale))
+	menu.garage_pressed.connect(func() -> void: garage_requested.emit())
+	garage_menu.car_chosen.connect(func(id: String) -> void: car_chosen.emit(id))
+	garage_menu.closed.connect(func() -> void: menu.show_start(_best))
+	menu.tasks_pressed.connect(_show_tasks)
+	daily_menu.closed.connect(func() -> void: menu.show_start(_best))
 
 
 func set_playfield_offset(offset: Vector2) -> void:
@@ -65,12 +67,49 @@ func set_playfield_offset(offset: Vector2) -> void:
 		$Title, distance_label, score_label, best_label, pause_button, controls_label, pickup_label
 	]:
 		control.position += shift
+	pickup_label.base_y += shift.y
 	_playfield_offset = offset
 
 
 func show_start(best: int) -> void:
 	_set_gameplay_visible(false)
 	menu.show_start(best)
+
+
+func set_garage(
+	catalogue: GarageCatalogue, owned: Array[String], selected: String, wallet: int
+) -> void:
+	garage_menu.set_state(catalogue, owned, selected, wallet)
+	menu.set_car_texture(catalogue.find(selected).texture)
+
+
+func show_garage() -> void:
+	_set_gameplay_visible(false)
+	menu.close()
+	garage_menu.open()
+
+
+func set_daily(entries: Array[Dictionary]) -> void:
+	daily_menu.set_entries(entries)
+
+
+func _show_tasks() -> void:
+	_set_gameplay_visible(false)
+	menu.close()
+	daily_menu.open()
+
+
+func leave_results() -> void:
+	# Game over returns to the start screen without beginning a new drive.
+	_game_over = false
+	pickup_label.dismiss()
+	game_over_panel.close()
+	_hint_remaining = 0.0
+	set_distance(0.0)
+
+
+func show_wallet_result(earned: int, wallet: int, task_rewards: Array[int] = []) -> void:
+	game_over_panel.set_wallet(earned, wallet, task_rewards)
 
 
 func begin_run(first_hint: bool) -> void:
@@ -87,7 +126,7 @@ func advance_hint(delta: float) -> void:
 
 
 func show_paused(points: int, metres: float) -> void:
-	_clear_pickup_feedback()
+	pickup_label.dismiss()
 	_set_gameplay_visible(false)
 	menu.show_pause(points, metres)
 
@@ -114,7 +153,11 @@ func _on_menu_primary() -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("ui_cancel") or event.is_echo():
 		return
-	if menu.visible and menu.is_pause:
+	if garage_menu.visible:
+		garage_menu.close()
+	elif daily_menu.visible:
+		daily_menu.close()
+	elif menu.visible and menu.is_pause:
 		resume_requested.emit()
 	elif not menu.visible and not _game_over:
 		pause_requested.emit()
@@ -138,31 +181,24 @@ func set_feedback_options(sound: bool, haptics: bool, unsaved: bool = false) -> 
 
 func refresh_text() -> void:
 	set_distance(_metres)
-	set_score(_points, _som, _dollars)
-	set_best(_best, _record, _unsaved)
-	result_label.text = tr("travelled") % int(_metres)
+	score_label.text = tr("points_short") % _points
+	_fit_value(score_label, 19, 116.0)
+	best_label.text = tr("best") % _best
+	_fit_value(best_label, 15, 144.0)
+	game_over_panel.refresh_text()
 	controls_label.text = tr("hint").replace("\\n", "\n")
 	menu.refresh_text()
+	garage_menu.refresh_text()
+	daily_menu.refresh_text()
 	menu.set_options(_sound, _haptics, _unsaved)
-	_clear_pickup_feedback()
+	pickup_label.dismiss()
 
 
-func _on_sound_toggled(enabled: bool) -> void:
-	sound_toggled.emit(enabled)
-
-
-func _on_haptics_toggled(enabled: bool) -> void:
-	haptics_toggled.emit(enabled)
-
-
-func set_score(points: int, som_count: int, dollar_count: int) -> void:
+func set_score(points: int, som_count: int, dollar_count: int, close_calls: int = 0) -> void:
 	_points = points
-	_som = som_count
-	_dollars = dollar_count
 	score_label.text = tr("points_short") % points
 	_fit_value(score_label, 19, 116.0)
-	score_result.text = tr("points") % points
-	money_result.text = tr("notes") % [som_count, dollar_count]
+	game_over_panel.set_score(points, som_count, dollar_count, close_calls)
 
 
 func set_best(points: int, new_record: bool = false, unsaved: bool = false) -> void:
@@ -171,9 +207,7 @@ func set_best(points: int, new_record: bool = false, unsaved: bool = false) -> v
 	_unsaved = unsaved
 	best_label.text = tr("best") % points
 	_fit_value(best_label, 15, 144.0)
-	best_result.text = tr("new_best" if new_record else "best") % points
-	if unsaved:
-		best_result.text += "\n" + tr("unsaved").strip_edges()
+	game_over_panel.set_best(points, new_record, unsaved)
 
 
 func _fit_value(label: Label, font_size: int, width: float) -> void:
@@ -186,45 +220,33 @@ func _fit_value(label: Label, font_size: int, width: float) -> void:
 func show_pickup(points: int, denomination_label: String) -> void:
 	if _game_over:
 		return
-	_clear_pickup_feedback()
 	if TranslationServer.get_locale().begins_with("ru"):
 		denomination_label = denomination_label.replace("soʻm", "сум")
-	pickup_label.text = tr("pickup") % [denomination_label, points]
-	pickup_label.position.y = 510.0 + _playfield_offset.y
-	pickup_label.modulate.a = 1.0
-	pickup_label.show()
-	_pickup_tween = create_tween().set_parallel(true)
-	_pickup_tween.tween_property(pickup_label, "position:y", 486.0 + _playfield_offset.y, 0.85)
-	_pickup_tween.tween_property(pickup_label, "modulate:a", 0.0, 0.45).set_delay(0.4)
+	pickup_label.play(tr("pickup") % [denomination_label, points])
 
 
-func show_game_over(metres: float) -> void:
+func show_near_miss(points: int, combo: int) -> void:
+	if _game_over:
+		return
+	var text := tr("near_miss") % points
+	if combo > 1:
+		text = tr("near_miss_combo") % [combo, points]
+	pickup_label.play(text)
+
+
+func show_game_over(metres: float, crash_kind: String = "car") -> void:
 	_game_over = true
-	_clear_pickup_feedback()
+	pickup_label.dismiss()
 	_set_gameplay_visible(false)
 	set_distance(metres)
-	result_label.text = tr("travelled") % int(metres)
-	game_over_panel.show()
+	game_over_panel.open(metres, crash_kind)
 	pause_button.hide()
 	controls_label.hide()
-	restart_button.grab_focus()
 
 
 func reset_run() -> void:
 	_game_over = false
-	_clear_pickup_feedback()
-	game_over_panel.hide()
-	restart_button.release_focus()
+	pickup_label.dismiss()
+	game_over_panel.close()
 	begin_run(false)
 	set_distance(0.0)
-
-
-func _clear_pickup_feedback() -> void:
-	if _pickup_tween != null:
-		_pickup_tween.kill()
-		_pickup_tween = null
-	pickup_label.hide()
-
-
-func _on_restart_pressed() -> void:
-	restart_requested.emit()

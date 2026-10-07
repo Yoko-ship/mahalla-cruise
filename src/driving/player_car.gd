@@ -10,12 +10,19 @@ var target_x: float = 0.0
 var _driving_enabled: bool = true
 
 @onready var steering: SteeringInput = $SteeringInput
+@onready var visual: CarVisual = $Visual
 
 
 func _ready() -> void:
 	assert(settings != null, "Player scene requires CarSettings")
 	target_x = position.x
 	steering.steering_delta.connect(_on_steering_delta)
+
+
+func apply_car(car_settings: CarSettings, texture: Texture2D, sprite_scale: float) -> void:
+	# Call configure_bounds() afterwards; the road margin can differ between cars.
+	settings = car_settings
+	visual.set_vehicle(texture, sprite_scale)
 
 
 func configure_bounds(road_left: float, road_right: float) -> void:

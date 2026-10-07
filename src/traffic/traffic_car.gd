@@ -3,6 +3,9 @@ extends Node2D
 ## Per-vehicle position and contact state; the traffic controller supplies movement.
 
 var has_contacted: bool = false
+var has_passed: bool = false
+## Smallest side gap to the player while level with it; INF until they overlap vertically.
+var closest_gap: float = INF
 var _half_size := Vector2(20, 36)
 
 @onready var visual: TrafficVisual = $Visual

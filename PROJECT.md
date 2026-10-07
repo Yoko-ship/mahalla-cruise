@@ -1,6 +1,6 @@
 # Mahalla Cruise Project Tracker
 
-Last updated: 2026-10-06
+Last updated: 2026-10-07
 
 Mahalla Cruise is a planned 2D Android game for people in Uzbekistan. The goal is a simple, relaxing time killer: open the game, steer with one finger, and enjoy a familiar neighborhood without puzzles or complicated decisions. Development should stay manageable for a first version.
 
@@ -68,7 +68,14 @@ describes the boundaries, `AGENTS.md` defines the AI workflow, and
 `./scripts/check.sh` runs the local quality gate. Development tooling uses
 gdtoolkit 4.5.0 in `.venv`.
 
-**Next task:** test the complete Uzbek/Russian flow on a physical Android phone,
+**Next task:** playtest on Windows (garage cars, close calls, sheep crossings, and
+daily tasks) and tune speeds, prices, sheep frequency, and task rewards by feel.
+Replace the temporary car and sheep art with final artwork
+([docs/art-direction/CAR_ROSTER_ART.md](docs/art-direction/CAR_ROSTER_ART.md)). Car-name
+trademark review remains open before a public release. No Android device is
+currently available, so phone testing is paused.
+
+**Paused until a phone is available:** test the complete Uzbek/Russian flow on a physical Android phone,
 including Back, touch targets, readability, audio/vibration feel, and difficulty.
 Verify record and preference retention across an update on that phone; emulator
 APK replacement and relaunch already preserve the earned record and preferences.
@@ -93,12 +100,18 @@ The intermittent initial emulator launch exit remains outstanding.
 - A crash with another car ends the run. Show final distance and provide a restart button. Traffic tuning remains provisional.
 - Score soʻm by denomination: 1 point per 1,000 soʻm, with larger notes rarer.
   Use real banknote images and $1 = 10 game points. This replaces the initial
-  fixed 10/100 rule. Score belongs to the run; no saved wallet is implemented.
+  fixed 10/100 rule. Score belongs to the run; finished runs also pay into the
+  garage wallet (see the garage decision below).
 - Persist the best completed score locally, keeping save format and storage modular
   for later expansion. Cloud sync and additional saved progression remain future work.
 - Add a start screen, pause/resume when interrupted, and a brief first-drive hint.
 - Default to Uzbek Latin, offer Russian and English, and save language and feedback
   preferences locally. Keep instructions available in start/pause menus.
+- Add a car garage (2026-10-07): Damas, Matiz, Cobalt, and black Gentra with
+  different speed, control, and size. Run points go into a saved wallet used to
+  buy cars; stats are fixed per car (no upgrades yet). Cars appear only once real
+  artwork exists. This replaces the earlier "no saved wallet" decision. Later the
+  same day the user asked for temporary art so all cars can be tested now.
 - Add pickup sounds/light vibration and gradual traffic difficulty, as requested
   by the user. Keep the traffic increase capped and maintain generous gaps.
 
@@ -178,6 +191,11 @@ Track asset sources and applicable usage terms when assets are added. Keep sourc
 - [x] Fill tall/wide portrait screens and keep spawning, menus, and resize pause coherent.
 - [x] Verify Windows Android touch, Back/Home pause, localized saves, and APK replacement.
 - [x] Remove the permanently safe center path with bounded within-lane traffic variation.
+- [x] Add a saved wallet and a four-car garage (Damas, Matiz, Cobalt, Gentra) with per-car stats.
+- [x] Add temporary test sprites so all four cars can be driven.
+- [x] Add a near-miss bonus with a capped combo.
+- [x] Add close-call sound/vibration, sheep crossings, and daily tasks.
+- [ ] Replace the Matiz, Cobalt, and black Gentra test sprites with final artwork.
 - [ ] Test touch controls and performance on a physical Android phone.
 - [ ] Have a few players try it without instructions and record feedback.
 
@@ -482,6 +500,87 @@ remains a quick offline mahalla drive with one-finger controls and local languag
 Added a ten-minute phone playtest guide with observation prompts and a results table.
 No player feedback, market demand, or retention result is claimed. Next: use real
 phone and native-speaker evidence to tune reaction time, collision clarity, and feel.
+
+Growth proposal (2026-10-07): pulled commit `70ad13b` (Windows tooling, localization,
+expanded viewports, traffic variation, boot splash). On Mac, `./scripts/check.sh`
+passed 589 game checks and 19 tooling tests; Windows-only scripts were reviewed but
+not run. No Android device is available, so phone testing is paused. At the user's
+request, wrote [docs/PROPOSAL_CARS_AND_GROWTH.md](docs/PROPOSAL_CARS_AND_GROWTH.md):
+a car roster with Speed/Control/Size trade-offs mapped to existing settings, plus
+ranked growth ideas. This is a proposal only; no gameplay code changed. Open
+decisions: saved wallet, fixed stats vs upgrades, and car trademark/naming.
+
+Garage update (2026-10-07): the user chose Damas, Matiz, Cobalt, and a black
+Gentra, a saved wallet with purchases, and to show new cars only after real
+artwork exists. Added `src/garage/` with typed `CarDefinition` and
+`GarageCatalogue` resources, a garage screen with Speed/Control/Size bars, and
+Garage buttons on the start and results screens. `CarSettings` gained
+`travel_speed_scale`; main applies the selected car's speed, steering, collision
+size, and sprite. Prices: 0/300/1,000/2,500 points. No car is strictly better
+than another. The optional v1 `garage` save object stores wallet, owned cars, and
+selection; older saves load unchanged. A finished run updates wallet and record in
+one write. Only Damas has artwork, so the others stay hidden for now.
+
+Validation: `./scripts/check.sh` passed **787 game checks and 19 tooling tests**.
+New suites: `garage_store_test.gd` (69 checks: roster, trade-offs, wallet,
+purchases, relaunch, old/damaged/future saves, overflow, failed writes) and
+`garage_test.gd` (85 checks: real-click purchase, applied stats and speed, no
+changes mid-drive, results-to-garage reset, hidden-car fallback, and layouts in
+all three languages). Localization grew from 138 to 182 checks with the new keys.
+`driving_test.gd` now injects its handling variant through the garage, which owns
+car settings; all its assertions remain. Reviewed Mac renders of the start screen,
+garage (Damas-only and with stand-in art for all four cars), and results. No
+Android build was made.
+
+Test-art update (2026-10-07): this session has no image-generation tool, and the
+user asked for default art to test handling. Added `scripts/render_placeholder_cars.gd`,
+which repaints the existing painted traffic sedan red (Matiz), pearl white
+(Cobalt), and black (Gentra), keeping lamps, glass, tyres, and plate. It resizes each
+to its collision box at `sprite_scale` 0.1, in the same proportion as the Damas, and
+writes `assets/cars/placeholder_roster.png` (mipmaps on). All four cars now appear in
+the garage. They are not real model shapes, and Cobalt/Gentra share the traffic
+sedan's outline. The hidden-without-artwork rule remains and is now tested with a
+catalogue copy missing one car's texture. Added an art brief with a generation prompt
+in `docs/art-direction/CAR_ROSTER_ART.md`.
+Validation: `./scripts/check.sh` passed **792 game checks and 19 tooling tests**.
+Reviewed Mac renders of the garage and each car on the road beside traffic.
+
+Near-miss update (2026-10-07): the user asked to continue implementation, with
+testing later on Windows. Built the top-ranked growth idea. Passing a traffic car
+with a side gap of 10 px or less, without contact, earns 3 points. Consecutive
+close calls within 1,600 px (80 m) of travel multiply it by up to ×5. Traffic
+detects and scores passes; main adds points to the run (and the wallet) and counts
+close calls; HUD shows "Close call ×N! +P" and, when nonzero, a results count, in
+uz/ru/en. Crash frames pay nothing, pause freezes it, long frames cannot skip it,
+and restart resets it. Tuning is in `default_traffic.tres`. Faster cars meet more
+traffic and earn more close calls. Close calls have no sound or vibration yet.
+`hud.gd` is now 293 lines; split it before adding more HUD behavior.
+Validation: the first full gate failed in `pickups_test.gd`, whose exact results
+line now included "Close calls × 0". Results now list close calls only when there
+was at least one; the assertion is unchanged. `./scripts/check.sh` then passed **829
+game checks and 19 tooling tests**, including the new `near_miss_test.gd` (25 checks:
+close vs wide passes, level-only gaps, combo growth/cap/window, crash-frame priority,
+wallet credit, restart, pause, and long frames). Reviewed Mac renders of the Russian
+combo popup and results.
+
+Three-feature update (2026-10-07): the user approved all three suggested next steps.
+1. Split the HUD: results card → `ResultsPanel`, popup animation → `FeedbackPopup`
+   (`hud.gd` 293 → 252 lines; test references moved to `hud.game_over_panel.*`).
+   Close calls now play a generated 0.28 s whoosh whose pitch rises 6% per combo
+   step, plus a 12 ms Android pulse; existing chimes regenerate byte-identically.
+2. Sheep crossing: from 250 m, every 600–1,000 m, two or three drawn placeholder
+   sheep cross the road in step with travel. Car spawns pause until the flock can
+   start without catching any car; one road edge always stays open. Hitting a sheep
+   ends the run with its own message. The long steered-run bot now also avoids sheep.
+3. Daily tasks: three per day (seeded by date) from a pool of ten, progress applied
+   at run end, rewards 30–120 into the wallet in the same single write, a Tasks
+   button and screen, and results lines for finished tasks, in uz/ru/en.
+Validation: `./scripts/check.sh` passed **960 game checks and 19 tooling tests**,
+including new `sheep_test.gd` (22), `daily_test.gd` (56), and 5 close-call sound
+checks. The passability test was confirmed to fail on a deliberately too-wide flock.
+Two traffic child-count assertions now count only cars, since traffic also owns the
+sheep node. Reviewed Mac renders of sheep on the road, the start menu, and the tasks
+screen in Uzbek and Russian. Money can occasionally sit level with a flock.
 
 ## Running and Checking the Starter
 

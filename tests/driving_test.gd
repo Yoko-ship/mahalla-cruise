@@ -163,9 +163,15 @@ func _test_resource_configuration() -> void:
 	var scene := MAIN_SCENE.instantiate() as CruiseGame
 	var car := scene.get_node("PlayerCar") as PlayerCar
 	var original_settings := car.settings
-	car.settings = original_settings.duplicate() as CarSettings
-	car.settings.steering_speed = 100.0
-	car.settings.drag_sensitivity = 0.5
+	var variant := original_settings.duplicate() as CarSettings
+	variant.steering_speed = 100.0
+	variant.drag_sensitivity = 0.5
+	# The garage decides which settings drive the player, so inject the variant there.
+	var damas := scene.garage.find(ProgressData.DEFAULT_CAR).duplicate() as CarDefinition
+	damas.settings = variant
+	var cars: Array[CarDefinition] = [damas]
+	scene.garage = scene.garage.duplicate() as GarageCatalogue
+	scene.garage.cars = cars
 	scene.road_settings = scene.road_settings.duplicate() as RoadSettings
 	scene.road_settings.left_edge = 100.0
 	scene.road_settings.right_edge = 332.0

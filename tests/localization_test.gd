@@ -89,10 +89,15 @@ func _test_language(locale: String) -> void:
 		Rect2(0, 0, 432, 768).encloses(results.get_global_rect()), "Maximum results fit: " + locale
 	)
 	_check(
-		results.get_global_rect().encloses(game.hud.restart_button.get_global_rect()),
+		results.get_global_rect().encloses(
+			game.hud.game_over_panel.restart_button.get_global_rect()
+		),
 		"Restart fits"
 	)
-	_check(game.hud.best_result.get_line_count() >= 2, "Long unsaved records wrap in their card")
+	_check(
+		game.hud.game_over_panel.best_result.get_line_count() >= 2,
+		"Long unsaved records wrap in their card"
+	)
 	view.free()
 
 

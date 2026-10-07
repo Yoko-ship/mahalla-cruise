@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SheepSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/traffic/sheep_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+first_crossing_metres = 250.0
+crossing_metres_min = 600.0
+crossing_metres_max = 1000.0
+flock_size_min = 2
+flock_size_max = 3
+spacing = 28.0
+row_jitter = 8.0
+walk_per_travel = 0.25
+collision_half_size = Vector2(11, 8)

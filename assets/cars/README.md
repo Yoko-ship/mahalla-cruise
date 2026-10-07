@@ -5,6 +5,21 @@ The current Damas and sedan use `vehicles_aligned.png`. See
 The previous `damas_white_rear.png` pointed diagonally and has been superseded.
 [DAMAS_REVISION.md](DAMAS_REVISION.md) preserves that version's source record.
 
+## Temporary Garage Test Art
+
+`placeholder_roster.png` holds stand-in sprites for Matiz (red), Cobalt (pearl
+white), and Gentra (black), added 2026-10-07 at the user's request so car speed,
+control, and size can be tested before real artwork exists. Each is the silver
+traffic sedan from `vehicles_aligned.png`, with its body paint recolored and its
+size stretched to match the car's collision box at `sprite_scale` 0.1. They are
+**not** real Matiz, Cobalt, or Gentra shapes. Rebuild them from the repository root:
+
+```sh
+./scripts/godot.sh --headless --path . --script scripts/render_placeholder_cars.gd
+```
+
+Replace them with artwork made from `docs/art-direction/CAR_ROSTER_ART.md`.
+
 ## Superseded First Draft
 
 `damas_white.png` is AI-generated artwork created for Mahalla Cruise on

@@ -1,0 +1,66 @@
+[gd_resource type="Resource" script_class="GarageCatalogue" load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://src/garage/garage_catalogue.gd" id="1"]
+[ext_resource type="Script" path="res://src/garage/car_definition.gd" id="2"]
+[ext_resource type="Resource" path="res://src/driving/default_car.tres" id="3"]
+[ext_resource type="Resource" path="res://src/garage/cars/matiz_car.tres" id="4"]
+[ext_resource type="Resource" path="res://src/garage/cars/cobalt_car.tres" id="5"]
+[ext_resource type="Resource" path="res://src/garage/cars/gentra_car.tres" id="6"]
+[ext_resource type="Texture2D" path="res://assets/cars/vehicles_aligned.png" id="7"]
+[ext_resource type="Texture2D" path="res://assets/cars/placeholder_roster.png" id="8"]
+
+[sub_resource type="AtlasTexture" id="DamasAtlas"]
+atlas = ExtResource("7")
+region = Rect2(265, 125, 435, 640)
+
+[sub_resource type="AtlasTexture" id="MatizPlaceholder"]
+atlas = ExtResource("8")
+region = Rect2(40, 0, 400, 600)
+
+[sub_resource type="AtlasTexture" id="CobaltPlaceholder"]
+atlas = ExtResource("8")
+region = Rect2(480, 0, 440, 780)
+
+[sub_resource type="AtlasTexture" id="GentraPlaceholder"]
+atlas = ExtResource("8")
+region = Rect2(960, 0, 460, 800)
+
+[sub_resource type="Resource" id="damas"]
+script = ExtResource("2")
+id = "damas"
+display_name = "Damas"
+price = 0
+settings = ExtResource("3")
+texture = SubResource("DamasAtlas")
+sprite_scale = 0.116
+
+[sub_resource type="Resource" id="matiz"]
+script = ExtResource("2")
+id = "matiz"
+display_name = "Matiz"
+price = 300
+settings = ExtResource("4")
+texture = SubResource("MatizPlaceholder")
+sprite_scale = 0.1
+
+[sub_resource type="Resource" id="cobalt"]
+script = ExtResource("2")
+id = "cobalt"
+display_name = "Cobalt"
+price = 1000
+settings = ExtResource("5")
+texture = SubResource("CobaltPlaceholder")
+sprite_scale = 0.1
+
+[sub_resource type="Resource" id="gentra"]
+script = ExtResource("2")
+id = "gentra"
+display_name = "Gentra"
+price = 2500
+settings = ExtResource("6")
+texture = SubResource("GentraPlaceholder")
+sprite_scale = 0.1
+
+[resource]
+script = ExtResource("1")
+cars = Array[ExtResource("2")]([SubResource("damas"), SubResource("matiz"), SubResource("cobalt"), SubResource("gentra")])

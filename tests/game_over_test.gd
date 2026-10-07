@@ -51,7 +51,7 @@ func _test_crash_and_mouse_restart() -> void:
 	_check(not game.player.is_physics_processing(), "Driving physics stops after a crash")
 	_check(not paused, "The scene tree stays active so restart UI can respond")
 	_check(
-		game.hud.result_label.text == "%d m travelled" % int(game.distance_metres),
+		game.hud.game_over_panel.result_label.text == "%d m travelled" % int(game.distance_metres),
 		"The overlay displays the final distance"
 	)
 	var distance_before := game.distance_metres
@@ -82,7 +82,7 @@ func _test_crash_and_mouse_restart() -> void:
 
 	await process_frame
 	await process_frame
-	var button_center := game.hud.restart_button.get_global_rect().get_center()
+	var button_center := game.hud.game_over_panel.restart_button.get_global_rect().get_center()
 	press.position = button_center
 	press.pressed = true
 	root.push_input(press, true)
@@ -92,7 +92,7 @@ func _test_crash_and_mouse_restart() -> void:
 	_check(not game.hud.game_over_panel.visible, "Restart hides the game-over overlay")
 	_check(is_zero_approx(game.distance_metres), "Restart resets distance")
 	_check(game.traffic.vehicles.is_empty(), "Restart removes old traffic")
-	_check(game.traffic.get_child_count() == 0, "Old vehicles are detached immediately")
+	_check(_car_children(game.traffic) == 0, "Old vehicles are detached immediately")
 	_check(game.player.position == Vector2(216, 604), "Restart restores the starting position")
 	_check(is_zero_approx(game.player.rotation), "Restart clears steering lean")
 	_check(is_zero_approx(game.road.scroll_offset), "Restart resets the road")
@@ -126,7 +126,7 @@ func _test_touch_restart() -> void:
 	await process_frame
 	await process_frame
 	# Input.parse_input_event exercises Godot's touch-to-mouse bridge used by Buttons.
-	var center := game.hud.restart_button.get_global_rect().get_center()
+	var center := game.hud.game_over_panel.restart_button.get_global_rect().get_center()
 	touch.position = root.get_final_transform() * center
 	touch.pressed = true
 	Input.parse_input_event(touch)
@@ -146,6 +146,13 @@ func _test_touch_restart() -> void:
 		"Old touch gesture cannot resume after restart"
 	)
 	game.free()
+
+
+func _car_children(traffic: Node) -> int:
+	# The traffic node also owns its sheep crossing; count only vehicles.
+	return (
+		traffic.get_children().filter(func(child: Node) -> bool: return child is TrafficCar).size()
+	)
 
 
 func _check(condition: bool, description: String) -> void:

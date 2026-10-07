@@ -1,6 +1,6 @@
 class_name PickupFeedback
 extends Node
-## Owns pickup audio and brief device pulses. Main supplies collection events.
+## Owns pickup and close-call audio and brief device pulses. Main supplies the events.
 
 @export var settings: PickupFeedbackSettings
 
@@ -11,6 +11,7 @@ var _focused: bool = true
 
 @onready var som_sound: AudioStreamPlayer = $SomSound
 @onready var dollar_sound: AudioStreamPlayer = $DollarSound
+@onready var close_call_sound: AudioStreamPlayer = $CloseCallSound
 
 
 func _ready() -> void:
@@ -19,6 +20,7 @@ func _ready() -> void:
 	haptics_enabled = settings.haptics_enabled
 	som_sound.volume_db = settings.volume_db
 	dollar_sound.volume_db = settings.volume_db
+	close_call_sound.volume_db = settings.volume_db
 
 
 func play_pickup(is_dollar: bool) -> void:
@@ -36,6 +38,17 @@ func play_pickup(is_dollar: bool) -> void:
 		Input.vibrate_handheld(duration, settings.vibration_strength)
 
 
+func play_close_call(combo: int) -> void:
+	if not _focused:
+		return
+	_last_feedback_ms = Time.get_ticks_msec()
+	if sound_enabled:
+		close_call_sound.pitch_scale = 1.0 + settings.close_call_pitch_step * maxi(0, combo - 1)
+		close_call_sound.play()
+	if haptics_enabled and OS.has_feature("android"):
+		Input.vibrate_handheld(settings.close_call_vibration_ms, settings.vibration_strength)
+
+
 func set_sound_enabled(enabled: bool) -> void:
 	sound_enabled = enabled
 	if not enabled:
@@ -49,6 +62,7 @@ func set_haptics_enabled(enabled: bool) -> void:
 func stop() -> void:
 	som_sound.stop()
 	dollar_sound.stop()
+	close_call_sound.stop()
 	_last_feedback_ms = -100000
 
 

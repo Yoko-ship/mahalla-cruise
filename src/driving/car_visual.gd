@@ -2,6 +2,13 @@ class_name CarVisual
 extends Node2D
 ## Owns the aligned vehicle sprite and a soft lower-right ground shadow.
 
+@onready var sprite: Sprite2D = $Sprite
+
+
+func set_vehicle(texture: Texture2D, sprite_scale: float) -> void:
+	sprite.texture = texture
+	sprite.scale = Vector2(sprite_scale, sprite_scale)
+
 
 func _draw() -> void:
 	for layer in range(4):

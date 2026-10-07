@@ -28,7 +28,9 @@ local collision coordinates stay unchanged; taller screens reveal more road.
 | `src/scenery/` | Render the connected street surface, buildings, trees, and native bakery sign. |
 | `src/traffic/` | Spawn and remove traffic, track contacts, and render sedan sprites using traffic settings. |
 | `src/pickups/` | Spawn money, detect collection, render banknotes, and own a separate feedback scene for audio/haptics. |
-| `src/progress/` | Own the versioned save document, local files, recovery, and best-score persistence. |
+| `src/progress/` | Own the versioned save document, local files, recovery, best score, wallet, and owned cars. |
+| `src/daily/` | Draw today's tasks, apply finished runs, and present the tasks screen. |
+| `src/garage/` | Define the car roster (`CarDefinition`, `GarageCatalogue`) and present the garage screen. |
 | `src/ui/` | Present start/pause menus, first-run instructions, HUD values, and run results. |
 | `tests/` and `scripts/` | Verify behavior and run development tools. |
 
@@ -56,11 +58,15 @@ flowchart TD
     Main --> Scenery[Scenery view]
     Main --> Traffic[Traffic controller]
     Traffic -->|contacted signal| Main
+    Traffic -->|near_missed points and combo| Main
     Main --> Pickups[Pickup controller]
     Pickups -->|collected points and denomination| Main
     Main --> Feedback[Pickup sounds and haptics]
     Main --> Progress[Local progress storage]
     Main --> HUD[HUD]
+    Main --> Daily[Daily tasks]
+    GarageData[Garage catalogue resource] --> Main
+    HUD -->|garage requested, car chosen| Main
     HUD -->|play, pause, resume, restart signals| Main
     Input[Steering input] -->|steering_delta signal| Player
     Player --> Visual[Car visual child]
@@ -107,7 +113,7 @@ Traffic updates first. A crash skips pickup updates for that frame, so no points
 can be awarded during or after the crash. Decorative bobbing advances only with
 travel and freezes with the run. The HUD clears its transient pickup feedback on
 game over and restart. Run scores reset; the best completed score persists locally.
-No wallet is implemented.
+Run points are also credited to the saved garage wallet when the run ends.
 
 `PickupFeedback` is a separate main-scene child under the pickups feature. Main
 calls it after a successful collection and stops it on crash/restart. It owns two
@@ -152,6 +158,52 @@ pickup feedback on pause, preserves remaining hint time for Resume, and clears
 the hint on restart. The onboarding flag is saved once before first play; no
 file writes occur during normal frame or collection updates. A killed process
 returns to START and does not restore an unfinished run.
+
+## Garage and Car Roster
+
+`src/garage/default_garage.tres` lists Damas, Matiz, Cobalt, and Gentra. Each
+`CarDefinition` holds an id, untranslated model name, price, a `CarSettings`
+resource, and optional artwork. A car without artwork is hidden from players;
+Matiz, Cobalt, and Gentra use temporary test sprites from
+`assets/cars/placeholder_roster.png`. To replace a sprite, set its `texture` (and
+`sprite_scale` if needed) in the catalogue; no code change is required.
+
+Main owns the selected `car`. It passes that car's settings, texture, and scale to
+`PlayerCar.apply_car()`, then reapplies road bounds. `CarSettings.travel_speed_scale`
+multiplies `RoadSettings.scroll_speed` in main's travel step, so traffic and money
+spacing stay distance-based: faster cars meet both sooner. Control is
+`steering_speed`; size is `collision_half_size`. Garage stat bars normalize those
+three values in `CarDefinition`.
+
+The garage screen (`GarageMenu` with code-built `GarageRow`s) is a HUD child. It
+emits `car_chosen(id)` upward; HUD forwards it and `garage_requested` to main.
+Main accepts choices only in START, buys through `LocalProgressStore.buy_car()`
+(which also selects), or selects an owned car. Results offer Garage, which resets
+the world to START without beginning a drive. A finished run calls
+`complete_run(score)`, crediting the wallet and checking the record in one write.
+
+## Sheep Crossings
+
+`SheepCrossing` is a child of the traffic controller, tuned by `default_sheep.tres`.
+Traffic decides when a due crossing may start: new car spawns pause, and the flock
+starts only once every car is low enough that the sheep (moving with the road,
+faster than cars) cannot catch it. Cars spawn again only behind the flock. Sheep
+walk sideways in step with road travel, so every car meets the same pattern; two
+or three sheep 28 px apart always leave one road edge open, which a test verifies
+over 120 crossings. Contact sets `last_contact_kind = "sheep"` and uses the normal
+`contacted` signal; results show a sheep message. `blocking_bounds()` includes
+sheep, so money spawning and test bots see them.
+
+## Daily Tasks
+
+`DailyTasks` (a main-scene child) holds today's state: day, three task ids,
+progress, and done ids. The date seeds the draw, so a relaunch shows the same
+tasks; a new day draws new ones. When a run ends, main passes a summary (notes,
+close calls, metres, score, one drive). Notes, close calls, and drives add up over
+the day; distance and score need a single run. Newly finished tasks return their
+rewards, which `LocalProgressStore.stage_daily()` adds to the wallet before
+`complete_run()` writes everything once. The tasks screen (`DailyMenu`) is a HUD
+child opened from the start menu; it only displays entries from main.
 
 ## Persistent Progress
 
@@ -203,6 +255,15 @@ frees passed vehicles during play. On collision it places the struck car at the
 contact point, marks it, and stops the update before any additional spawning.
 Spawning and movement values remain provisional in `default_traffic.tres`.
 
+Near misses: while a car is level with the player, traffic records its smallest
+side gap (using the swept rectangle). When the car's top passes the player's
+bottom, a gap at or below `near_miss_gap` (10 px) counts once. Traffic owns the
+combo: another near miss within `near_miss_combo_pixels` of road travel raises
+it, capped at `near_miss_max_combo`. It emits `near_missed(points, combo)` after
+the update loop, so a crash anywhere in the same frame pays nothing. Main adds the
+points to the run score (and therefore the wallet) and counts close calls for the
+results; HUD reuses the pickup popup. Configure/restart clears the combo.
+
 Main passes run distance to traffic before each update. Spawn intervals gradually
 shorten from 150 m to 900 m, reaching 72% of their baseline at the cap.
 Traffic still alternates lanes, keeps its 180-pixel minimum gap and three-car
@@ -246,7 +307,7 @@ Decorative colors and geometric drawing coordinates may remain in view scripts.
    an approved change alters ownership or connections.
 
 Gentle traffic progression, collectible money, pickup feedback, run scoring, crash game over, and restart are implemented. Local best-score saving is implemented. Monetization
-and online services are not implemented. Discuss their behavior when the user
+and online services are not implemented. A local wallet and car garage are implemented. Discuss their behavior when the user
 requests that work. Do not prebuild a general framework for hypothetical modes.
 
 ## Android Packaging

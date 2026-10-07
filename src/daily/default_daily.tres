@@ -1,0 +1,79 @@
+[gd_resource type="Resource" script_class="DailyCatalogue" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://src/daily/daily_catalogue.gd" id="1"]
+[ext_resource type="Script" path="res://src/daily/daily_task_definition.gd" id="2"]
+
+[sub_resource type="Resource" id="notes_15"]
+script = ExtResource("2")
+id = "notes_15"
+kind = 0
+target = 15
+reward = 40
+
+[sub_resource type="Resource" id="notes_40"]
+script = ExtResource("2")
+id = "notes_40"
+kind = 0
+target = 40
+reward = 90
+
+[sub_resource type="Resource" id="close_5"]
+script = ExtResource("2")
+id = "close_5"
+kind = 1
+target = 5
+reward = 50
+
+[sub_resource type="Resource" id="close_15"]
+script = ExtResource("2")
+id = "close_15"
+kind = 1
+target = 15
+reward = 110
+
+[sub_resource type="Resource" id="distance_400"]
+script = ExtResource("2")
+id = "distance_400"
+kind = 2
+target = 400
+reward = 50
+
+[sub_resource type="Resource" id="distance_900"]
+script = ExtResource("2")
+id = "distance_900"
+kind = 2
+target = 900
+reward = 120
+
+[sub_resource type="Resource" id="score_60"]
+script = ExtResource("2")
+id = "score_60"
+kind = 3
+target = 60
+reward = 50
+
+[sub_resource type="Resource" id="score_150"]
+script = ExtResource("2")
+id = "score_150"
+kind = 3
+target = 150
+reward = 120
+
+[sub_resource type="Resource" id="runs_3"]
+script = ExtResource("2")
+id = "runs_3"
+kind = 4
+target = 3
+reward = 30
+
+[sub_resource type="Resource" id="runs_8"]
+script = ExtResource("2")
+id = "runs_8"
+kind = 4
+target = 8
+reward = 70
+
+[resource]
+script = ExtResource("1")
+tasks = Array[ExtResource("2")]([SubResource("notes_15"), SubResource("notes_40"), SubResource("close_5"), SubResource("close_15"), SubResource("distance_400"), SubResource("distance_900"), SubResource("score_60"), SubResource("score_150"), SubResource("runs_3"), SubResource("runs_8")])
+tasks_per_day = 3

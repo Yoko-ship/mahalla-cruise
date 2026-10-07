@@ -20,7 +20,7 @@ script = ExtResource("2")
 [node name="Visual" type="Node2D" parent="."]
 script = ExtResource("3")
 
-[node name="Damas" type="Sprite2D" parent="Visual"]
+[node name="Sprite" type="Sprite2D" parent="Visual"]
 texture_filter = 4
 scale = Vector2(0.116, 0.116)
 texture = SubResource("DamasAtlas")

@@ -5,6 +5,7 @@ extends RefCounted
 const VERSION: int = 1
 const MAX_SCORE: int = 2147483647
 const LANGUAGES: Array[String] = ["uz", "ru", "en"]
+const DEFAULT_CAR: String = "damas"
 
 
 static func defaults() -> Dictionary:
@@ -50,6 +51,24 @@ static func preferences(document: Dictionary) -> Dictionary:
 	for key: String in ["sound_enabled", "haptics_enabled"]:
 		if saved.get(key) is bool:
 			result[key] = saved[key]
+	return result
+
+
+static func garage(document: Dictionary) -> Dictionary:
+	# Optional v1 extension: invalid fields fall back individually, keeping the record.
+	var result := {"wallet": 0, "owned": [DEFAULT_CAR], "selected": DEFAULT_CAR}
+	var saved: Variant = document.get("garage", {})
+	if not saved is Dictionary:
+		return result
+	var wallet: Variant = saved.get("wallet")
+	if is_integer(wallet) and wallet >= 0 and wallet <= MAX_SCORE:
+		result.wallet = int(wallet)
+	if saved.get("owned") is Array:
+		for id: Variant in saved.owned:
+			if id is String and not id.is_empty() and id not in result.owned:
+				result.owned.append(id)
+	if saved.get("selected") is String and saved.selected in result.owned:
+		result.selected = saved.selected
 	return result
 
 

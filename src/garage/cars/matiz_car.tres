@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CarSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/driving/car_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+travel_speed_scale = 0.95
+steering_speed = 780.0
+drag_sensitivity = 1.0
+road_margin = 23.0
+max_lean = 0.045
+lean_per_pixel = 0.012
+lean_response = 12.0
+collision_half_size = Vector2(17, 30)

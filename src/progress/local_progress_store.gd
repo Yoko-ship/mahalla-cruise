@@ -12,6 +12,11 @@ var driving_hint_seen: bool = false
 var language: String = "uz"
 var sound_enabled: bool = true
 var haptics_enabled: bool = true
+var wallet: int = 0
+var owned_cars: Array[String] = [ProgressData.DEFAULT_CAR]
+var selected_car: String = ProgressData.DEFAULT_CAR
+## Saved daily task state; DailyTasks validates it against today's date and its catalogue.
+var daily: Dictionary = {}
 var last_error: Error = OK
 var has_unsaved_changes: bool = false
 var _document: Dictionary = ProgressData.defaults()
@@ -24,6 +29,8 @@ func load_progress() -> void:
 	language = "uz"
 	sound_enabled = true
 	haptics_enabled = true
+	_apply_garage(ProgressData.garage({}))
+	daily = {}
 	last_error = OK
 	has_unsaved_changes = false
 	_write_blocked = false
@@ -43,6 +50,9 @@ func load_progress() -> void:
 		language = options.language
 		sound_enabled = options.sound_enabled
 		haptics_enabled = options.haptics_enabled
+		_apply_garage(ProgressData.garage(document))
+		var saved_daily: Variant = document.get("daily", {})
+		daily = saved_daily.duplicate(true) if saved_daily is Dictionary else {}
 
 
 func set_preferences(locale: String, sound: bool, haptics: bool) -> void:
@@ -86,6 +96,65 @@ func record_score(score: int) -> bool:
 		last_error = _save()
 		has_unsaved_changes = last_error != OK
 	return improved
+
+
+func complete_run(score: int) -> bool:
+	# A finished run pays into the wallet and checks the record with a single write.
+	if score > 0 and score <= ProgressData.MAX_SCORE:
+		wallet = mini(wallet + score, ProgressData.MAX_SCORE)
+		_store_garage()
+	return record_score(score)
+
+
+func stage_daily(state: Dictionary, rewards: Array[int]) -> void:
+	# Saved by the next write (normally complete_run), so a finished run stays one write.
+	daily = state.duplicate(true)
+	if not _document.get("daily") is Dictionary:
+		_document.daily = {}
+	_document.daily.merge(daily, true)
+	for reward in rewards:
+		wallet = mini(wallet + maxi(0, reward), ProgressData.MAX_SCORE)
+	_store_garage()
+
+
+func buy_car(id: String, price: int) -> bool:
+	# Buying also selects the car, so the purchase is one write.
+	if id.is_empty() or id in owned_cars or price < 0 or price > wallet:
+		return false
+	wallet -= price
+	owned_cars.append(id)
+	selected_car = id
+	_store_garage()
+	_commit()
+	return true
+
+
+func select_car(id: String) -> void:
+	if id not in owned_cars or (id == selected_car and not has_unsaved_changes):
+		return
+	selected_car = id
+	_store_garage()
+	_commit()
+
+
+func _apply_garage(values: Dictionary) -> void:
+	wallet = values.wallet
+	owned_cars.assign(values.owned)
+	selected_car = values.selected
+
+
+func _store_garage() -> void:
+	if not _document.get("garage") is Dictionary:
+		_document.garage = {}
+	_document.garage.merge(
+		{"wallet": wallet, "owned": owned_cars.duplicate(), "selected": selected_car}, true
+	)
+	has_unsaved_changes = true
+
+
+func _commit() -> void:
+	last_error = _save()
+	has_unsaved_changes = last_error != OK
 
 
 func _read_document(path: String) -> Dictionary:

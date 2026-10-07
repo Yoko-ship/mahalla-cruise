@@ -1,9 +1,13 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://src/ui/hud.gd" id="1"]
 
 [ext_resource type="PackedScene" path="res://src/ui/run_menu.tscn" id="2"]
 [ext_resource type="Resource" path="res://src/ui/default_hud.tres" id="3"]
+[ext_resource type="PackedScene" path="res://src/garage/garage_menu.tscn" id="4"]
+[ext_resource type="Script" path="res://src/ui/results_panel.gd" id="5"]
+[ext_resource type="Script" path="res://src/ui/feedback_popup.gd" id="6"]
+[ext_resource type="PackedScene" path="res://src/daily/daily_menu.tscn" id="7"]
 
 [sub_resource type="StyleBoxFlat" id="CardStyle"]
 bg_color = Color(0.12549, 0.243137, 0.219608, 1)
@@ -35,6 +39,18 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(1, 0.97, 0.85, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+
+[sub_resource type="StyleBoxFlat" id="SecondaryStyle"]
+bg_color = Color(0.075, 0.175, 0.155, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.88, 0.81, 0.57, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_left = 10
@@ -133,6 +149,7 @@ theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 17
 horizontal_alignment = 1
 mouse_filter = 2
+script = ExtResource("6")
 
 [node name="Controls" type="Label" parent="."]
 offset_left = 12.0
@@ -156,6 +173,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
+script = ExtResource("5")
 
 [node name="Shade" type="ColorRect" parent="GameOver"]
 layout_mode = 1
@@ -241,6 +259,14 @@ text = "soʻm × 0    ·    $ × 0"
 horizontal_alignment = 1
 autowrap_mode = 2
 
+[node name="WalletResult" type="Label" parent="GameOver/Card/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.47, 1)
+theme_override_font_sizes/font_size = 16
+text = "wallet_result"
+horizontal_alignment = 1
+autowrap_mode = 2
+
 [node name="Restart" type="Button" parent="GameOver/Card/Margin/Content"]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
@@ -256,4 +282,24 @@ theme_override_styles/focus = SubResource("ButtonFocus")
 text = "restart"
 color = Color(0.12549, 0.243137, 0.219608, 1)
 
+[node name="Garage" type="Button" parent="GameOver/Card/Margin/Content"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.91, 0.64, 1)
+theme_override_colors/font_hover_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_focus_color = Color(1, 0.91, 0.64, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("SecondaryStyle")
+theme_override_styles/hover = SubResource("SecondaryStyle")
+theme_override_styles/pressed = SubResource("SecondaryStyle")
+theme_override_styles/focus = SubResource("ButtonFocus")
+text = "garage"
+
 [node name="RunMenu" parent="." instance=ExtResource("2")]
+
+[node name="GarageMenu" parent="." instance=ExtResource("4")]
+visible = false
+
+[node name="DailyMenu" parent="." instance=ExtResource("7")]
+visible = false

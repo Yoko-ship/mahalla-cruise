@@ -147,6 +147,15 @@ func _test_steerable_run(frames_per_second: int) -> void:
 			target = (
 				game.player.right_limit if nearest.position.x < 216.0 else game.player.left_limit
 			)
+		var flock := game.traffic.sheep_crossing.blocking_bounds()
+		if not flock.is_empty() and (nearest == null or flock[0].position.y > nearest.position.y):
+			# Sheep cross the whole road; drive past the side of the flock with more room.
+			var span := flock[0]
+			for sheep in flock:
+				span = span.merge(sheep)
+			var left_room := span.position.x - game.road_settings.left_edge
+			var right_room := game.road_settings.right_edge - span.end.x
+			target = game.player.left_limit if left_room > right_room else game.player.right_limit
 		var drag := InputEventScreenDrag.new()
 		drag.index = 0
 		drag.relative = Vector2(target - game.player.target_x, 0.0)
@@ -157,7 +166,10 @@ func _test_steerable_run(frames_per_second: int) -> void:
 			break
 		if frame % 120 == 0:
 			await process_frame
-	_check(not game.is_game_over, "Visible traffic can be avoided at %d FPS" % frames_per_second)
+	_check(
+		not game.is_game_over,
+		"Visible traffic and sheep can be avoided at %d FPS" % frames_per_second
+	)
 	_check(game.distance_metres >= 1319.0, "Steered run passes the full difficulty ramp")
 	view.free()
 

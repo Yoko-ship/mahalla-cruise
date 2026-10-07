@@ -78,7 +78,7 @@ func _test_spawning_and_cleanup() -> void:
 	_check(within_road, "Traffic stays inside the configured road edges")
 	_check(peak_count <= game.traffic_settings.max_vehicles, "Active traffic stays bounded")
 	_check(
-		game.traffic.get_child_count() == game.traffic.vehicles.size(),
+		_car_children(game.traffic) == game.traffic.vehicles.size(),
 		"Passed traffic nodes are freed, not just removed from the active list"
 	)
 	game.free()
@@ -101,6 +101,13 @@ func _test_clear_pass() -> void:
 	game.advance(10.0)
 	_check(not game.is_game_over, "Passing beside traffic does not cause a false collision")
 	game.free()
+
+
+func _car_children(traffic: Node) -> int:
+	# The traffic node also owns its sheep crossing; count only vehicles.
+	return (
+		traffic.get_children().filter(func(child: Node) -> bool: return child is TrafficCar).size()
+	)
 
 
 func _check(condition: bool, description: String) -> void:

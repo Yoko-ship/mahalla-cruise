@@ -15,6 +15,12 @@ extends Resource
 @export_range(0.0, 5000.0) var difficulty_start_metres: float = 150.0
 @export_range(1.0, 10000.0) var difficulty_full_metres: float = 900.0
 @export_range(0.5, 1.0) var minimum_spawn_scale: float = 0.72
+## A car passing within this many pixels of the player's collision box is a near miss.
+@export_range(0.0, 40.0) var near_miss_gap: float = 10.0
+@export_range(0, 100) var near_miss_points: int = 3
+## Another near miss within this much travel continues the combo multiplier.
+@export_range(0.0, 10000.0) var near_miss_combo_pixels: float = 1600.0
+@export_range(1, 10) var near_miss_max_combo: int = 5
 
 
 func lane_x(left: float, right: float, lane: int, roll: float) -> float:

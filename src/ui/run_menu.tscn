@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://src/ui/run_menu.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/cars/vehicles_aligned.png" id="2"]
@@ -45,6 +45,30 @@ region = Rect2(265, 125, 435, 640)
 
 [sub_resource type="StyleBoxFlat" id="ButtonPressed"]
 bg_color = Color(0.78, 0.70, 0.46, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+
+[sub_resource type="StyleBoxFlat" id="SecondaryStyle"]
+bg_color = Color(0.075, 0.175, 0.155, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.88, 0.81, 0.57, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_left = 10
+corner_radius_bottom_right = 10
+
+[sub_resource type="StyleBoxFlat" id="SecondaryHover"]
+bg_color = Color(0.2, 0.31, 0.25, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.98, 0.9, 0.67, 1)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_left = 10
@@ -123,9 +147,15 @@ text = "Best: 0"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="Primary" type="Button" parent="Center/Card/Margin/Content"]
+[node name="Actions" type="HBoxContainer" parent="Center/Card/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Primary" type="Button" parent="Center/Card/Margin/Content/Actions"]
 custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.3
 theme_override_colors/font_color = Color(0.1, 0.2, 0.17, 1)
 theme_override_colors/font_hover_color = Color(0.1, 0.2, 0.17, 1)
 theme_override_colors/font_pressed_color = Color(0.1, 0.2, 0.17, 1)
@@ -136,6 +166,36 @@ theme_override_styles/hover = SubResource("ButtonHover")
 theme_override_styles/pressed = SubResource("ButtonPressed")
 theme_override_styles/focus = SubResource("ButtonFocus")
 text = "play"
+
+[node name="Garage" type="Button" parent="Center/Card/Margin/Content/Actions"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.91, 0.64, 1)
+theme_override_colors/font_hover_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_focus_color = Color(1, 0.91, 0.64, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("SecondaryStyle")
+theme_override_styles/hover = SubResource("SecondaryHover")
+theme_override_styles/pressed = SubResource("SecondaryHover")
+theme_override_styles/focus = SubResource("ButtonFocus")
+text = "garage"
+
+[node name="Tasks" type="Button" parent="Center/Card/Margin/Content/Actions"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.91, 0.64, 1)
+theme_override_colors/font_hover_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_focus_color = Color(1, 0.91, 0.64, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("SecondaryStyle")
+theme_override_styles/hover = SubResource("SecondaryHover")
+theme_override_styles/pressed = SubResource("SecondaryHover")
+theme_override_styles/focus = SubResource("ButtonFocus")
+text = "tasks"
 
 [node name="Instructions" type="Label" parent="Center/Card/Margin/Content"]
 layout_mode = 2

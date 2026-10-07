@@ -11,3 +11,5 @@ minimum_interval_ms = 80
 som_vibration_ms = 16
 dollar_vibration_ms = 26
 vibration_strength = 0.25
+close_call_vibration_ms = 12
+close_call_pitch_step = 0.06

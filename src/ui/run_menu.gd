@@ -3,6 +3,8 @@ extends Control
 ## Shared start/pause presentation. The parent routes the primary action.
 
 signal primary_pressed
+signal garage_pressed
+signal tasks_pressed
 signal language_selected(locale: String)
 signal sound_toggled(enabled: bool)
 signal haptics_toggled(enabled: bool)
@@ -16,13 +18,17 @@ var _metres: float = 0.0
 @onready var subtitle: Label = $Center/Card/Margin/Content/Subtitle
 @onready var car: TextureRect = $Center/Card/Margin/Content/Car
 @onready var detail: Label = $Center/Card/Margin/Content/Detail
-@onready var primary_button: Button = $Center/Card/Margin/Content/Primary
+@onready var primary_button: Button = $Center/Card/Margin/Content/Actions/Primary
+@onready var garage_button: Button = $Center/Card/Margin/Content/Actions/Garage
+@onready var tasks_button: Button = $Center/Card/Margin/Content/Actions/Tasks
 @onready var preferences: MenuPreferences = $Center/Card/Margin/Content/Preferences
 @onready var instructions: Label = $Center/Card/Margin/Content/Instructions
 
 
 func _ready() -> void:
 	primary_button.pressed.connect(func() -> void: primary_pressed.emit())
+	garage_button.pressed.connect(func() -> void: garage_pressed.emit())
+	tasks_button.pressed.connect(func() -> void: tasks_pressed.emit())
 	preferences.language_selected.connect(
 		func(locale: String) -> void: language_selected.emit(locale)
 	)
@@ -54,7 +60,15 @@ func refresh_text() -> void:
 	car.visible = not is_pause
 	detail.text = (tr("run_summary") % [_points, int(_metres)] if is_pause else tr("best") % _best)
 	primary_button.text = tr("resume") if is_pause else tr("play")
+	garage_button.text = tr("garage")
+	garage_button.visible = not is_pause
+	tasks_button.text = tr("tasks")
+	tasks_button.visible = not is_pause
 	instructions.text = tr("hint").replace("\\n", "\n")
+
+
+func set_car_texture(texture: Texture2D) -> void:
+	car.texture = texture
 
 
 func set_options(sound: bool, haptics: bool, unsaved: bool) -> void:

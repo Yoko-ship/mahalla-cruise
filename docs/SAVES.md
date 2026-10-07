@@ -36,6 +36,17 @@ On this Mac the default directory is
     "language": "uz",
     "sound_enabled": true,
     "haptics_enabled": true
+  },
+  "garage": {
+    "wallet": 340,
+    "owned": ["damas", "matiz"],
+    "selected": "matiz"
+  },
+  "daily": {
+    "day": "2026-10-07",
+    "tasks": ["notes_15", "distance_400", "runs_3"],
+    "progress": {"notes_15": 15, "distance_400": 260, "runs_3": 2},
+    "done": ["notes_15"]
   }
 }
 ```
@@ -47,6 +58,19 @@ load with the hint unseen and retain their best score. The flag must be boolean.
 feedback flags must be booleans. Invalid or absent preference values fall back
 individually to defaults without losing a valid best score or onboarding flag.
 Unknown fields in a valid preferences object are retained when choices change.
+
+`garage` is optional in v1. Every completed run adds its points to `wallet`
+(capped at the score maximum); buying a car spends them and selects that car.
+`owned` always includes `damas`; unknown car ids are kept for future builds.
+`selected` must be owned, otherwise Damas is used. Invalid fields fall back
+individually without losing the record, and unknown garage fields survive writes.
+A selected car that this build cannot show (no artwork) drives as Damas without
+rewriting the saved choice.
+
+`daily` is optional in v1. A state for another day, unknown task ids, a wrong task
+count, or negative progress is replaced by today's fresh draw without touching the
+record or wallet. Unknown fields inside `daily` survive writes. Every completed run
+now writes once (daily progress counts drives), still never during play.
 
 Scores must be whole numbers from 0 to 2,147,483,647. Unknown fields in a supported
 document are retained. Missing or malformed data falls back to a valid `.bak`

@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1")
+travel_speed_scale = 1.0
 steering_speed = 640.0
 drag_sensitivity = 1.0
 road_margin = 26.0

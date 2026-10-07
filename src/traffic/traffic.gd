@@ -1,20 +1,33 @@
 class_name TrafficController
 extends Node2D
-## Spawns spaced vehicles and reports contact, without accessing the player or HUD.
+## Spawns spaced vehicles and sheep crossings and reports contact, without the player or HUD.
 
 signal contacted
+## Points already include the combo multiplier.
+signal near_missed(points: int, combo: int)
 
 const CAR_SCENE: PackedScene = preload("res://src/traffic/traffic_car.tscn")
 const PAINTS: Array[Color] = [Color("dfceb1"), Color("a1bbcc"), Color("c0c7b1")]
+## Extra clearance between a crossing flock and a car it might otherwise catch up with.
+const SHEEP_CAR_MARGIN: float = 50.0
+
+@export var sheep_settings: SheepSettings
 
 var vehicles: Array[TrafficCar] = []
 var difficulty_progress: float = 0.0
+var near_miss_combo: int = 0
+## "car" or "sheep": what ended the run, for the results message.
+var last_contact_kind: String = "car"
 var _road: RoadSettings
 var _settings: TrafficSettings
 var _distance_until_spawn: float = 0.0
 var _next_lane: int = 0
 var _random := RandomNumberGenerator.new()
 var _vertical_padding: float = 0.0
+var _pixels_since_near_miss: float = INF
+var _metres: float = 0.0
+
+@onready var sheep_crossing: SheepCrossing = $SheepCrossing
 
 
 func configure(road: RoadSettings, settings: TrafficSettings) -> void:
@@ -26,6 +39,11 @@ func configure(road: RoadSettings, settings: TrafficSettings) -> void:
 	_settings = settings
 	assert(settings.difficulty_full_metres > settings.difficulty_start_metres)
 	difficulty_progress = 0.0
+	near_miss_combo = 0
+	_pixels_since_near_miss = INF
+	_metres = 0.0
+	last_contact_kind = "car"
+	sheep_crossing.configure(road, sheep_settings)
 	_distance_until_spawn = settings.first_spawn_distance
 	_next_lane = _random.randi_range(0, 1)
 
@@ -35,6 +53,7 @@ func set_vertical_padding(pixels: float) -> void:
 
 
 func set_distance(metres: float) -> void:
+	_metres = metres
 	difficulty_progress = clampf(
 		inverse_lerp(_settings.difficulty_start_metres, _settings.difficulty_full_metres, metres),
 		0.0,
@@ -44,6 +63,7 @@ func set_distance(metres: float) -> void:
 
 func advance(travel_pixels: float, player_bounds: Rect2) -> void:
 	var traffic_travel := travel_pixels * _settings.relative_speed
+	var near_misses := 0
 	for index in range(vehicles.size() - 1, -1, -1):
 		var vehicle := vehicles[index]
 		var previous_bounds := vehicle.collision_bounds()
@@ -58,18 +78,70 @@ func advance(travel_pixels: float, player_bounds: Rect2) -> void:
 				vehicle.position.y
 			)
 			vehicle.mark_contacted()
+			last_contact_kind = "car"
 			contacted.emit()
 			return
+		if _track_pass(vehicle, swept_bounds, player_bounds):
+			near_misses += 1
 		if vehicle.position.y > _settings.despawn_y + _vertical_padding:
 			vehicles.remove_at(index)
 			vehicle.queue_free()
+	var despawn := _settings.despawn_y + _vertical_padding
+	if sheep_crossing.advance(travel_pixels, player_bounds, despawn):
+		last_contact_kind = "sheep"
+		contacted.emit()
+		return
+	if sheep_crossing.is_due(_metres) and _road_clear_for_sheep():
+		sheep_crossing.start(_settings.spawn_y - _vertical_padding, _metres)
+	# Awarded after the loop: a crash anywhere in this frame returns first and pays nothing.
+	_pixels_since_near_miss += travel_pixels
+	for _near_miss in range(near_misses):
+		_award_near_miss()
 	_distance_until_spawn -= travel_pixels
 	if _distance_until_spawn <= 0.0 and _can_spawn():
 		_spawn_vehicle()
 
 
+func _track_pass(vehicle: TrafficCar, swept: Rect2, player_bounds: Rect2) -> bool:
+	# Returns true once, when a car that came close has fully passed the player.
+	if vehicle.has_passed:
+		return false
+	if swept.position.y < player_bounds.end.y and swept.end.y > player_bounds.position.y:
+		var gap := maxf(
+			player_bounds.position.x - swept.end.x, swept.position.x - player_bounds.end.x
+		)
+		vehicle.closest_gap = minf(vehicle.closest_gap, gap)
+	if vehicle.collision_bounds().position.y < player_bounds.end.y:
+		return false
+	vehicle.has_passed = true
+	return vehicle.closest_gap <= _settings.near_miss_gap
+
+
+func _award_near_miss() -> void:
+	if _pixels_since_near_miss > _settings.near_miss_combo_pixels:
+		near_miss_combo = 0
+	near_miss_combo = mini(near_miss_combo + 1, _settings.near_miss_max_combo)
+	_pixels_since_near_miss = 0.0
+	near_missed.emit(_settings.near_miss_points * near_miss_combo, near_miss_combo)
+
+
+func _road_clear_for_sheep() -> bool:
+	# Sheep move with the road, faster than cars; start only if no car can be caught up with.
+	var top := _settings.spawn_y - _vertical_padding
+	var bottom := _settings.despawn_y + _vertical_padding
+	var speed := _settings.relative_speed
+	var safe_y := (1.0 - speed) * bottom + speed * top + SHEEP_CAR_MARGIN
+	for vehicle in vehicles:
+		if vehicle.position.y < safe_y:
+			return false
+	return true
+
+
 func _can_spawn() -> bool:
-	if vehicles.size() >= _settings.max_vehicles:
+	if vehicles.size() >= _settings.max_vehicles or sheep_crossing.is_due(_metres):
+		return false
+	var top := _settings.spawn_y - _vertical_padding
+	if sheep_crossing.top_y() - top < _settings.minimum_gap:
 		return false
 	for vehicle in vehicles:
 		if vehicle.position.y - (_settings.spawn_y - _vertical_padding) < _settings.minimum_gap:
@@ -81,6 +153,7 @@ func blocking_bounds() -> Array[Rect2]:
 	var bounds: Array[Rect2] = []
 	for vehicle in vehicles:
 		bounds.append(vehicle.collision_bounds())
+	bounds.append_array(sheep_crossing.blocking_bounds())
 	return bounds
 
 
