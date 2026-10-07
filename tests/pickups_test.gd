@@ -174,7 +174,9 @@ func _test_cleanup_and_cap() -> void:
 	for frame in range(2400):
 		controller.advance(4.0, Rect2(-1000, 568, 40, 72), [], 0.62)
 		bounded = bounded and controller.items.size() <= settings.max_pickups
-		detached = detached and controller.get_child_count() == controller.items.size()
+		# Power-ups share this node; each kind of child must match its live list.
+		detached = detached and _children(controller, MoneyPickup) == controller.items.size()
+		detached = detached and _children(controller, PowerUp) == controller.power_ups.size()
 		if not controller.items.is_empty() and controller.items.back().get_instance_id() != last_id:
 			last_id = controller.items.back().get_instance_id()
 			spawns += 1
@@ -182,6 +184,15 @@ func _test_cleanup_and_cap() -> void:
 	_check(detached, "Expired nodes never accumulate in the scene tree")
 	_check(spawns > 10, "Spawning continues after missed notes are cleaned up")
 	controller.free()
+
+
+func _children(parent: Node, type: Variant) -> int:
+	return (
+		parent
+		. get_children()
+		. filter(func(child: Node) -> bool: return is_instance_of(child, type))
+		. size()
+	)
 
 
 func _check(condition: bool, description: String) -> void:

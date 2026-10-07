@@ -86,6 +86,8 @@ func _test_combo_window() -> void:
 
 func _test_crash_priority_and_restart() -> void:
 	var game := _new_game()
+	# Streak payouts are covered by streak_test; keep this wallet about run points only.
+	game.daily.state.streak_paid = true
 	var bounds := game.player.collision_bounds()
 	# The blocking car is processed after the passing car, so its crash ends the same frame.
 	var blocker := _add_car(game, 216.0, bounds.position.y - 40.0)

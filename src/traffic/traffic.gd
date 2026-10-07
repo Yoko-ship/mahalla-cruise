@@ -128,6 +128,17 @@ func _award_near_miss() -> void:
 	near_missed.emit(_settings.near_miss_points * near_miss_combo, near_miss_combo)
 
 
+## A shield absorbed a crash: whatever was hit is knocked off the road.
+func clear_contact() -> void:
+	for index in range(vehicles.size() - 1, -1, -1):
+		if vehicles[index].has_contacted:
+			var vehicle := vehicles[index]
+			vehicles.remove_at(index)
+			remove_child(vehicle)
+			vehicle.queue_free()
+	sheep_crossing.clear_contact()
+
+
 func _road_clear_for_sheep(money_bounds: Array[Rect2]) -> bool:
 	# Sheep move with the road, faster than cars; start only if no car can be caught up with.
 	var top := _settings.spawn_y - _vertical_padding

@@ -191,13 +191,38 @@ the HUD and garage screens display. `src/driving/car_paint.gdshader` recolors on
 light, unsaturated body pixels; the road car, start-screen car, and garage previews
 all use it. Test sprites are neutral silver so factory paints supply their color.
 
+## Power-ups
+
+Power-ups are pickup state, owned by `PickupController` with `default_power_ups.tres`.
+It spawns one `PowerUp` at a time in a money lane (clear of traffic, sheep rows, and
+notes; notes also avoid it), detects collection, and keeps a `PowerUpEffects` object
+whose durations are metres of travel. The magnet pulls notes within its radius; the
+×2 multiplier applies to emitted note points and, through `point_multiplier()`, to
+close calls in main. On contact, main first asks `absorb_crash()`; if the shield (or
+its grace) absorbs it, main calls `traffic.clear_contact()` to remove the hit car or
+sheep and continues. `power_ups_changed(view)` drives the HUD `PowerUpBar`; icons
+come from `PowerUpVisual.draw_icon()`. Configure/restart clears everything.
+
+Bus stops are also pickup state: `PickupController` spawns one `BusStop` at a time
+at the right curb (`default_passengers.tres`). When the player's box enters the
+curbside boarding zone beside it, each passenger emits the normal `collected`
+signal with the 5,000 soʻm fare note, so main, scoring, HUD feedback, wallet, and
+daily note tasks need no new code. If the catalogue lacks that note, stops are off.
+
+The daily streak lives in `DailyTasks.state` (`streak`, `streak_paid`). A new day
+continues the streak only if yesterday's state was paid. The first `record_run()` of
+the day appends the streak reward to the usual task rewards, and `entries()` adds a
+streak row without a counter. Older states without these keys show no streak row.
+
 ## Audio, Preferences, and Main
 
 `GameAudio` (`src/audio/`) plays the generated music loop and horn. Main turns
 music on for a drive, pauses it with the run, and restarts it on Drive again.
 `PreferenceRules` (static, in `src/progress/`) saves sound, vibration, and music
 options and applies them to feedback, audio, and HUD. These helpers, `GarageRules`,
-and `DailyTasks.summary()` keep `main.gd` a coordinator (276 of 300 lines).
+and `DailyTasks.summary()` keep `main.gd` a coordinator. It is now 286 of 300 lines
+and the HUD 280; the next feature should first split the drive-time HUD overlay and
+group the world nodes (an architecture change that needs approval).
 
 ## Sheep Crossings
 

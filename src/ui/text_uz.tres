@@ -2,6 +2,11 @@
 
 [resource]
 messages = {
+[&"", &"task_streak"]: [&"%d-kun ketma-ket: bugun bir marta haydang"],
+[&"", &"power_magnet"]: [&"Magnit!"],
+[&"", &"power_double"]: [&"Ikki barobar ball!"],
+[&"", &"power_shield"]: [&"Qalqon!"],
+[&"", &"power_shield_used"]: [&"Qalqon asrab qoldi!"],
 [&"", &"paint"]: [&"Mashina rangi"],
 [&"", &"music_on"]: [&"Musiqa bor"],
 [&"", &"music_off"]: [&"Musiqa yoʻq"],

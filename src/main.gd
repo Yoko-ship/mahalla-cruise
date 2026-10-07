@@ -45,6 +45,11 @@ func _ready() -> void:
 	traffic.near_missed.connect(_on_near_missed)
 	pickups.configure(road_settings, pickup_settings)
 	pickups.collected.connect(_on_money_collected)
+	pickups.power_up_collected.connect(hud.show_power_up)
+	pickups.power_up_collected.connect(
+		func(_kind: String) -> void: pickup_feedback.play_pickup(true)
+	)
+	pickups.power_ups_changed.connect(hud.set_power_ups)
 	hud.restart_requested.connect(restart_run)
 	hud.play_requested.connect(start_run)
 	hud.pause_requested.connect(pause_run)
@@ -139,7 +144,6 @@ func _process(delta: float) -> void:
 func advance(delta: float) -> void:
 	if state != RunState.PLAYING:
 		return
-	hud.advance_hint(delta)
 	var travel_pixels := road_settings.scroll_speed * car.settings.travel_speed_scale * delta
 	distance_metres += travel_pixels / road_settings.pixels_per_metre
 	road.advance(travel_pixels)
@@ -154,7 +158,7 @@ func advance(delta: float) -> void:
 			traffic.blocking_bounds(),
 			traffic_settings.relative_speed
 		)
-	hud.set_distance(distance_metres)
+	hud.set_distance(distance_metres, delta)
 
 
 func restart_run() -> void:
@@ -233,8 +237,9 @@ func _on_near_missed(points: int, combo: int) -> void:
 	if state != RunState.PLAYING:
 		return
 	near_misses += 1
-	_add_points(points)
-	hud.show_near_miss(points, combo)
+	var earned := points * pickups.point_multiplier()
+	_add_points(earned)
+	hud.show_near_miss(earned, combo)
 	pickup_feedback.play_close_call(combo)
 
 
@@ -260,6 +265,10 @@ func _apply_preferences() -> void:
 func _on_traffic_contacted() -> void:
 	if state != RunState.PLAYING:
 		return
+	if pickups.absorb_crash():
+		traffic.clear_contact()
+		hud.show_power_up("shield_used")
+		return
 	state = RunState.GAME_OVER
 	player.set_driving_enabled(false)
 	pickup_feedback.stop()
@@ -271,6 +280,7 @@ func _on_traffic_contacted() -> void:
 	var new_best := progress.complete_run(score)
 	hud.set_best(progress.best_score, new_best, progress.has_unsaved_changes)
 	hud.set_garage(garage, GarageRules.view(garage, progress, car))
-	hud.show_wallet_result(score, progress.wallet, task_rewards)
 	hud.set_daily(daily.entries())
-	hud.show_game_over(distance_metres, traffic.last_contact_kind)
+	hud.show_game_over(
+		distance_metres, traffic.last_contact_kind, score, progress.wallet, task_rewards
+	)

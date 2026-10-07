@@ -57,6 +57,8 @@ func refresh_text() -> void:
 		)
 		var count := row.get_node("Layout/Status/Count") as Label
 		count.text = "%d / %d" % [entry.progress, entry.target]
+		# The streak row has no counter; its target is the streak day.
+		count.visible = entry.get("counter", true)
 		var reward := row.get_node("Layout/Status/Reward") as Label
 		reward.text = tr("task_complete") if entry.done else tr("task_reward") % entry.reward
 		reward.add_theme_color_override("font_color", GOLD if entry.done else TEXT_COLOR)

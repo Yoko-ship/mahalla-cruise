@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="PassengerSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/pickups/passenger_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+first_stop_metres = 200.0
+stop_metres_min = 450.0
+stop_metres_max = 750.0
+passengers_min = 1
+passengers_max = 3
+fare_face_value = 5000
+board_distance = 18.0
+zone_height = 64.0

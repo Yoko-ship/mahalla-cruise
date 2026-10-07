@@ -88,6 +88,8 @@ func _test_purchase_flow() -> void:
 	var expected := game.road_settings.scroll_speed * 0.95 / game.road_settings.pixels_per_metre
 	_check(is_equal_approx(game.distance_metres, expected), "The Matiz travels at its own speed")
 	game.score = 40
+	# Streak payouts are covered by streak_test; keep this wallet about run points only.
+	game.daily.state.streak_paid = true
 	_crash(game)
 	_check(game.progress.wallet == 140, "Finishing a drive pays into the wallet")
 	_check(

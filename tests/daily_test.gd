@@ -77,7 +77,8 @@ func _test_progress_and_rewards() -> void:
 	rewards = daily.record_run(_run_stats(50, 999), "2026-10-08")
 	_check(daily.state.day == "2026-10-08", "A new day starts new tasks")
 	_check(
-		daily.state.done.size() == rewards.size(), "Only the new day's run counts after rollover"
+		daily.state.done.size() + 1 == rewards.size(),
+		"After rollover only the new day's run counts, plus its streak bonus"
 	)
 	for broken: Dictionary in [
 		{"day": DAY, "tasks": ["nope", "runs_3", "notes_15"], "progress": {}, "done": []},

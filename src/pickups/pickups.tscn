@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://src/pickups/pickups.gd" id="1"]
+[ext_resource type="Resource" path="res://src/pickups/default_power_ups.tres" id="2"]
+[ext_resource type="Resource" path="res://src/pickups/default_passengers.tres" id="3"]
 
 [node name="Pickups" type="Node2D"]
 script = ExtResource("1")
+power_up_settings = ExtResource("2")
+passenger_settings = ExtResource("3")

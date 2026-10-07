@@ -44,6 +44,7 @@ var _playfield_offset := Vector2.ZERO
 @onready var menu: RunMenu = $RunMenu
 @onready var pause_button: Button = $Pause
 @onready var horn_button: Button = $Horn
+@onready var power_up_bar: PowerUpBar = $PowerUps
 @onready var garage_menu: GarageMenu = $GarageMenu
 @onready var daily_menu: DailyMenu = $DailyMenu
 
@@ -78,6 +79,7 @@ func set_playfield_offset(offset: Vector2) -> void:
 		best_label,
 		pause_button,
 		horn_button,
+		power_up_bar,
 		controls_label,
 		pickup_label
 	]:
@@ -121,20 +123,11 @@ func leave_results() -> void:
 	set_distance(0.0)
 
 
-func show_wallet_result(earned: int, wallet: int, task_rewards: Array[int] = []) -> void:
-	game_over_panel.set_wallet(earned, wallet, task_rewards)
-
-
 func begin_run(first_hint: bool) -> void:
 	menu.close()
 	_set_gameplay_visible(true)
 	_hint_remaining = settings.first_hint_seconds if first_hint else 0.0
 	controls_label.text = tr("hint").replace("\\n", "\n")
-	controls_label.visible = _hint_remaining > 0.0
-
-
-func advance_hint(delta: float) -> void:
-	_hint_remaining = maxf(0.0, _hint_remaining - delta)
 	controls_label.visible = _hint_remaining > 0.0
 
 
@@ -152,7 +145,7 @@ func resume_run() -> void:
 
 func _set_gameplay_visible(active: bool) -> void:
 	for control: Control in [
-		$Title, distance_label, score_label, best_label, pause_button, horn_button
+		$Title, distance_label, score_label, best_label, pause_button, horn_button, power_up_bar
 	]:
 		control.visible = active
 	controls_label.visible = active and _hint_remaining > 0.0
@@ -179,7 +172,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	get_viewport().set_input_as_handled()
 
 
-func set_distance(metres: float) -> void:
+## delta advances the first-drive hint; main passes it only while driving.
+func set_distance(metres: float, delta: float = 0.0) -> void:
+	if delta > 0.0:
+		_hint_remaining = maxf(0.0, _hint_remaining - delta)
+		controls_label.visible = _hint_remaining > 0.0
 	_metres = metres
 	var text := tr("distance") % int(metres)
 	if distance_label.text != text:
@@ -253,7 +250,19 @@ func show_near_miss(points: int, combo: int) -> void:
 	pickup_label.play(text)
 
 
-func show_game_over(metres: float, crash_kind: String = "car") -> void:
+func set_power_ups(view: Dictionary) -> void:
+	power_up_bar.set_view(view)
+
+
+func show_power_up(kind: String) -> void:
+	if not _game_over:
+		pickup_label.play(tr("power_" + kind))
+
+
+func show_game_over(
+	metres: float, crash_kind: String, earned: int, wallet: int, task_rewards: Array[int]
+) -> void:
+	game_over_panel.set_wallet(earned, wallet, task_rewards)
 	_game_over = true
 	pickup_label.dismiss()
 	_set_gameplay_visible(false)

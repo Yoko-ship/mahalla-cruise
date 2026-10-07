@@ -73,6 +73,15 @@ func advance(travel_pixels: float, player_bounds: Rect2, despawn_y: float) -> bo
 	return false
 
 
+func clear_contact() -> void:
+	for index in range(flock.size() - 1, -1, -1):
+		if flock[index].has_contacted:
+			var sheep := flock[index]
+			flock.remove_at(index)
+			remove_child(sheep)
+			sheep.queue_free()
+
+
 func top_y() -> float:
 	var top := INF
 	for sheep in flock:

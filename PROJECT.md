@@ -196,6 +196,8 @@ Track asset sources and applicable usage terms when assets are added. Keep sourc
 - [x] Add a near-miss bonus with a capped combo.
 - [x] Add close-call sound/vibration, sheep crossings, and daily tasks.
 - [x] Add paint colors, horn, music, and keep money away from sheep.
+- [x] Add road power-ups: magnet, double points, and shield.
+- [x] Add marshrutka bus-stop passengers and a daily streak bonus.
 - [ ] Add more places once painted street artwork exists.
 - [ ] Replace the Matiz, Cobalt, and black Gentra test sprites with final artwork.
 - [ ] Test touch controls and performance on a physical Android phone.
@@ -605,6 +607,35 @@ streets. Four suites now wait 0.4 s before quitting so the music stream is relea
 Validation: `./scripts/check.sh` passed **1,043 game checks and 19 tooling tests**,
 including new `paint_test.gd` (41) and `audio_test.gd` (24). Reviewed Mac renders of
 six paints on the road, the Russian garage with swatches, and the horn button.
+
+Power-up update (2026-10-07): the user chose power-ups. Magnet (90 m, 130 px pull),
+×2 points (110 m, money and close calls), and Shield (one crash plus 15 m grace,
+works on cars and sheep) spawn from 120 m, one every 300–500 m, in money lanes away
+from traffic, sheep rows, and notes. Durations are metres, so pause freezes them.
+Drawn badges and HUD chips with countdown rings; uz/ru/en popups; collection uses the
+dollar chime. Buying power-ups before a run is not implemented yet. To stay within
+lint limits, the HUD's per-frame hint timer merged into `set_distance(metres, delta)`
+and the wallet line into `show_game_over(...)`. `main.gd` is 286 lines and `hud.gd`
+280: the next feature should start with an approved structural split.
+Validation: `./scripts/check.sh` passed **1,090 game checks and 19 tooling tests**,
+including new `power_up_test.gd` (31). One pickups cleanup assertion now counts note
+and power-up children separately, since both live under the controller. Reviewed a
+Mac render of all three badges, the chips, and the Uzbek popup.
+
+Two new features (2026-10-07): the user asked for two features not listed before.
+1. Marshrutka passengers: drawn bus stops (BEKAT) with 1–3 passengers on the right
+   sidewalk from 200 m, every 450–750 m. Hugging the right curb boards everyone; each
+   pays a 5,000 soʻm fare through the existing money signal (×2 applies; daily note
+   tasks count fares). Every car can reach the boarding zone; centre driving cannot.
+2. Daily streak: consecutive days pay 20 × streak day (cap 140) on the first finished
+   drive, shown as a Tasks row and on results; a missed day resets to day one.
+Neither touched `main.gd` or `hud.gd`. Existing wallet assertions in garage, near-miss,
+and power-up tests now mark today's streak as paid so they keep testing run points;
+one daily rollover assertion now expects the extra streak reward. Fares are skipped,
+not asserted, when a test catalogue lacks the 5,000 note.
+Validation: `./scripts/check.sh` passed **1,135 game checks and 19 tooling tests**,
+including new `passenger_test.gd` (21) and `streak_test.gd` (20). Reviewed a Mac render
+of a stop with three passengers beside the curb.
 
 ## Running and Checking the Starter
 

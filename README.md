@@ -40,6 +40,20 @@ different kinds (collect notes, close calls, distance or score in one run, numbe
 of drives) from a pool of ten. Progress updates when a run ends; finished tasks pay
 40–120 points into the wallet and are listed on the results screen.
 
+**Marshrutka passengers:** from 200 m, every 450–750 m a bus stop (BEKAT) with one
+to three passengers appears on the right sidewalk. Hug the right curb as you pass
+to board them; each pays a 5,000 soʻm fare (5 points, doubled by ×2). Traffic
+uses that lane too, so it is a risk.
+
+**Daily streak:** drive on consecutive days. The first finished drive each day pays
+20 × the streak day (capped at 140); the streak row is on the Tasks screen. Missing
+a day restarts at day one.
+
+**Power-ups:** from 120 m, one badge appears every 300–500 m in a money lane.
+**Magnet** pulls nearby notes for 90 m, **×2** doubles money and close-call points
+for 110 m, and **Shield** absorbs one crash (car or sheep) plus a short grace.
+Active power-ups show as chips with countdown rings under Pause.
+
 **Paint:** the garage shows six colors for the selected car. Each car's factory
 color is free; other colors cost 150 points once and then work on every car. A
 shader repaints only the body, keeping lamps, glass, and stripes.

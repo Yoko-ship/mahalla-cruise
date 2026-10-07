@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://src/ui/hud.gd" id="1"]
 
@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://src/ui/results_panel.gd" id="5"]
 [ext_resource type="Script" path="res://src/ui/feedback_popup.gd" id="6"]
 [ext_resource type="PackedScene" path="res://src/daily/daily_menu.tscn" id="7"]
+[ext_resource type="Script" path="res://src/ui/power_up_bar.gd" id="8"]
 
 [sub_resource type="StyleBoxFlat" id="CardStyle"]
 bg_color = Color(0.12549, 0.243137, 0.219608, 1)
@@ -148,6 +149,16 @@ theme_override_styles/normal = SubResource("DistanceStyle")
 theme_override_styles/hover = SubResource("DistanceStyle")
 theme_override_styles/pressed = SubResource("DistanceStyle")
 text = "pause"
+
+[node name="PowerUps" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 18.0
+offset_top = 150.0
+offset_right = 148.0
+offset_bottom = 186.0
+mouse_filter = 2
+script = ExtResource("8")
 
 [node name="Horn" type="Button" parent="."]
 offset_left = 356.0

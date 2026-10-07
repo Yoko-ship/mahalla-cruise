@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="PowerUpSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/pickups/power_up_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+first_spawn_metres = 120.0
+spawn_metres_min = 300.0
+spawn_metres_max = 500.0
+magnet_metres = 90.0
+double_metres = 110.0
+shield_grace_metres = 15.0
+magnet_radius = 130.0
+magnet_pull = 1.4
+collision_half_size = Vector2(16, 16)

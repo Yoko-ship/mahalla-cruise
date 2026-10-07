@@ -2,6 +2,11 @@
 
 [resource]
 messages = {
+[&"", &"task_streak"]: [&"Day %d streak: drive once today"],
+[&"", &"power_magnet"]: [&"Magnet!"],
+[&"", &"power_double"]: [&"Double points!"],
+[&"", &"power_shield"]: [&"Shield!"],
+[&"", &"power_shield_used"]: [&"Shield saved you!"],
 [&"", &"paint"]: [&"Paint for this car"],
 [&"", &"music_on"]: [&"Music on"],
 [&"", &"music_off"]: [&"Music off"],

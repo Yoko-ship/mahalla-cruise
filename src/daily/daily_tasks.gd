@@ -3,8 +3,13 @@ extends Node
 ## Today's tasks and progress. Main reports finished runs; the progress store saves the state.
 
 @export var catalogue: DailyCatalogue
+## Day N of a streak pays N × this on the first finished drive, up to the cap.
+@export_range(0, 1000) var streak_step_reward: int = 20
+@export_range(1, 30) var streak_cap_days: int = 7
 
-## {"day": "YYYY-MM-DD", "tasks": [ids], "progress": {id: value}, "done": [ids]}
+## {"day": "YYYY-MM-DD", "tasks": [ids], "progress": {id: value}, "done": [ids],
+##  "streak": days in a row, "streak_paid": bool}. Saves without the streak keys
+## (older versions) show no streak row for that day.
 var state: Dictionary = {}
 
 
@@ -23,7 +28,18 @@ func load_state(saved: Dictionary, day: String = "") -> void:
 	assert(catalogue != null, "Daily tasks require a catalogue")
 	if day.is_empty():
 		day = today()
-	state = saved.duplicate(true) if _is_valid(saved, day) else _new_state(day)
+	if _is_valid(saved, day):
+		state = saved.duplicate(true)
+		return
+	state = _new_state(day)
+	# Driving yesterday continues the streak; any gap starts again at day one.
+	var continued: bool = (
+		saved.get("day") == _previous_day(day) and saved.get("streak_paid") == true
+	)
+	var previous: Variant = saved.get("streak", 0)
+	var days := int(previous) + 1 if continued and ProgressData.is_integer(previous) else 1
+	state.streak = clampi(days, 1, 100000)
+	state.streak_paid = false
 
 
 ## Returns the rewards of tasks this run completed. A new day starts new tasks first.
@@ -39,7 +55,14 @@ func record_run(run: Dictionary, day: String = "") -> Array[int]:
 		if current >= task.target and id not in state.done:
 			state.done.append(id)
 			rewards.append(task.reward)
+	if state.get("streak_paid") == false:
+		state.streak_paid = true
+		rewards.append(streak_reward())
 	return rewards
+
+
+func streak_reward() -> int:
+	return mini(int(state.get("streak", 1)), streak_cap_days) * streak_step_reward
 
 
 func entries() -> Array[Dictionary]:
@@ -58,7 +81,22 @@ func entries() -> Array[Dictionary]:
 				}
 			)
 		)
+	if state.has("streak_paid"):
+		var streak_entry := {
+			"text_key": "task_streak",
+			"target": int(state.get("streak", 1)),
+			"progress": int(state.streak_paid),
+			"reward": streak_reward(),
+			"done": state.streak_paid,
+			"counter": false,
+		}
+		result.append(streak_entry)
 	return result
+
+
+static func _previous_day(day: String) -> String:
+	var unix := Time.get_unix_time_from_datetime_string(day + "T12:00:00")
+	return Time.get_date_string_from_unix_time(unix - 86400)
 
 
 func _new_state(day: String) -> Dictionary:
