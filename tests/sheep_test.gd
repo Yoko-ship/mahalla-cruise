@@ -18,6 +18,7 @@ func _run() -> void:
 	_test_always_passable()
 	_test_cars_and_sheep_never_overlap()
 	_test_contact_and_restart()
+	_test_money_and_sheep_stay_apart()
 	_check(SHEEP.first_crossing_metres == 250.0 and SHEEP.flock_size_max == 3, "Defaults unchanged")
 	await create_timer(0.4).timeout
 	if failures == 0:
@@ -149,6 +150,35 @@ func _test_contact_and_restart() -> void:
 		game.hud.game_over_panel.message_label.text == "You hit another car.",
 		"Car crashes keep their message"
 	)
+	game.free()
+
+
+func _test_money_and_sheep_stay_apart() -> void:
+	var game := _new_game(false)
+	var traffic := game.traffic
+	var pickups := game.pickups
+	var metres := 0.0
+	var touching := 0
+	var crossings := 0
+	var notes := 0
+	while metres < 8000.0:
+		traffic.set_distance(metres)
+		var was_empty := traffic.sheep_crossing.flock.is_empty()
+		var before := pickups.items.size()
+		pickups.advance(
+			STEP_PIXELS, FAR_AWAY, traffic.blocking_bounds(), game.traffic_settings.relative_speed
+		)
+		notes += maxi(0, pickups.items.size() - before)
+		traffic.advance(STEP_PIXELS, FAR_AWAY, pickups.item_bounds())
+		if was_empty and not traffic.sheep_crossing.flock.is_empty():
+			crossings += 1
+		for sheep in traffic.sheep_crossing.blocking_bounds():
+			for note in pickups.item_bounds():
+				if sheep.intersects(note):
+					touching += 1
+		metres += STEP_PIXELS / game.road_settings.pixels_per_metre
+	_check(touching == 0, "Sheep never walk onto money")
+	_check(crossings >= 8 and notes >= 100, "Money and crossings both keep appearing")
 	game.free()
 
 

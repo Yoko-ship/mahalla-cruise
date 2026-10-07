@@ -10,8 +10,9 @@ The previous `damas_white_rear.png` pointed diagonally and has been superseded.
 `placeholder_roster.png` holds stand-in sprites for Matiz (red), Cobalt (pearl
 white), and Gentra (black), added 2026-10-07 at the user's request so car speed,
 control, and size can be tested before real artwork exists. Each is the silver
-traffic sedan from `vehicles_aligned.png`, with its body paint recolored and its
-size stretched to match the car's collision box at `sprite_scale` 0.1. They are
+traffic sedan from `vehicles_aligned.png`, kept neutral silver (the runtime paint
+shader supplies each car's factory color) and stretched to match the car's
+collision box at `sprite_scale` 0.1. Plates get a light cream tint so paint skips them. They are
 **not** real Matiz, Cobalt, or Gentra shapes. Rebuild them from the repository root:
 
 ```sh

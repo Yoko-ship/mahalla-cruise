@@ -13,6 +13,8 @@ func _initialize() -> void:
 func _run() -> void:
 	await _test_crash_and_mouse_restart()
 	await _test_touch_restart()
+	# Music plays during drives; let the mixer release it before the engine exits.
+	await create_timer(0.4).timeout
 	if failures == 0:
 		print("PASS: game over, frozen run, and mouse/touch restart (%d checks)" % checks)
 	quit(1 if failures else 0)

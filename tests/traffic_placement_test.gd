@@ -20,6 +20,8 @@ func _run() -> void:
 	await _test_live_traffic()
 	await _test_steerable_run(60)
 	await _test_steerable_run(15)
+	# Music plays during drives; let the mixer release it before the engine exits.
+	await create_timer(0.4).timeout
 	if failures == 0:
 		print("PASS: traffic variation, visible paths, and safe passing room (%d checks)" % checks)
 	quit(1 if failures else 0)

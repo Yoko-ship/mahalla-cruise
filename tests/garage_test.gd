@@ -145,7 +145,9 @@ func _test_layout(locale: String) -> void:
 	game.set_process(false)
 	game.set_language(locale)
 	var owned: Array[String] = ["damas", "matiz"]
-	game.hud.set_garage(game.garage, owned, "matiz", ProgressData.MAX_SCORE)
+	game.progress.owned_cars.assign(owned)
+	game.progress.wallet = ProgressData.MAX_SCORE
+	game.choose_car("matiz")
 	game.open_garage()
 	await _settle()
 	var card := game.hud.garage_menu.get_node("Center/Card") as Control

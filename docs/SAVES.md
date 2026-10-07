@@ -40,7 +40,9 @@ On this Mac the default directory is
   "garage": {
     "wallet": 340,
     "owned": ["damas", "matiz"],
-    "selected": "matiz"
+    "selected": "matiz",
+    "owned_paints": ["sky"],
+    "paints": {"matiz": "sky"}
   },
   "daily": {
     "day": "2026-10-07",
@@ -66,6 +68,10 @@ Unknown fields in a valid preferences object are retained when choices change.
 individually without losing the record, and unknown garage fields survive writes.
 A selected car that this build cannot show (no artwork) drives as Damas without
 rewriting the saved choice.
+
+Garage `owned_paints` and per-car `paints` are optional; invalid entries fall back
+to each car's free factory paint. `preferences.music_enabled` (default true) is
+saved separately from `sound_enabled`.
 
 `daily` is optional in v1. A state for another day, unknown task ids, a wrong task
 count, or negative progress is replaced by today's fresh draw without touching the

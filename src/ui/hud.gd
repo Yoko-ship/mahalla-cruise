@@ -11,6 +11,9 @@ signal haptics_toggled(enabled: bool)
 signal language_selected(locale: String)
 signal garage_requested
 signal car_chosen(id: String)
+signal paint_chosen(id: String)
+signal music_toggled(enabled: bool)
+signal horn_pressed
 
 const TRANSLATIONS: Array[Translation] = [
 	preload("res://src/ui/text_uz.tres"),
@@ -29,6 +32,7 @@ var _record: bool = false
 var _unsaved: bool = false
 var _sound: bool = true
 var _haptics: bool = true
+var _music: bool = true
 var _playfield_offset := Vector2.ZERO
 
 @onready var distance_label: Label = $Distance
@@ -39,6 +43,7 @@ var _playfield_offset := Vector2.ZERO
 @onready var best_label: Label = $Best
 @onready var menu: RunMenu = $RunMenu
 @onready var pause_button: Button = $Pause
+@onready var horn_button: Button = $Horn
 @onready var garage_menu: GarageMenu = $GarageMenu
 @onready var daily_menu: DailyMenu = $DailyMenu
 
@@ -56,6 +61,9 @@ func _ready() -> void:
 	menu.language_selected.connect(func(locale: String) -> void: language_selected.emit(locale))
 	menu.garage_pressed.connect(func() -> void: garage_requested.emit())
 	garage_menu.car_chosen.connect(func(id: String) -> void: car_chosen.emit(id))
+	garage_menu.paint_chosen.connect(func(id: String) -> void: paint_chosen.emit(id))
+	menu.music_toggled.connect(func(enabled: bool) -> void: music_toggled.emit(enabled))
+	horn_button.pressed.connect(func() -> void: horn_pressed.emit())
 	garage_menu.closed.connect(func() -> void: menu.show_start(_best))
 	menu.tasks_pressed.connect(_show_tasks)
 	daily_menu.closed.connect(func() -> void: menu.show_start(_best))
@@ -64,7 +72,14 @@ func _ready() -> void:
 func set_playfield_offset(offset: Vector2) -> void:
 	var shift := offset - _playfield_offset
 	for control: Control in [
-		$Title, distance_label, score_label, best_label, pause_button, controls_label, pickup_label
+		$Title,
+		distance_label,
+		score_label,
+		best_label,
+		pause_button,
+		horn_button,
+		controls_label,
+		pickup_label
 	]:
 		control.position += shift
 	pickup_label.base_y += shift.y
@@ -76,11 +91,9 @@ func show_start(best: int) -> void:
 	menu.show_start(best)
 
 
-func set_garage(
-	catalogue: GarageCatalogue, owned: Array[String], selected: String, wallet: int
-) -> void:
-	garage_menu.set_state(catalogue, owned, selected, wallet)
-	menu.set_car_texture(catalogue.find(selected).texture)
+func set_garage(catalogue: GarageCatalogue, view: Dictionary) -> void:
+	garage_menu.set_state(catalogue, view)
+	menu.set_car(catalogue.find(view.selected).texture, view.colors[view.selected])
 
 
 func show_garage() -> void:
@@ -138,7 +151,9 @@ func resume_run() -> void:
 
 
 func _set_gameplay_visible(active: bool) -> void:
-	for control: Control in [$Title, distance_label, score_label, best_label, pause_button]:
+	for control: Control in [
+		$Title, distance_label, score_label, best_label, pause_button, horn_button
+	]:
 		control.visible = active
 	controls_label.visible = active and _hint_remaining > 0.0
 
@@ -172,11 +187,14 @@ func set_distance(metres: float) -> void:
 		_fit_value(distance_label, 21, 89.0)
 
 
-func set_feedback_options(sound: bool, haptics: bool, unsaved: bool = false) -> void:
+func set_feedback_options(
+	sound: bool, haptics: bool, unsaved: bool = false, music: bool = true
+) -> void:
 	_sound = sound
 	_haptics = haptics
+	_music = music
 	set_best(_best, _record, unsaved)
-	menu.set_options(sound, haptics, unsaved)
+	menu.set_options(sound, haptics, unsaved, music)
 
 
 func refresh_text() -> void:
@@ -187,10 +205,11 @@ func refresh_text() -> void:
 	_fit_value(best_label, 15, 144.0)
 	game_over_panel.refresh_text()
 	controls_label.text = tr("hint").replace("\\n", "\n")
+	horn_button.text = tr("horn")
 	menu.refresh_text()
 	garage_menu.refresh_text()
 	daily_menu.refresh_text()
-	menu.set_options(_sound, _haptics, _unsaved)
+	menu.set_options(_sound, _haptics, _unsaved, _music)
 	pickup_label.dismiss()
 
 

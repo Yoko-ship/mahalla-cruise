@@ -5,13 +5,17 @@ No recordings, third-party samples, or external packages are used.
 
 - `som_pickup.wav`: 0.20-second two-note chime.
 - `dollar_pickup.wav`: 0.30-second brighter three-note chime.
+- `mahalla_loop.wav`: 19.2-second seamless music loop (Karplus-Strong plucked
+  melody, drone, and doira-style drums), 22.05 kHz; imported with forward looping.
+- `damas_horn.wav`: 0.34-second two-tone horn.
 - `close_call.wav`: 0.28-second rising filtered-noise whoosh for near misses.
   Runtime pitch rises 6% per combo step; Android adds a 12 ms pulse.
 
 Both files are mono 44.1 kHz, 16-bit PCM WAV. Smooth attacks and tails avoid abrupt
 waveform edges. Source peak is 0.55; runtime gain defaults to -8 dB.
 
-Regenerate with `python3 scripts/generate_pickup_audio.py`. The generator uses
+Regenerate with `python3 scripts/generate_pickup_audio.py` and
+`python3 scripts/generate_music_audio.py`. The generator uses
 Python's standard library and is the editable source for these assets.
 
 `src/pickups/pickup_feedback.tscn` owns two bounded audio players.

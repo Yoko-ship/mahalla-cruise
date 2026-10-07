@@ -31,13 +31,11 @@ var _focused: bool = true
 @onready var progress: LocalProgressStore = $Progress
 @onready var hud: CruiseHUD = $HUD
 @onready var daily: DailyTasks = $DailyTasks
+@onready var audio: GameAudio = $GameAudio
 
 
 func _ready() -> void:
-	assert(road_settings != null, "Main scene requires RoadSettings")
-	assert(traffic_settings != null, "Main scene requires TrafficSettings")
-	assert(pickup_settings != null, "Main scene requires PickupSettings")
-	assert(garage != null, "Main scene requires a GarageCatalogue")
+	assert(road_settings and traffic_settings and pickup_settings and garage, "Missing settings")
 	_start_position = player.position
 	road.configure(road_settings)
 	scenery.configure(road_settings)
@@ -51,15 +49,14 @@ func _ready() -> void:
 	hud.play_requested.connect(start_run)
 	hud.pause_requested.connect(pause_run)
 	hud.resume_requested.connect(resume_run)
-	hud.sound_toggled.connect(
-		func(on: bool) -> void: _set_preferences(progress.language, on, progress.haptics_enabled)
-	)
-	hud.haptics_toggled.connect(
-		func(on: bool) -> void: _set_preferences(progress.language, progress.sound_enabled, on)
-	)
+	hud.sound_toggled.connect(_set_option.bind("sound"))
+	hud.haptics_toggled.connect(_set_option.bind("haptics"))
+	hud.music_toggled.connect(_set_option.bind("music"))
+	hud.horn_pressed.connect(audio.play_horn)
 	hud.language_selected.connect(set_language)
 	hud.garage_requested.connect(open_garage)
 	hud.car_chosen.connect(choose_car)
+	hud.paint_chosen.connect(choose_paint)
 	hud.set_distance(distance_metres)
 	hud.set_score(score, som_collected, dollars_collected, near_misses)
 	progress.load_progress()
@@ -101,6 +98,7 @@ func start_run() -> void:
 	player.show()
 	player.set_driving_enabled(true)
 	hud.begin_run(first_hint)
+	audio.set_music_playing(true, true)
 
 
 func pause_run() -> void:
@@ -109,6 +107,7 @@ func pause_run() -> void:
 	state = RunState.PAUSED
 	player.set_driving_enabled(false)
 	pickup_feedback.stop()
+	audio.set_music_playing(false)
 	hud.show_paused(score, distance_metres)
 
 
@@ -117,6 +116,7 @@ func resume_run() -> void:
 		return
 	state = RunState.PLAYING
 	player.set_driving_enabled(true)
+	audio.set_music_playing(true)
 	hud.resume_run()
 
 
@@ -145,7 +145,7 @@ func advance(delta: float) -> void:
 	road.advance(travel_pixels)
 	scenery.advance(travel_pixels)
 	traffic.set_distance(distance_metres)
-	traffic.advance(travel_pixels, player.collision_bounds())
+	traffic.advance(travel_pixels, player.collision_bounds(), pickups.item_bounds())
 	# Crash takes priority; no money can be awarded on or after the crash frame.
 	if not is_game_over:
 		pickups.advance(
@@ -164,6 +164,7 @@ func restart_run() -> void:
 		return
 	state = RunState.PLAYING
 	_reset_world()
+	audio.set_music_playing(true, true)
 	hud.reset_run()
 	hud.set_score(score, som_collected, dollars_collected, near_misses)
 	hud.set_best(progress.best_score, false, progress.has_unsaved_changes)
@@ -184,29 +185,24 @@ func open_garage() -> void:
 		hud.show_garage()
 
 
+# Cars and paints change only between drives; purchases are checked against the wallet.
 func choose_car(id: String) -> void:
-	# Cars change only between drives; purchases are validated against the saved wallet.
-	if state != RunState.START:
-		return
-	var choice := garage.find(id)
-	if choice == null:
-		return
-	if id in progress.owned_cars:
-		progress.select_car(id)
-	elif not progress.buy_car(id, choice.price):
-		return
-	_apply_car()
+	if state == RunState.START and GarageRules.choose_car(garage, progress, id):
+		_apply_car()
+
+
+func choose_paint(id: String) -> void:
+	if state == RunState.START and GarageRules.choose_paint(garage, progress, car, id):
+		_apply_car()
 
 
 func _apply_car() -> void:
-	# A saved car without artwork falls back to the default without rewriting the save.
-	car = garage.find(progress.selected_car)
-	if car == null:
-		car = garage.find(ProgressData.DEFAULT_CAR)
+	car = GarageRules.current_car(garage, progress)
 	assert(car != null, "Garage requires an available default car")
-	player.apply_car(car.settings, car.texture, car.sprite_scale)
+	var paint := GarageRules.current_paint(garage, progress, car).color
+	player.apply_car(car.settings, car.texture, car.sprite_scale, paint)
 	player.configure_bounds(road_settings.left_edge, road_settings.right_edge)
-	hud.set_garage(garage, progress.owned_cars, car.id, progress.wallet)
+	hud.set_garage(garage, GarageRules.view(garage, progress, car))
 
 
 func _reset_world() -> void:
@@ -226,12 +222,9 @@ func _reset_world() -> void:
 func _on_money_collected(points: int, note: BanknoteDefinition) -> void:
 	if state != RunState.PLAYING:
 		return
-	score += points
-	if note.is_dollar:
-		dollars_collected += 1
-	else:
-		som_collected += 1
-	hud.set_score(score, som_collected, dollars_collected, near_misses)
+	dollars_collected += int(note.is_dollar)
+	som_collected += int(not note.is_dollar)
+	_add_points(points)
 	hud.show_pickup(points, note.display_name())
 	pickup_feedback.play_pickup(note.is_dollar)
 
@@ -239,30 +232,29 @@ func _on_money_collected(points: int, note: BanknoteDefinition) -> void:
 func _on_near_missed(points: int, combo: int) -> void:
 	if state != RunState.PLAYING:
 		return
-	score += points
 	near_misses += 1
-	hud.set_score(score, som_collected, dollars_collected, near_misses)
+	_add_points(points)
 	hud.show_near_miss(points, combo)
 	pickup_feedback.play_close_call(combo)
 
 
+func _add_points(points: int) -> void:
+	score += points
+	hud.set_score(score, som_collected, dollars_collected, near_misses)
+
+
 func set_language(locale: String) -> void:
-	_set_preferences(locale, progress.sound_enabled, progress.haptics_enabled)
+	progress.set_preferences(locale, progress.sound_enabled, progress.haptics_enabled)
+	_apply_preferences()
 
 
-func _set_preferences(locale: String, sound: bool, haptics: bool) -> void:
-	progress.set_preferences(locale, sound, haptics)
+func _set_option(enabled: bool, option: String) -> void:
+	PreferenceRules.set_option(progress, option, enabled)
 	_apply_preferences()
 
 
 func _apply_preferences() -> void:
-	TranslationServer.set_locale(progress.language)
-	pickup_feedback.set_sound_enabled(progress.sound_enabled)
-	pickup_feedback.set_haptics_enabled(progress.haptics_enabled)
-	hud.refresh_text()
-	hud.set_feedback_options(
-		progress.sound_enabled, progress.haptics_enabled, progress.has_unsaved_changes
-	)
+	PreferenceRules.apply(progress, pickup_feedback, audio, hud)
 
 
 func _on_traffic_contacted() -> void:
@@ -271,18 +263,14 @@ func _on_traffic_contacted() -> void:
 	state = RunState.GAME_OVER
 	player.set_driving_enabled(false)
 	pickup_feedback.stop()
-	var run := {
-		"notes": som_collected + dollars_collected,
-		"close_calls": near_misses,
-		"metres": int(distance_metres),
-		"score": score,
-		"runs": 1,
-	}
+	audio.set_music_playing(false)
+	var notes := som_collected + dollars_collected
+	var run := DailyTasks.summary(notes, near_misses, distance_metres, score)
 	var task_rewards := daily.record_run(run)
 	progress.stage_daily(daily.state, task_rewards)
 	var new_best := progress.complete_run(score)
 	hud.set_best(progress.best_score, new_best, progress.has_unsaved_changes)
-	hud.set_garage(garage, progress.owned_cars, car.id, progress.wallet)
+	hud.set_garage(garage, GarageRules.view(garage, progress, car))
 	hud.show_wallet_result(score, progress.wallet, task_rewards)
 	hud.set_daily(daily.entries())
 	hud.show_game_over(distance_metres, traffic.last_contact_kind)

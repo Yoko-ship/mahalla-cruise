@@ -3,15 +3,16 @@ extends Control
 ## Presents the car roster. Emits choices upward; main validates purchases and saves.
 
 signal car_chosen(id: String)
+signal paint_chosen(id: String)
 signal closed
 
 var _catalogue: GarageCatalogue
-var _owned: Array[String] = []
-var _selected: String = ""
-var _wallet: int = 0
+var _view: Dictionary = {"owned": [], "selected": "", "wallet": 0, "paint": "", "colors": {}}
 
 @onready var title: Label = $Center/Card/Margin/Content/Title
 @onready var wallet_label: Label = $Center/Card/Margin/Content/Wallet
+@onready var paint_label: Label = $Center/Card/Margin/Content/PaintLabel
+@onready var paints: PaintPicker = $Center/Card/Margin/Content/Paints
 @onready var rows: VBoxContainer = $Center/Card/Margin/Content/Rows
 @onready var note: Label = $Center/Card/Margin/Content/Note
 @onready var back_button: Button = $Center/Card/Margin/Content/Back
@@ -19,17 +20,16 @@ var _wallet: int = 0
 
 func _ready() -> void:
 	back_button.pressed.connect(close)
+	paints.paint_chosen.connect(func(id: String) -> void: paint_chosen.emit(id))
 
 
-func set_state(
-	catalogue: GarageCatalogue, owned: Array[String], selected: String, wallet: int
-) -> void:
+## view comes from GarageRules.view(): owned, selected, wallet, paint, owned_paints, colors.
+func set_state(catalogue: GarageCatalogue, view: Dictionary) -> void:
 	if catalogue != _catalogue:
 		_catalogue = catalogue
 		_rebuild()
-	_owned = owned.duplicate()
-	_selected = selected
-	_wallet = wallet
+		paints.setup(catalogue.paints)
+	_view = view.duplicate(true)
 	refresh_text()
 
 
@@ -49,12 +49,15 @@ func close() -> void:
 
 func refresh_text() -> void:
 	title.text = tr("garage")
-	wallet_label.text = tr("wallet") % _wallet
+	wallet_label.text = tr("wallet") % _view.wallet
+	paint_label.text = tr("paint")
+	paints.refresh(_view.paint, _view.get("owned_paints", []), _view.wallet)
 	back_button.text = tr("back")
 	note.text = tr("more_cars")
 	note.visible = _catalogue != null and _catalogue.available().size() < _catalogue.cars.size()
 	for row: GarageRow in rows.get_children():
-		row.refresh(row.car.id in _owned, row.car.id == _selected, _wallet)
+		row.refresh(row.car.id in _view.owned, row.car.id == _view.selected, _view.wallet)
+		row.set_paint(_view.colors.get(row.car.id, Color.WHITE))
 
 
 func row_for(id: String) -> GarageRow:

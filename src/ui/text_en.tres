@@ -2,6 +2,10 @@
 
 [resource]
 messages = {
+[&"", &"paint"]: [&"Paint for this car"],
+[&"", &"music_on"]: [&"Music on"],
+[&"", &"music_off"]: [&"Music off"],
+[&"", &"horn"]: [&"Beep!"],
 [&"", &"tasks"]: [&"Tasks"],
 [&"", &"daily_title"]: [&"Daily tasks"],
 [&"", &"task_notes"]: [&"Collect %d notes"],

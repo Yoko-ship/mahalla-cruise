@@ -10,6 +10,8 @@ const CAR_SCENE: PackedScene = preload("res://src/traffic/traffic_car.tscn")
 const PAINTS: Array[Color] = [Color("dfceb1"), Color("a1bbcc"), Color("c0c7b1")]
 ## Extra clearance between a crossing flock and a car it might otherwise catch up with.
 const SHEEP_CAR_MARGIN: float = 50.0
+## Money moves with the road like sheep, so a flock starts only this far from any note.
+const SHEEP_MONEY_GAP: float = 70.0
 
 @export var sheep_settings: SheepSettings
 
@@ -61,7 +63,8 @@ func set_distance(metres: float) -> void:
 	)
 
 
-func advance(travel_pixels: float, player_bounds: Rect2) -> void:
+## money_bounds: pickups on the road, so a new flock never starts level with a note.
+func advance(travel_pixels: float, player_bounds: Rect2, money_bounds: Array[Rect2] = []) -> void:
 	var traffic_travel := travel_pixels * _settings.relative_speed
 	var near_misses := 0
 	for index in range(vehicles.size() - 1, -1, -1):
@@ -91,7 +94,7 @@ func advance(travel_pixels: float, player_bounds: Rect2) -> void:
 		last_contact_kind = "sheep"
 		contacted.emit()
 		return
-	if sheep_crossing.is_due(_metres) and _road_clear_for_sheep():
+	if sheep_crossing.is_due(_metres) and _road_clear_for_sheep(money_bounds):
 		sheep_crossing.start(_settings.spawn_y - _vertical_padding, _metres)
 	# Awarded after the loop: a crash anywhere in this frame returns first and pays nothing.
 	_pixels_since_near_miss += travel_pixels
@@ -125,9 +128,12 @@ func _award_near_miss() -> void:
 	near_missed.emit(_settings.near_miss_points * near_miss_combo, near_miss_combo)
 
 
-func _road_clear_for_sheep() -> bool:
+func _road_clear_for_sheep(money_bounds: Array[Rect2]) -> bool:
 	# Sheep move with the road, faster than cars; start only if no car can be caught up with.
 	var top := _settings.spawn_y - _vertical_padding
+	for note in money_bounds:
+		if absf(note.get_center().y - top) < SHEEP_MONEY_GAP:
+			return false
 	var bottom := _settings.despawn_y + _vertical_padding
 	var speed := _settings.relative_speed
 	var safe_y := (1.0 - speed) * bottom + speed * top + SHEEP_CAR_MARGIN
@@ -153,7 +159,10 @@ func blocking_bounds() -> Array[Rect2]:
 	var bounds: Array[Rect2] = []
 	for vehicle in vehicles:
 		bounds.append(vehicle.collision_bounds())
-	bounds.append_array(sheep_crossing.blocking_bounds())
+	var road_width := _road.right_edge - _road.left_edge
+	for sheep in sheep_crossing.blocking_bounds():
+		# Sheep walk across every lane, so money avoids the whole row, not just where they stand.
+		bounds.append(Rect2(_road.left_edge, sheep.position.y, road_width, sheep.size.y))
 	return bounds
 
 

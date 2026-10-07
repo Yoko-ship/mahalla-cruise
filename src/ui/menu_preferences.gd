@@ -5,10 +5,12 @@ extends VBoxContainer
 signal language_selected(locale: String)
 signal sound_toggled(enabled: bool)
 signal haptics_toggled(enabled: bool)
+signal music_toggled(enabled: bool)
 
 @onready var languages: HBoxContainer = $Languages
 @onready var sound_button: Button = $Feedback/Sound
 @onready var haptics_button: Button = $Feedback/Haptics
+@onready var music_button: Button = $Feedback/Music
 @onready var save_warning: Label = $SaveWarning
 
 
@@ -18,10 +20,13 @@ func _ready() -> void:
 		button.pressed.connect(_on_language_pressed.bind(ProgressData.LANGUAGES[index]))
 	sound_button.toggled.connect(func(enabled: bool) -> void: sound_toggled.emit(enabled))
 	haptics_button.toggled.connect(func(enabled: bool) -> void: haptics_toggled.emit(enabled))
+	music_button.toggled.connect(func(enabled: bool) -> void: music_toggled.emit(enabled))
 	haptics_button.visible = OS.has_feature("android")
 
 
-func set_options(sound: bool, haptics: bool, unsaved: bool) -> void:
+func set_options(sound: bool, haptics: bool, unsaved: bool, music: bool = true) -> void:
+	music_button.set_pressed_no_signal(music)
+	music_button.text = tr("music_on") if music else tr("music_off")
 	sound_button.set_pressed_no_signal(sound)
 	haptics_button.set_pressed_no_signal(haptics)
 	sound_button.text = tr("sound_on") if sound else tr("sound_off")

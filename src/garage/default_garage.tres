@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GarageCatalogue" load_steps=16 format=3]
+[gd_resource type="Resource" script_class="GarageCatalogue" load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://src/garage/garage_catalogue.gd" id="1"]
 [ext_resource type="Script" path="res://src/garage/car_definition.gd" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="Resource" path="res://src/garage/cars/gentra_car.tres" id="6"]
 [ext_resource type="Texture2D" path="res://assets/cars/vehicles_aligned.png" id="7"]
 [ext_resource type="Texture2D" path="res://assets/cars/placeholder_roster.png" id="8"]
+[ext_resource type="Script" path="res://src/garage/paint_definition.gd" id="9"]
 
 [sub_resource type="AtlasTexture" id="DamasAtlas"]
 atlas = ExtResource("7")
@@ -25,6 +26,42 @@ region = Rect2(480, 0, 440, 780)
 atlas = ExtResource("8")
 region = Rect2(960, 0, 460, 800)
 
+[sub_resource type="Resource" id="paint_white"]
+script = ExtResource("9")
+id = "white"
+color = Color(0.95, 0.93, 0.88, 1)
+price = 0
+
+[sub_resource type="Resource" id="paint_cherry"]
+script = ExtResource("9")
+id = "cherry"
+color = Color(0.72, 0.13, 0.16, 1)
+price = 150
+
+[sub_resource type="Resource" id="paint_black"]
+script = ExtResource("9")
+id = "black"
+color = Color(0.08, 0.085, 0.095, 1)
+price = 150
+
+[sub_resource type="Resource" id="paint_sky"]
+script = ExtResource("9")
+id = "sky"
+color = Color(0.42, 0.65, 0.84, 1)
+price = 150
+
+[sub_resource type="Resource" id="paint_teal"]
+script = ExtResource("9")
+id = "teal"
+color = Color(0.16, 0.52, 0.5, 1)
+price = 150
+
+[sub_resource type="Resource" id="paint_gold"]
+script = ExtResource("9")
+id = "gold"
+color = Color(0.84, 0.7, 0.4, 1)
+price = 150
+
 [sub_resource type="Resource" id="damas"]
 script = ExtResource("2")
 id = "damas"
@@ -33,6 +70,7 @@ price = 0
 settings = ExtResource("3")
 texture = SubResource("DamasAtlas")
 sprite_scale = 0.116
+factory_paint = "white"
 
 [sub_resource type="Resource" id="matiz"]
 script = ExtResource("2")
@@ -42,6 +80,7 @@ price = 300
 settings = ExtResource("4")
 texture = SubResource("MatizPlaceholder")
 sprite_scale = 0.1
+factory_paint = "cherry"
 
 [sub_resource type="Resource" id="cobalt"]
 script = ExtResource("2")
@@ -51,6 +90,7 @@ price = 1000
 settings = ExtResource("5")
 texture = SubResource("CobaltPlaceholder")
 sprite_scale = 0.1
+factory_paint = "white"
 
 [sub_resource type="Resource" id="gentra"]
 script = ExtResource("2")
@@ -60,7 +100,9 @@ price = 2500
 settings = ExtResource("6")
 texture = SubResource("GentraPlaceholder")
 sprite_scale = 0.1
+factory_paint = "black"
 
 [resource]
 script = ExtResource("1")
+paints = Array[ExtResource("9")]([SubResource("paint_white"), SubResource("paint_cherry"), SubResource("paint_black"), SubResource("paint_sky"), SubResource("paint_teal"), SubResource("paint_gold")])
 cars = Array[ExtResource("2")]([SubResource("damas"), SubResource("matiz"), SubResource("cobalt"), SubResource("gentra")])

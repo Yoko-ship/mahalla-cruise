@@ -51,6 +51,13 @@ func advance(
 		_try_spawn(player_bounds, traffic_bounds, traffic_speed_ratio)
 
 
+func item_bounds() -> Array[Rect2]:
+	var bounds: Array[Rect2] = []
+	for item in items:
+		bounds.append(item.collection_bounds())
+	return bounds
+
+
 func _remove_item(index: int) -> void:
 	var item := items[index]
 	items.remove_at(index)

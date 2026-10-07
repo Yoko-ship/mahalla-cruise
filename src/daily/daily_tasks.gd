@@ -8,6 +8,13 @@ extends Node
 var state: Dictionary = {}
 
 
+## The run summary that record_run() expects.
+static func summary(notes: int, close_calls: int, metres: float, score: int) -> Dictionary:
+	return {
+		"notes": notes, "close_calls": close_calls, "metres": int(metres), "score": score, "runs": 1
+	}
+
+
 static func today() -> String:
 	return Time.get_date_string_from_system()
 

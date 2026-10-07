@@ -83,6 +83,12 @@ size_flags_horizontal = 3
 toggle_mode = true
 text = "sound_on"
 
+[node name="Music" type="Button" parent="Feedback"]
+custom_minimum_size = Vector2(0, 48)
+size_flags_horizontal = 3
+toggle_mode = true
+text = "music_on"
+
 [node name="Haptics" type="Button" parent="Feedback"]
 custom_minimum_size = Vector2(0, 48)
 size_flags_horizontal = 3

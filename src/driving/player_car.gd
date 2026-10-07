@@ -19,10 +19,12 @@ func _ready() -> void:
 	steering.steering_delta.connect(_on_steering_delta)
 
 
-func apply_car(car_settings: CarSettings, texture: Texture2D, sprite_scale: float) -> void:
+func apply_car(
+	car_settings: CarSettings, texture: Texture2D, sprite_scale: float, paint: Color
+) -> void:
 	# Call configure_bounds() afterwards; the road margin can differ between cars.
 	settings = car_settings
-	visual.set_vehicle(texture, sprite_scale)
+	visual.set_vehicle(texture, sprite_scale, paint)
 
 
 func configure_bounds(road_left: float, road_right: float) -> void:

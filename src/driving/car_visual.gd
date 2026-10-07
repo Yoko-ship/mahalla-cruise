@@ -2,12 +2,18 @@ class_name CarVisual
 extends Node2D
 ## Owns the aligned vehicle sprite and a soft lower-right ground shadow.
 
+const PAINT_SHADER: Shader = preload("res://src/driving/car_paint.gdshader")
+
 @onready var sprite: Sprite2D = $Sprite
 
 
-func set_vehicle(texture: Texture2D, sprite_scale: float) -> void:
+func set_vehicle(texture: Texture2D, sprite_scale: float, paint: Color) -> void:
 	sprite.texture = texture
 	sprite.scale = Vector2(sprite_scale, sprite_scale)
+	if not sprite.material is ShaderMaterial:
+		sprite.material = ShaderMaterial.new()
+		sprite.material.shader = PAINT_SHADER
+	sprite.material.set_shader_parameter("paint", paint)
 
 
 func _draw() -> void:

@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1"]
 [ext_resource type="PackedScene" path="res://src/driving/player_car.tscn" id="2"]
@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" path="res://src/progress/progress.tscn" id="12"]
 [ext_resource type="Resource" path="res://src/garage/default_garage.tres" id="13"]
 [ext_resource type="PackedScene" path="res://src/daily/daily_tasks.tscn" id="14"]
+[ext_resource type="PackedScene" path="res://src/audio/game_audio.tscn" id="15"]
 
 [node name="MahallaCruise" type="Node2D"]
 script = ExtResource("1")
@@ -41,5 +42,7 @@ position = Vector2(216, 604)
 [node name="Progress" parent="." instance=ExtResource("12")]
 
 [node name="DailyTasks" parent="." instance=ExtResource("14")]
+
+[node name="GameAudio" parent="." instance=ExtResource("15")]
 
 [node name="HUD" parent="." instance=ExtResource("5")]

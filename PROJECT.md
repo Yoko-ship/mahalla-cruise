@@ -195,6 +195,8 @@ Track asset sources and applicable usage terms when assets are added. Keep sourc
 - [x] Add temporary test sprites so all four cars can be driven.
 - [x] Add a near-miss bonus with a capped combo.
 - [x] Add close-call sound/vibration, sheep crossings, and daily tasks.
+- [x] Add paint colors, horn, music, and keep money away from sheep.
+- [ ] Add more places once painted street artwork exists.
 - [ ] Replace the Matiz, Cobalt, and black Gentra test sprites with final artwork.
 - [ ] Test touch controls and performance on a physical Android phone.
 - [ ] Have a few players try it without instructions and record feedback.
@@ -581,6 +583,28 @@ checks. The passability test was confirmed to fail on a deliberately too-wide fl
 Two traffic child-count assertions now count only cars, since traffic also owns the
 sheep node. Reviewed Mac renders of sheep on the road, the start menu, and the tasks
 screen in Uzbek and Russian. Money can occasionally sit level with a flock.
+
+Follow-up update (2026-10-07): the user approved items 1–5 and asked about real
+street images. Items 1–4 are done; item 5 (more places) waits for artwork.
+1. `main.gd` 288 → 276 lines while gaining paint, horn, and music, via static
+   `GarageRules` and `PreferenceRules` helpers (explicit arguments, no lookups),
+   `DailyTasks.summary()`, and a shared points helper.
+2. Paint: six colors with free factory paints and 150-point shared purchases,
+   saved per car; a body-only recolor shader on the road car, start screen, and
+   garage previews; neutral test sprites so factory paints give their color.
+3. Horn (Beep! button, cooldown, follows Sound) and a generated 19.2 s seamless music
+   loop that plays only during drives, with a saved Music toggle.
+4. Money vs sheep: a flock waits until no note is near the top, and money treats each
+   sheep as a full road row. A first fix still failed the new test; tracing showed a
+   note spawning beside a flock still on the sidewalk, which the row rule fixed.
+   Verified the test fails without the fix; a 60,000 m trace had no overlaps.
+Real street photos: usable only with rights (own or freely licensed photos, never
+Street View/Yandex/satellite captures), and eye-level photos cannot form the
+top-down looping road; good uses are menu backdrops or references for painted
+streets. Four suites now wait 0.4 s before quitting so the music stream is released.
+Validation: `./scripts/check.sh` passed **1,043 game checks and 19 tooling tests**,
+including new `paint_test.gd` (41) and `audio_test.gd` (24). Reviewed Mac renders of
+six paints on the road, the Russian garage with swatches, and the horn button.
 
 ## Running and Checking the Starter
 

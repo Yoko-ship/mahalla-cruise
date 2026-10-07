@@ -2,6 +2,10 @@
 
 [resource]
 messages = {
+[&"", &"paint"]: [&"Mashina rangi"],
+[&"", &"music_on"]: [&"Musiqa bor"],
+[&"", &"music_off"]: [&"Musiqa yoʻq"],
+[&"", &"horn"]: [&"Bip!"],
 [&"", &"tasks"]: [&"Vazifa"],
 [&"", &"daily_title"]: [&"Kunlik vazifalar"],
 [&"", &"task_notes"]: [&"%d ta pul yigʻing"],

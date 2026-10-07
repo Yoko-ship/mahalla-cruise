@@ -8,6 +8,7 @@ signal tasks_pressed
 signal language_selected(locale: String)
 signal sound_toggled(enabled: bool)
 signal haptics_toggled(enabled: bool)
+signal music_toggled(enabled: bool)
 
 var is_pause: bool = false
 var _best: int = 0
@@ -34,6 +35,7 @@ func _ready() -> void:
 	)
 	preferences.sound_toggled.connect(func(enabled: bool) -> void: sound_toggled.emit(enabled))
 	preferences.haptics_toggled.connect(func(enabled: bool) -> void: haptics_toggled.emit(enabled))
+	preferences.music_toggled.connect(func(enabled: bool) -> void: music_toggled.emit(enabled))
 
 
 func show_start(best: int) -> void:
@@ -67,12 +69,16 @@ func refresh_text() -> void:
 	instructions.text = tr("hint").replace("\\n", "\n")
 
 
-func set_car_texture(texture: Texture2D) -> void:
+func set_car(texture: Texture2D, paint: Color) -> void:
 	car.texture = texture
+	if not car.material is ShaderMaterial:
+		car.material = ShaderMaterial.new()
+		car.material.shader = CarVisual.PAINT_SHADER
+	car.material.set_shader_parameter("paint", paint)
 
 
-func set_options(sound: bool, haptics: bool, unsaved: bool) -> void:
-	preferences.set_options(sound, haptics, unsaved)
+func set_options(sound: bool, haptics: bool, unsaved: bool, music: bool = true) -> void:
+	preferences.set_options(sound, haptics, unsaved, music)
 
 
 func close() -> void:

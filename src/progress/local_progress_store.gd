@@ -12,9 +12,13 @@ var driving_hint_seen: bool = false
 var language: String = "uz"
 var sound_enabled: bool = true
 var haptics_enabled: bool = true
+var music_enabled: bool = true
 var wallet: int = 0
 var owned_cars: Array[String] = [ProgressData.DEFAULT_CAR]
 var selected_car: String = ProgressData.DEFAULT_CAR
+var owned_paints: Array[String] = []
+## Chosen paint per car id; GarageRules falls back to the car's factory paint.
+var paints: Dictionary = {}
 ## Saved daily task state; DailyTasks validates it against today's date and its catalogue.
 var daily: Dictionary = {}
 var last_error: Error = OK
@@ -29,6 +33,7 @@ func load_progress() -> void:
 	language = "uz"
 	sound_enabled = true
 	haptics_enabled = true
+	music_enabled = true
 	_apply_garage(ProgressData.garage({}))
 	daily = {}
 	last_error = OK
@@ -50,6 +55,7 @@ func load_progress() -> void:
 		language = options.language
 		sound_enabled = options.sound_enabled
 		haptics_enabled = options.haptics_enabled
+		music_enabled = options.music_enabled
 		_apply_garage(ProgressData.garage(document))
 		var saved_daily: Variant = document.get("daily", {})
 		daily = saved_daily.duplicate(true) if saved_daily is Dictionary else {}
@@ -71,6 +77,16 @@ func set_preferences(locale: String, sound: bool, haptics: bool) -> void:
 	)
 	last_error = _save()
 	has_unsaved_changes = last_error != OK
+
+
+func set_music_enabled(enabled: bool) -> void:
+	if music_enabled == enabled and not has_unsaved_changes:
+		return
+	music_enabled = enabled
+	if not _document.get("preferences") is Dictionary:
+		_document.preferences = {}
+	_document.preferences.music_enabled = enabled
+	_commit()
 
 
 func mark_driving_hint_seen() -> void:
@@ -129,6 +145,26 @@ func buy_car(id: String, price: int) -> bool:
 	return true
 
 
+func buy_paint(car_id: String, paint_id: String, price: int) -> bool:
+	# Buying also applies the paint to the current car in the same write.
+	if paint_id.is_empty() or paint_id in owned_paints or price < 0 or price > wallet:
+		return false
+	wallet -= price
+	owned_paints.append(paint_id)
+	paints[car_id] = paint_id
+	_store_garage()
+	_commit()
+	return true
+
+
+func select_paint(car_id: String, paint_id: String) -> void:
+	if paints.get(car_id) == paint_id and not has_unsaved_changes:
+		return
+	paints[car_id] = paint_id
+	_store_garage()
+	_commit()
+
+
 func select_car(id: String) -> void:
 	if id not in owned_cars or (id == selected_car and not has_unsaved_changes):
 		return
@@ -141,13 +177,26 @@ func _apply_garage(values: Dictionary) -> void:
 	wallet = values.wallet
 	owned_cars.assign(values.owned)
 	selected_car = values.selected
+	owned_paints.assign(values.owned_paints)
+	paints = values.paints.duplicate()
 
 
 func _store_garage() -> void:
 	if not _document.get("garage") is Dictionary:
 		_document.garage = {}
-	_document.garage.merge(
-		{"wallet": wallet, "owned": owned_cars.duplicate(), "selected": selected_car}, true
+	(
+		_document
+		. garage
+		. merge(
+			{
+				"wallet": wallet,
+				"owned": owned_cars.duplicate(),
+				"selected": selected_car,
+				"owned_paints": owned_paints.duplicate(),
+				"paints": paints.duplicate(),
+			},
+			true
+		)
 	)
 	has_unsaved_changes = true
 

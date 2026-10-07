@@ -89,6 +89,8 @@ func _run() -> void:
 	scene.free()
 	_test_resource_configuration()
 	_test_scenery_cycle()
+	# Music plays during drives; let the mixer release it before the engine exits.
+	await create_timer(0.4).timeout
 	if failures == 0:
 		print("PASS: driving, resource configuration, and HUD integration (%d checks)" % checks)
 	quit(1 if failures else 0)

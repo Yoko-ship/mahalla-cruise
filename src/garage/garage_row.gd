@@ -11,6 +11,7 @@ const MUTED_COLOR := Color(0.78, 0.86, 0.81, 1)
 var car: CarDefinition
 var action: Button
 var _stat_labels: Array[Label] = []
+var _preview: TextureRect
 
 
 func setup(definition: CarDefinition) -> void:
@@ -19,6 +20,9 @@ func setup(definition: CarDefinition) -> void:
 	layout.add_theme_constant_override("separation", 8)
 	add_child(layout)
 	var preview := TextureRect.new()
+	_preview = preview
+	preview.material = ShaderMaterial.new()
+	preview.material.shader = CarVisual.PAINT_SHADER
 	preview.texture = car.texture
 	preview.custom_minimum_size = Vector2(40, 64)
 	preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -70,6 +74,10 @@ func refresh(owned: bool, selected: bool, wallet: int) -> void:
 		action.text = tr("buy").replace("\\n", "\n") % car.price
 	action.disabled = selected or (not owned and car.price > wallet)
 	action.focus_mode = Control.FOCUS_NONE if action.disabled else Control.FOCUS_ALL
+
+
+func set_paint(color: Color) -> void:
+	_preview.material.set_shader_parameter("paint", color)
 
 
 func _label(text: String, font_size: int, color: Color) -> Label:

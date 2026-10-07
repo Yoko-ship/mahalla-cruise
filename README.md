@@ -40,11 +40,19 @@ different kinds (collect notes, close calls, distance or score in one run, numbe
 of drives) from a pool of ten. Progress updates when a run ends; finished tasks pay
 40–120 points into the wallet and are listed on the results screen.
 
+**Paint:** the garage shows six colors for the selected car. Each car's factory
+color is free; other colors cost 150 points once and then work on every car. A
+shader repaints only the body, keeping lamps, glass, and stripes.
+
+**Horn and music:** tap **Beep!** while driving for the Damas horn. A generated
+dutar-and-doira style loop plays during drives (paused in menus) and has its own
+**Music on/off** toggle, saved separately from sound effects.
+
 **Garage:** every finished run adds its points to a saved wallet. Open **Garage**
 from the start screen or results to buy and select cars. Each car has its own
 speed, control, and size: Damas (free), Matiz (300), Cobalt (1,000), and Gentra
 (2,500). Matiz, Cobalt, and Gentra currently use **temporary test art**: the
-traffic sedan repainted red, white, and black and resized to each car's size.
+traffic sedan resized to each car's size, colored by its factory paint.
 Car stats and prices are in `src/garage/`.
 
 Use **Pause** (or **Escape** on desktop) to freeze the run, then **Resume** to
@@ -182,6 +190,7 @@ CI is not configured; run the local quality gate before pushing.
 | `src/pickups/` | Money spawning, collection, banknote visuals, and point values. |
 | `src/progress/` | Versioned save data, local persistence, wallet, and recovery. |
 | `src/garage/` | Car roster, per-car stats and prices, and the garage screen. |
+| `src/audio/` | Background music and horn playback. |
 | `src/daily/` | Daily task pool, today's draw and progress, and the tasks screen. |
 | `src/ui/` | HUD, shared start/pause menu, hint timing resource, and display logic. |
 | `tests/`, `scripts/` | Behavior checks and development commands. |

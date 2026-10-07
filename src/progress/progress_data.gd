@@ -42,13 +42,15 @@ static func is_newer(document: Dictionary) -> bool:
 
 static func preferences(document: Dictionary) -> Dictionary:
 	# Optional settings must never make an otherwise valid record unreadable.
-	var result := {"language": "uz", "sound_enabled": true, "haptics_enabled": true}
+	var result := {
+		"language": "uz", "sound_enabled": true, "haptics_enabled": true, "music_enabled": true
+	}
 	var saved: Variant = document.get("preferences", {})
 	if not saved is Dictionary:
 		return result
 	if saved.get("language") is String and saved.language in LANGUAGES:
 		result.language = saved.language
-	for key: String in ["sound_enabled", "haptics_enabled"]:
+	for key: String in ["sound_enabled", "haptics_enabled", "music_enabled"]:
 		if saved.get(key) is bool:
 			result[key] = saved[key]
 	return result
@@ -56,7 +58,13 @@ static func preferences(document: Dictionary) -> Dictionary:
 
 static func garage(document: Dictionary) -> Dictionary:
 	# Optional v1 extension: invalid fields fall back individually, keeping the record.
-	var result := {"wallet": 0, "owned": [DEFAULT_CAR], "selected": DEFAULT_CAR}
+	var result := {
+		"wallet": 0,
+		"owned": [DEFAULT_CAR],
+		"selected": DEFAULT_CAR,
+		"owned_paints": [],
+		"paints": {}
+	}
 	var saved: Variant = document.get("garage", {})
 	if not saved is Dictionary:
 		return result
@@ -69,6 +77,14 @@ static func garage(document: Dictionary) -> Dictionary:
 				result.owned.append(id)
 	if saved.get("selected") is String and saved.selected in result.owned:
 		result.selected = saved.selected
+	if saved.get("owned_paints") is Array:
+		for id: Variant in saved.owned_paints:
+			if id is String and not id.is_empty() and id not in result.owned_paints:
+				result.owned_paints.append(id)
+	if saved.get("paints") is Dictionary:
+		for car: Variant in saved.paints:
+			if car is String and saved.paints[car] is String:
+				result.paints[car] = saved.paints[car]
 	return result
 
 

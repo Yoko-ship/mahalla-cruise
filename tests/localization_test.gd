@@ -17,6 +17,8 @@ func _run() -> void:
 	_test_catalogues()
 	for locale in ProgressData.LANGUAGES:
 		await _test_language(locale)
+	# Music plays during drives; let the mixer release it before the engine exits.
+	await create_timer(0.4).timeout
 	if failures == 0:
 		print("PASS: complete translations, dynamic text, and menu layout (%d checks)" % checks)
 	quit(1 if failures else 0)

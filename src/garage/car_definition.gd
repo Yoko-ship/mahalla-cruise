@@ -14,6 +14,8 @@ const SIZE_RANGE := Vector2(450.0, 850.0)
 ## Leave empty until approved artwork exists; cars without artwork stay hidden.
 @export var texture: Texture2D
 @export_range(0.01, 1.0) var sprite_scale: float = 0.116
+## Free paint for this car; other paints are bought once for all cars.
+@export var factory_paint: String = "white"
 
 
 func is_available() -> bool:

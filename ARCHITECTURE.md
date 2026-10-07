@@ -29,6 +29,7 @@ local collision coordinates stay unchanged; taller screens reveal more road.
 | `src/traffic/` | Spawn and remove traffic, track contacts, and render sedan sprites using traffic settings. |
 | `src/pickups/` | Spawn money, detect collection, render banknotes, and own a separate feedback scene for audio/haptics. |
 | `src/progress/` | Own the versioned save document, local files, recovery, best score, wallet, and owned cars. |
+| `src/audio/` | Own background music and the horn; main starts, pauses, and stops music with the run. |
 | `src/daily/` | Draw today's tasks, apply finished runs, and present the tasks screen. |
 | `src/garage/` | Define the car roster (`CarDefinition`, `GarageCatalogue`) and present the garage screen. |
 | `src/ui/` | Present start/pause menus, first-run instructions, HUD values, and run results. |
@@ -182,6 +183,22 @@ Main accepts choices only in START, buys through `LocalProgressStore.buy_car()`
 the world to START without beginning a drive. A finished run calls
 `complete_run(score)`, crediting the wallet and checking the record in one write.
 
+Paint: `PaintDefinition`s live in the garage catalogue; each car names a free
+`factory_paint`. Bought paints are shared by all cars and each car remembers its
+choice. `GarageRules` (static, with the catalogue and store passed in) resolves the
+current car and paint, validates purchases, and builds the plain `view` dictionary
+the HUD and garage screens display. `src/driving/car_paint.gdshader` recolors only
+light, unsaturated body pixels; the road car, start-screen car, and garage previews
+all use it. Test sprites are neutral silver so factory paints supply their color.
+
+## Audio, Preferences, and Main
+
+`GameAudio` (`src/audio/`) plays the generated music loop and horn. Main turns
+music on for a drive, pauses it with the run, and restarts it on Drive again.
+`PreferenceRules` (static, in `src/progress/`) saves sound, vibration, and music
+options and applies them to feedback, audio, and HUD. These helpers, `GarageRules`,
+and `DailyTasks.summary()` keep `main.gd` a coordinator (276 of 300 lines).
+
 ## Sheep Crossings
 
 `SheepCrossing` is a child of the traffic controller, tuned by `default_sheep.tres`.
@@ -191,8 +208,9 @@ faster than cars) cannot catch it. Cars spawn again only behind the flock. Sheep
 walk sideways in step with road travel, so every car meets the same pattern; two
 or three sheep 28 px apart always leave one road edge open, which a test verifies
 over 120 crossings. Contact sets `last_contact_kind = "sheep"` and uses the normal
-`contacted` signal; results show a sheep message. `blocking_bounds()` includes
-sheep, so money spawning and test bots see them.
+`contacted` signal; results show a sheep message. `blocking_bounds()` reports each
+sheep as a full-road-width row, because sheep cross every lane; money never spawns
+level with a flock. A flock also waits until no note is near the top of the road.
 
 ## Daily Tasks
 
