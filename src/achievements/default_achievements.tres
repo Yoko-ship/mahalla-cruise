@@ -1,0 +1,120 @@
+[gd_resource type="Resource" script_class="AchievementCatalogue" load_steps=19 format=3]
+
+[ext_resource type="Script" path="res://src/achievements/achievement_catalogue.gd" id="1"]
+[ext_resource type="Script" path="res://src/achievements/achievement_definition.gd" id="2"]
+
+[sub_resource type="Resource" id="distance_5km"]
+script = ExtResource("2")
+id = "distance_5km"
+kind = 0
+target = 5000
+reward = 150
+
+[sub_resource type="Resource" id="distance_25km"]
+script = ExtResource("2")
+id = "distance_25km"
+kind = 0
+target = 25000
+reward = 400
+
+[sub_resource type="Resource" id="distance_100km"]
+script = ExtResource("2")
+id = "distance_100km"
+kind = 0
+target = 100000
+reward = 1200
+
+[sub_resource type="Resource" id="notes_100"]
+script = ExtResource("2")
+id = "notes_100"
+kind = 1
+target = 100
+reward = 150
+
+[sub_resource type="Resource" id="notes_500"]
+script = ExtResource("2")
+id = "notes_500"
+kind = 1
+target = 500
+reward = 400
+
+[sub_resource type="Resource" id="notes_2000"]
+script = ExtResource("2")
+id = "notes_2000"
+kind = 1
+target = 2000
+reward = 1000
+
+[sub_resource type="Resource" id="close_calls_25"]
+script = ExtResource("2")
+id = "close_calls_25"
+kind = 2
+target = 25
+reward = 150
+
+[sub_resource type="Resource" id="close_calls_150"]
+script = ExtResource("2")
+id = "close_calls_150"
+kind = 2
+target = 150
+reward = 500
+
+[sub_resource type="Resource" id="runs_10"]
+script = ExtResource("2")
+id = "runs_10"
+kind = 3
+target = 10
+reward = 100
+
+[sub_resource type="Resource" id="runs_50"]
+script = ExtResource("2")
+id = "runs_50"
+kind = 3
+target = 50
+reward = 400
+
+[sub_resource type="Resource" id="refuels_5"]
+script = ExtResource("2")
+id = "refuels_5"
+kind = 4
+target = 5
+reward = 200
+
+[sub_resource type="Resource" id="refuels_25"]
+script = ExtResource("2")
+id = "refuels_25"
+kind = 4
+target = 25
+reward = 600
+
+[sub_resource type="Resource" id="run_1000"]
+script = ExtResource("2")
+id = "run_1000"
+kind = 5
+target = 1000
+reward = 150
+
+[sub_resource type="Resource" id="run_2500"]
+script = ExtResource("2")
+id = "run_2500"
+kind = 5
+target = 2500
+reward = 500
+
+[sub_resource type="Resource" id="score_300"]
+script = ExtResource("2")
+id = "score_300"
+kind = 6
+target = 300
+reward = 200
+
+[sub_resource type="Resource" id="score_1000"]
+script = ExtResource("2")
+id = "score_1000"
+kind = 6
+target = 1000
+reward = 600
+
+[resource]
+script = ExtResource("1")
+achievements = Array[ExtResource("2")]([SubResource("distance_5km"), SubResource("distance_25km"), SubResource("distance_100km"), SubResource("notes_100"), SubResource("notes_500"), SubResource("notes_2000"), SubResource("close_calls_25"), SubResource("close_calls_150"), SubResource("runs_10"), SubResource("runs_50"), SubResource("refuels_5"), SubResource("refuels_25"), SubResource("run_1000"), SubResource("run_2500"), SubResource("score_300"), SubResource("score_1000")])

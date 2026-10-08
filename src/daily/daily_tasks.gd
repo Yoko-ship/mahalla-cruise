@@ -13,10 +13,17 @@ extends Node
 var state: Dictionary = {}
 
 
-## The run summary that record_run() expects.
-static func summary(notes: int, close_calls: int, metres: float, score: int) -> Dictionary:
+## The run summary that record_run() and Achievements.record_run() expect.
+static func summary(
+	notes: int, close_calls: int, metres: float, score: int, refuels: int = 0
+) -> Dictionary:
 	return {
-		"notes": notes, "close_calls": close_calls, "metres": int(metres), "score": score, "runs": 1
+		"notes": notes,
+		"close_calls": close_calls,
+		"metres": int(metres),
+		"score": score,
+		"runs": 1,
+		"refuels": refuels,
 	}
 
 

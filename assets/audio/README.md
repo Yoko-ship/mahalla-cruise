@@ -10,8 +10,10 @@ No recordings, third-party samples, or external packages are used.
 - `damas_horn.wav`: 0.34-second two-tone horn.
 - `close_call.wav`: 0.28-second rising filtered-noise whoosh for near misses.
   Runtime pitch rises 6% per combo step; Android adds a 12 ms pulse.
+- `bump.wav`: 0.22-second low falling thud with a short noise rattle for potholes
+  and road works; Android adds a 40 ms pulse.
 
-Both files are mono 44.1 kHz, 16-bit PCM WAV. Smooth attacks and tails avoid abrupt
+The pickup files are mono 44.1 kHz, 16-bit PCM WAV. Smooth attacks and tails avoid abrupt
 waveform edges. Source peak is 0.55; runtime gain defaults to -8 dB.
 
 Regenerate with `python3 scripts/generate_pickup_audio.py` and

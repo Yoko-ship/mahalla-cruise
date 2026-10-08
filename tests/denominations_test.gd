@@ -79,29 +79,32 @@ func _test_mixed_collections() -> void:
 	game.set_language("en")
 	game.start_run()
 	game.set_process(false)
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	var notes: Array[BanknoteDefinition] = DEFAULTS.som_notes.duplicate()
 	notes.append(DEFAULTS.dollar_note)
 	var expected: int = 0
 	for note in notes:
 		game.pickup_settings.som_notes = [note]
 		game.pickup_settings.dollar_chance = 1.0 if note.is_dollar else 0.0
-		game.pickups.configure(game.road_settings, game.pickup_settings)
+		game.world.pickups.configure(game.road_settings, game.pickup_settings)
 		game.advance(1.0 / game.road_settings.scroll_speed)
-		var item: MoneyPickup = game.pickups.items.front()
+		var item: MoneyPickup = game.world.pickups.items.front()
 		_check(item.visual.denomination == note, "Rendered note matches the spawned denomination")
-		game.player.position.x = item.position.x
+		game.world.player.position.x = item.position.x
 		game.advance(3.5)
 		expected += DEFAULTS.points_for(note)
 		_check(game.score == expected, "Mixed note values accumulate through actual collection")
 		_check(
 			(
-				game.hud.pickup_label.text
+				game.hud.drive.pickup_label.text
 				== "%s  +%d pts" % [note.display_name(), DEFAULTS.points_for(note)]
 			),
 			"Collection feedback identifies face value and awarded points"
 		)
-	_check(game.score == 176 and game.hud.score_label.text == "176 pts", "All six notes total 176")
+	_check(
+		game.score == 176 and game.hud.drive.score_label.text == "176 pts",
+		"All six notes total 176"
+	)
 	_check(game.som_collected == 5 and game.dollars_collected == 1, "Counts still count notes")
 	_check(DEFAULTS.som_notes.size() == 5, "Spawning leaves the shared catalogue intact")
 	_check(DEFAULTS.som_notes[0].spawn_weight == 50.0, "Variants leave shared rarity unchanged")

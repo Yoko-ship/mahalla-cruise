@@ -13,10 +13,14 @@ func _initialize() -> void:
 func _run() -> void:
 	var scene := MAIN_SCENE.instantiate() as CruiseGame
 	(scene.get_node("Progress") as LocalProgressStore).save_path = ""
+	# The hour-long frame below would empty the tank; fuel is tested elsewhere.
+	var fuel := scene.get_node("World/Fuel") as FuelController
+	fuel.settings = fuel.settings.duplicate() as FuelSettings
+	fuel.settings.tank_metres = 1.0e9
 	root.add_child(scene)
 	scene.set_language("en")
 	scene.start_run()
-	var car := scene.get_node("PlayerCar") as PlayerCar
+	var car := scene.get_node("World/PlayerCar") as PlayerCar
 	scene.set_process(false)
 	car.set_physics_process(false)
 
@@ -73,13 +77,13 @@ func _run() -> void:
 
 	scene.advance(3600.0)
 	_check(
-		scene.road.scroll_offset >= 0.0 and scene.road.scroll_offset < 100.0,
+		scene.world.road.scroll_offset >= 0.0 and scene.world.road.scroll_offset < 100.0,
 		"Road scrolling wraps over long sessions"
 	)
 	_check(
 		(
-			scene.scenery.scroll_offset >= 0.0
-			and scene.scenery.scroll_offset < SceneryView.REPEAT_DISTANCE
+			scene.world.scenery.scroll_offset >= 0.0
+			and scene.world.scenery.scroll_offset < SceneryView.REPEAT_DISTANCE
 		),
 		"Scenery scrolling wraps over long sessions"
 	)
@@ -163,7 +167,7 @@ func _test_emulated_mouse_is_ignored(car: PlayerCar) -> void:
 
 func _test_resource_configuration() -> void:
 	var scene := MAIN_SCENE.instantiate() as CruiseGame
-	var car := scene.get_node("PlayerCar") as PlayerCar
+	var car := scene.get_node("World/PlayerCar") as PlayerCar
 	var original_settings := car.settings
 	var variant := original_settings.duplicate() as CarSettings
 	variant.steering_speed = 100.0
@@ -212,13 +216,14 @@ func _test_resource_configuration() -> void:
 	scene.advance(2.5)
 	_check(is_equal_approx(scene.distance_metres, 12.5), "Route speed controls distance")
 	_check(
-		is_equal_approx(scene.road.scroll_offset, 50.0), "Road receives the shared travel distance"
+		is_equal_approx(scene.world.road.scroll_offset, 50.0),
+		"Road receives the shared travel distance"
 	)
 	_check(
-		is_equal_approx(scene.scenery.scroll_offset, 250.0),
+		is_equal_approx(scene.world.scenery.scroll_offset, 250.0),
 		"Scenery receives the shared travel distance"
 	)
-	_check(scene.hud.distance_label.text == "12 m", "Compact HUD displays game distance")
+	_check(scene.hud.drive.distance_label.text == "12 m", "Compact HUD displays game distance")
 	scene.free()
 
 

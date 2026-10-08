@@ -17,6 +17,7 @@ var _unsaved: bool = false
 var _earned: int = 0
 var _wallet: int = 0
 var _task_rewards: Array[int] = []
+var _achievement_rewards: Array[int] = []
 
 @onready var message_label: Label = $Card/Margin/Content/Message
 @onready var result_label: Label = $Card/Margin/Content/Result
@@ -44,6 +45,7 @@ func open(metres: float, crash_kind: String = "car") -> void:
 func close() -> void:
 	restart_button.release_focus()
 	_task_rewards.clear()
+	_achievement_rewards.clear()
 	refresh_text()
 	hide()
 
@@ -63,15 +65,19 @@ func set_best(points: int, new_record: bool, unsaved: bool) -> void:
 	refresh_text()
 
 
-func set_wallet(earned: int, wallet: int, task_rewards: Array[int]) -> void:
+func set_wallet(
+	earned: int, wallet: int, task_rewards: Array[int], achievement_rewards: Array[int] = []
+) -> void:
 	_earned = earned
 	_wallet = wallet
 	_task_rewards = task_rewards.duplicate()
+	_achievement_rewards = achievement_rewards.duplicate()
 	refresh_text()
 
 
 func refresh_text() -> void:
-	message_label.text = tr("crash_sheep" if _crash_kind == "sheep" else "crash_message")
+	var messages := {"sheep": "crash_sheep", "fuel": "crash_fuel"}
+	message_label.text = tr(messages.get(_crash_kind, "crash_message"))
 	result_label.text = tr("travelled") % int(_metres)
 	score_result.text = tr("points") % _points
 	money_result.text = tr("notes") % [_som, _dollars]
@@ -83,3 +89,5 @@ func refresh_text() -> void:
 	wallet_result.text = tr("wallet_result") % [_earned, _wallet]
 	for reward in _task_rewards:
 		wallet_result.text += "\n" + tr("task_done") % reward
+	for reward in _achievement_rewards:
+		wallet_result.text += "\n" + tr("achievement_done") % reward

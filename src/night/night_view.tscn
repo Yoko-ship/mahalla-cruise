@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/night/night_view.gd" id="1"]
+[ext_resource type="Resource" path="res://src/night/default_night.tres" id="2"]
+
+[node name="Night" type="Node2D"]
+z_index = 3
+script = ExtResource("1")
+settings = ExtResource("2")

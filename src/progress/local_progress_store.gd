@@ -2,8 +2,6 @@ class_name LocalProgressStore
 extends Node
 ## Local persistence only. Main coordinates scores; this node owns files and recovery.
 
-const MAX_FILE_BYTES: int = 1048576
-
 # Set before load_progress(). An empty path keeps test sessions entirely in memory.
 @export var save_path: String = "user://progress.json"
 
@@ -19,8 +17,12 @@ var selected_car: String = ProgressData.DEFAULT_CAR
 var owned_paints: Array[String] = []
 ## Chosen paint per car id; GarageRules falls back to the car's factory paint.
 var paints: Dictionary = {}
+## Upgrade levels per car id: {car_id: {upgrade_id: level}}.
+var upgrades: Dictionary = {}
 ## Saved daily task state; DailyTasks validates it against today's date and its catalogue.
 var daily: Dictionary = {}
+## Saved lifetime totals and unlocked ids; Achievements validates them.
+var achievements: Dictionary = {}
 var last_error: Error = OK
 var has_unsaved_changes: bool = false
 var _document: Dictionary = ProgressData.defaults()
@@ -36,6 +38,7 @@ func load_progress() -> void:
 	music_enabled = true
 	_apply_garage(ProgressData.garage({}))
 	daily = {}
+	achievements = {}
 	last_error = OK
 	has_unsaved_changes = false
 	_write_blocked = false
@@ -57,8 +60,8 @@ func load_progress() -> void:
 		haptics_enabled = options.haptics_enabled
 		music_enabled = options.music_enabled
 		_apply_garage(ProgressData.garage(document))
-		var saved_daily: Variant = document.get("daily", {})
-		daily = saved_daily.duplicate(true) if saved_daily is Dictionary else {}
+		daily = _section(document, "daily")
+		achievements = _section(document, "achievements")
 
 
 func set_preferences(locale: String, sound: bool, haptics: bool) -> void:
@@ -122,15 +125,30 @@ func complete_run(score: int) -> bool:
 	return record_score(score)
 
 
+# Staged sections are saved by the next write (normally complete_run), so a finished
+# run stays one write. Rewards go into the wallet in the same write.
 func stage_daily(state: Dictionary, rewards: Array[int]) -> void:
-	# Saved by the next write (normally complete_run), so a finished run stays one write.
 	daily = state.duplicate(true)
-	if not _document.get("daily") is Dictionary:
-		_document.daily = {}
-	_document.daily.merge(daily, true)
+	_stage("daily", daily, rewards)
+
+
+func stage_achievements(state: Dictionary, rewards: Array[int]) -> void:
+	achievements = state.duplicate(true)
+	_stage("achievements", achievements, rewards)
+
+
+func _stage(key: String, state: Dictionary, rewards: Array[int]) -> void:
+	if not _document.get(key) is Dictionary:
+		_document[key] = {}
+	_document[key].merge(state.duplicate(true), true)
 	for reward in rewards:
 		wallet = mini(wallet + maxi(0, reward), ProgressData.MAX_SCORE)
 	_store_garage()
+
+
+static func _section(document: Dictionary, key: String) -> Dictionary:
+	var saved: Variant = document.get(key, {})
+	return saved.duplicate(true) if saved is Dictionary else {}
 
 
 func buy_car(id: String, price: int) -> bool:
@@ -152,6 +170,19 @@ func buy_paint(car_id: String, paint_id: String, price: int) -> bool:
 	wallet -= price
 	owned_paints.append(paint_id)
 	paints[car_id] = paint_id
+	_store_garage()
+	_commit()
+	return true
+
+
+func buy_upgrade(car_id: String, upgrade_id: String, price: int) -> bool:
+	# Raises one level; UpgradeRules checks the level limit before buying.
+	if car_id.is_empty() or upgrade_id.is_empty() or price < 0 or price > wallet:
+		return false
+	wallet -= price
+	var levels: Dictionary = upgrades.get(car_id, {})
+	levels[upgrade_id] = int(levels.get(upgrade_id, 0)) + 1
+	upgrades[car_id] = levels
 	_store_garage()
 	_commit()
 	return true
@@ -179,6 +210,7 @@ func _apply_garage(values: Dictionary) -> void:
 	selected_car = values.selected
 	owned_paints.assign(values.owned_paints)
 	paints = values.paints.duplicate()
+	upgrades = values.upgrades.duplicate(true)
 
 
 func _store_garage() -> void:
@@ -194,6 +226,7 @@ func _store_garage() -> void:
 				"selected": selected_car,
 				"owned_paints": owned_paints.duplicate(),
 				"paints": paints.duplicate(),
+				"upgrades": upgrades.duplicate(true),
 			},
 			true
 		)
@@ -207,24 +240,11 @@ func _commit() -> void:
 
 
 func _read_document(path: String) -> Dictionary:
-	if not FileAccess.file_exists(path):
-		return {}
-	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null:
-		last_error = FileAccess.get_open_error()
+	var result := ProgressFile.read(path)
+	if result.blocked:
+		last_error = result.error
 		_write_blocked = true
-		return {}
-	if file.get_length() > MAX_FILE_BYTES:
-		file.close()
-		last_error = ERR_FILE_CORRUPT
-		_write_blocked = true
-		return {}
-	var document := ProgressData.parse(file.get_as_text())
-	file.close()
-	if ProgressData.is_newer(document):
-		last_error = ERR_UNAVAILABLE
-		_write_blocked = true
-	return document
+	return result.document
 
 
 func _save() -> Error:
@@ -233,7 +253,7 @@ func _save() -> Error:
 	if save_path.is_empty():
 		return OK
 	# A closed temporary file replaces the primary only after a successful write.
-	var error := _write_document(save_path + ".tmp", _document)
+	var error := ProgressFile.write(save_path + ".tmp", _document)
 	if error != OK:
 		return error
 	# Preserve the last valid primary; a corrupt primary must not replace the backup.
@@ -241,26 +261,9 @@ func _save() -> Error:
 	if _write_blocked:
 		return last_error
 	if ProgressData.is_supported(previous):
-		error = _write_document(save_path + ".bak.tmp", previous)
+		error = ProgressFile.write(save_path + ".bak.tmp", previous)
 		if error == OK:
-			error = _replace(save_path + ".bak.tmp", save_path + ".bak")
+			error = ProgressFile.replace(save_path + ".bak.tmp", save_path + ".bak")
 		if error != OK:
 			return error
-	return _replace(save_path + ".tmp", save_path)
-
-
-func _write_document(path: String, document: Dictionary) -> Error:
-	var file := FileAccess.open(path, FileAccess.WRITE)
-	if file == null:
-		return FileAccess.get_open_error()
-	file.store_string(JSON.stringify(document, "\t"))
-	file.flush()
-	var error := file.get_error()
-	file.close()
-	return error
-
-
-func _replace(source: String, destination: String) -> Error:
-	return DirAccess.rename_absolute(
-		ProjectSettings.globalize_path(source), ProjectSettings.globalize_path(destination)
-	)
+	return ProgressFile.replace(save_path + ".tmp", save_path)

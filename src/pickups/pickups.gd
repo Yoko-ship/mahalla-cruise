@@ -228,17 +228,15 @@ func _is_clear(
 	x: float, player_bounds: Rect2, traffic_bounds: Array[Rect2], traffic_speed_ratio: float
 ) -> bool:
 	# Check the full relative path up to collection, including the gap for steering.
-	# New traffic behind a note cannot catch it because traffic moves more slowly.
+	var half := _settings.collision_half_size
+	var room := Vector2(maxf(player_bounds.size.x * 0.5, half.x) + 4.0, half.y)
 	var spawn_y := _settings.spawn_y - _vertical_padding
-	var travel_to_player := maxf(0.0, player_bounds.get_center().y - spawn_y)
-	var half_width := maxf(player_bounds.size.x * 0.5, _settings.collision_half_size.x)
-	for obstacle in traffic_bounds:
-		if obstacle.end.x < x - half_width - 4.0 or obstacle.position.x > x + half_width + 4.0:
-			continue
-		var start_gap := obstacle.get_center().y - spawn_y
-		var end_gap := start_gap - travel_to_player * (1.0 - traffic_speed_ratio)
-		var clearance := _settings.traffic_clearance + obstacle.size.y * 0.5
-		clearance += _settings.collision_half_size.y
-		if minf(start_gap, end_gap) < clearance and maxf(start_gap, end_gap) > -clearance:
-			return false
-	return true
+	return RoadPath.is_clear(
+		x,
+		spawn_y,
+		room,
+		player_bounds.get_center().y,
+		traffic_bounds,
+		traffic_speed_ratio,
+		_settings.traffic_clearance
+	)

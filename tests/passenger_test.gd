@@ -25,7 +25,7 @@ func _run() -> void:
 
 func _test_stops_appear() -> void:
 	var game := _new_game()
-	var pickups := game.pickups
+	var pickups := game.world.pickups
 	_drive(game, 190.0)
 	_check(pickups.bus_stops.is_empty(), "No stop before 200 m")
 	_drive(game, 15.0)
@@ -44,9 +44,9 @@ func _test_stops_appear() -> void:
 		for later in pickups.bus_stops:
 			seen[later.get_instance_id()] = true
 	_check(seen.size() >= 2, "Stops keep coming")
-	game.traffic.contacted.emit()
+	game.world.traffic.contacted.emit()
 	game.restart_run()
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	_check(pickups.bus_stops.is_empty(), "Restart clears stops")
 	game.free()
 
@@ -54,22 +54,24 @@ func _test_stops_appear() -> void:
 func _test_boarding() -> void:
 	var game := _new_game()
 	_drive(game, 205.0)
-	var stop := game.pickups.bus_stops[0]
+	var stop := game.world.pickups.bus_stops[0]
 	var waiting := stop.passengers
-	game.player.position.x = game.player.right_limit
+	game.world.player.position.x = game.world.player.right_limit
 	_drive(game, 60.0)
 	_check(stop.passengers == 0, "Hugging the curb boards everyone")
 	_check(game.score == waiting * 5, "Each passenger pays 5 points")
 	_check(game.som_collected == waiting, "Fares count as soʻm notes")
-	_check(game.hud.pickup_label.text.begins_with("5 000 soʻm"), "Fare feedback shows the note")
-	game.traffic.contacted.emit()
+	_check(
+		game.hud.drive.pickup_label.text.begins_with("5 000 soʻm"), "Fare feedback shows the note"
+	)
+	game.world.traffic.contacted.emit()
 	game.restart_run()
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	_drive(game, 205.0)
-	game.pickups.effects.activate("double")
-	stop = game.pickups.bus_stops[0]
+	game.world.pickups.effects.activate("double")
+	stop = game.world.pickups.bus_stops[0]
 	waiting = stop.passengers
-	game.player.position.x = game.player.right_limit
+	game.world.player.position.x = game.world.player.right_limit
 	_drive(game, 60.0)
 	_check(game.score == waiting * 10, "Double points doubles fares")
 	game.free()
@@ -94,17 +96,21 @@ func _new_game() -> CruiseGame:
 	game.traffic_settings.first_spawn_distance = 1.0e9
 	game.pickup_settings = game.pickup_settings.duplicate() as PickupSettings
 	game.pickup_settings.first_spawn_distance = 1.0e9
-	var traffic := game.get_node("Traffic") as TrafficController
+	var traffic := game.get_node("World/Traffic") as TrafficController
 	traffic.sheep_settings = traffic.sheep_settings.duplicate() as SheepSettings
 	traffic.sheep_settings.first_crossing_metres = 1.0e9
-	var pickups := game.get_node("Pickups") as PickupController
+	var pickups := game.get_node("World/Pickups") as PickupController
 	pickups.power_up_settings = pickups.power_up_settings.duplicate() as PowerUpSettings
 	pickups.power_up_settings.first_spawn_metres = 1.0e9
+	# The long drive below never steers to a METAN station; fuel is tested elsewhere.
+	var fuel := game.get_node("World/Fuel") as FuelController
+	fuel.settings = fuel.settings.duplicate() as FuelSettings
+	fuel.settings.tank_metres = 1.0e9
 	root.add_child(game)
 	game.set_language("en")
 	game.start_run()
 	game.set_process(false)
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	return game
 
 

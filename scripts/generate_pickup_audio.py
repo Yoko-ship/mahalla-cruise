@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Generate original pickup chimes and the close-call whoosh using only Python's stdlib."""
+"""Generate original pickup chimes, the close-call whoosh, and the pothole bump using only
+Python's stdlib."""
 
 import math
 import random
@@ -47,6 +48,23 @@ def write_whoosh(name, duration):
     write_samples(name, samples, duration)
 
 
+def write_bump(name, duration):
+    """A low thud: a falling sine with a short burst of filtered noise for the jolt."""
+    noise = random.Random(7)
+    samples = []
+    low = 0.0
+    phase = 0.0
+    for index in range(round(duration * RATE)):
+        time = index / RATE
+        phase += math.tau * (95 - 40 * time / duration) / RATE
+        low += 0.08 * (noise.uniform(-1.0, 1.0) - low)
+        attack = min(1.0, time / 0.003)
+        body = math.exp(-time / 0.07) * math.sin(phase)
+        rattle = math.exp(-time / 0.025) * low * 2.2
+        samples.append(attack * (body + rattle))
+    write_samples(name, samples, duration)
+
+
 def write_samples(name, samples, duration):
     peak = max(abs(value) for value in samples)
     # Leave headroom for overlapping pickups; runtime volume is lower still.
@@ -69,3 +87,4 @@ if __name__ == "__main__":
         0.30,
     )
     write_whoosh("close_call.wav", 0.28)
+    write_bump("bump.wav", 0.22)

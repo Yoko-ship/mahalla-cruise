@@ -131,7 +131,7 @@ func _test_steerable_run(frames_per_second: int) -> void:
 	game.set_process(false)
 	game.pickup_feedback.set_sound_enabled(false)
 	game.start_run()
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	var touch := InputEventScreenTouch.new()
 	touch.index = 0
 	touch.pressed = true
@@ -139,17 +139,19 @@ func _test_steerable_run(frames_per_second: int) -> void:
 	var delta := 1.0 / frames_per_second
 	for frame in range(120 * frames_per_second):
 		var nearest: TrafficCar = null
-		for vehicle in game.traffic.vehicles:
-			if vehicle.collision_bounds().position.y > game.player.collision_bounds().end.y:
+		for vehicle in game.world.traffic.vehicles:
+			if vehicle.collision_bounds().position.y > game.world.player.collision_bounds().end.y:
 				continue
 			if nearest == null or vehicle.position.y > nearest.position.y:
 				nearest = vehicle
 		var target := 216.0
 		if nearest != null:
 			target = (
-				game.player.right_limit if nearest.position.x < 216.0 else game.player.left_limit
+				game.world.player.right_limit
+				if nearest.position.x < 216.0
+				else game.world.player.left_limit
 			)
-		var flock := game.traffic.sheep_crossing.blocking_bounds()
+		var flock := game.world.traffic.sheep_crossing.blocking_bounds()
 		if not flock.is_empty() and (nearest == null or flock[0].position.y > nearest.position.y):
 			# Sheep cross the whole road; drive past the side of the flock with more room.
 			var span := flock[0]
@@ -157,12 +159,16 @@ func _test_steerable_run(frames_per_second: int) -> void:
 				span = span.merge(sheep)
 			var left_room := span.position.x - game.road_settings.left_edge
 			var right_room := game.road_settings.right_edge - span.end.x
-			target = game.player.left_limit if left_room > right_room else game.player.right_limit
+			target = (
+				game.world.player.left_limit
+				if left_room > right_room
+				else game.world.player.right_limit
+			)
 		var drag := InputEventScreenDrag.new()
 		drag.index = 0
-		drag.relative = Vector2(target - game.player.target_x, 0.0)
+		drag.relative = Vector2(target - game.world.player.target_x, 0.0)
 		view.push_input(drag, true)
-		game.player.advance(delta)
+		game.world.player.advance(delta)
 		game.advance(delta)
 		if game.is_game_over:
 			break

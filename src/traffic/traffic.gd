@@ -64,7 +64,13 @@ func set_distance(metres: float) -> void:
 
 
 ## money_bounds: pickups on the road, so a new flock never starts level with a note.
-func advance(travel_pixels: float, player_bounds: Rect2, money_bounds: Array[Rect2] = []) -> void:
+## hazard_bounds: potholes and road works, so a new car never appears on top of one.
+func advance(
+	travel_pixels: float,
+	player_bounds: Rect2,
+	money_bounds: Array[Rect2] = [],
+	hazard_bounds: Array[Rect2] = []
+) -> void:
 	var traffic_travel := travel_pixels * _settings.relative_speed
 	var near_misses := 0
 	for index in range(vehicles.size() - 1, -1, -1):
@@ -101,7 +107,7 @@ func advance(travel_pixels: float, player_bounds: Rect2, money_bounds: Array[Rec
 	for _near_miss in range(near_misses):
 		_award_near_miss()
 	_distance_until_spawn -= travel_pixels
-	if _distance_until_spawn <= 0.0 and _can_spawn():
+	if _distance_until_spawn <= 0.0 and _can_spawn(hazard_bounds):
 		_spawn_vehicle()
 
 
@@ -154,10 +160,14 @@ func _road_clear_for_sheep(money_bounds: Array[Rect2]) -> bool:
 	return true
 
 
-func _can_spawn() -> bool:
+func _can_spawn(hazard_bounds: Array[Rect2]) -> bool:
 	if vehicles.size() >= _settings.max_vehicles or sheep_crossing.is_due(_metres):
 		return false
 	var top := _settings.spawn_y - _vertical_padding
+	var reach := _settings.collision_half_size.y + 20.0
+	for hazard in hazard_bounds:
+		if hazard.end.y > top - reach and hazard.position.y < top + reach:
+			return false
 	if sheep_crossing.top_y() - top < _settings.minimum_gap:
 		return false
 	for vehicle in vehicles:

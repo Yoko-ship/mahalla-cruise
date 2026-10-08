@@ -41,8 +41,8 @@ func _test_close_and_far_passes() -> void:
 	_add_car(game, CLOSE_LEFT, 400.0)
 	_drive(game, 4.0)
 	_check(game.near_misses == 1 and game.score == 3, "A close pass awards near-miss points")
-	_check(game.hud.pickup_label.text == "Close call!  +3 pts", "A close pass shows feedback")
-	_check(game.traffic.near_miss_combo == 1, "The first near miss starts the combo")
+	_check(game.hud.drive.pickup_label.text == "Close call!  +3 pts", "A close pass shows feedback")
+	_check(game.world.traffic.near_miss_combo == 1, "The first near miss starts the combo")
 	_check(not game.is_game_over, "A near miss is not a crash")
 	game.free()
 	game = _new_game()
@@ -52,7 +52,7 @@ func _test_close_and_far_passes() -> void:
 	game.free()
 	game = _new_game()
 	_add_car(game, CLOSE_LEFT, 400.0)
-	game.player.position.x = 250.0
+	game.world.player.position.x = 250.0
 	_drive(game, 4.0)
 	_check(game.near_misses == 0, "Only the gap while level with the player counts")
 	game.free()
@@ -65,9 +65,10 @@ func _test_combo() -> void:
 	_drive(game, 6.0)
 	_check(game.near_misses == 6, "Each close car counts once")
 	_check(game.score == 3 + 6 + 9 + 12 + 15 + 15, "Combo multiplies points up to its cap")
-	_check(game.traffic.near_miss_combo == 5, "Combo stops at the configured maximum")
+	_check(game.world.traffic.near_miss_combo == 5, "Combo stops at the configured maximum")
 	_check(
-		game.hud.pickup_label.text == "Close call ×5!  +15 pts", "Combo feedback shows the chain"
+		game.hud.drive.pickup_label.text == "Close call ×5!  +15 pts",
+		"Combo feedback shows the chain"
 	)
 	game.free()
 
@@ -80,7 +81,10 @@ func _test_combo_window() -> void:
 	_drive(game, 8.0)
 	_add_car(game, CLOSE_RIGHT, 500.0)
 	_drive(game, 2.0)
-	_check(game.score == 6 and game.traffic.near_miss_combo == 1, "A late near miss restarts combo")
+	_check(
+		game.score == 6 and game.world.traffic.near_miss_combo == 1,
+		"A late near miss restarts combo"
+	)
 	game.free()
 
 
@@ -88,7 +92,7 @@ func _test_crash_priority_and_restart() -> void:
 	var game := _new_game()
 	# Streak payouts are covered by streak_test; keep this wallet about run points only.
 	game.daily.state.streak_paid = true
-	var bounds := game.player.collision_bounds()
+	var bounds := game.world.player.collision_bounds()
 	# The blocking car is processed after the passing car, so its crash ends the same frame.
 	var blocker := _add_car(game, 216.0, bounds.position.y - 40.0)
 	var passing := _add_car(game, CLOSE_LEFT, bounds.end.y + 35.0)
@@ -97,7 +101,7 @@ func _test_crash_priority_and_restart() -> void:
 	_check(passing.has_passed, "The other car still finished its pass")
 	_check(game.score == 0 and game.near_misses == 0, "No near-miss points on the crash frame")
 	game.restart_run()
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	_add_car(game, CLOSE_LEFT, 400.0)
 	_drive(game, 4.0)
 	_check(game.near_misses == 1, "Near misses work after restart")
@@ -108,13 +112,13 @@ func _test_crash_priority_and_restart() -> void:
 	)
 	_check(game.progress.wallet == 3, "Near-miss points pay into the wallet")
 	game.restart_run()
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	_check(game.near_misses == 0 and game.score == 0, "Restart clears near misses")
 	_check(
 		not game.hud.game_over_panel.money_result.text.contains("Close"),
 		"Zero close calls stay unlisted"
 	)
-	_check(game.traffic.near_miss_combo == 0, "Restart clears the combo")
+	_check(game.world.traffic.near_miss_combo == 0, "Restart clears the combo")
 	game.free()
 
 
@@ -164,16 +168,16 @@ func _new_game() -> CruiseGame:
 	game.set_language("en")
 	game.start_run()
 	game.set_process(false)
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	return game
 
 
 func _add_car(game: CruiseGame, x: float, y: float) -> TrafficCar:
 	var car := CAR_SCENE.instantiate() as TrafficCar
 	car.position = Vector2(x, y)
-	game.traffic.add_child(car)
+	game.world.traffic.add_child(car)
 	car.configure(game.traffic_settings.collision_half_size, Color.WHITE)
-	game.traffic.vehicles.append(car)
+	game.world.traffic.vehicles.append(car)
 	return car
 
 
@@ -183,7 +187,7 @@ func _drive(game: CruiseGame, seconds: float) -> void:
 
 
 func _crash(game: CruiseGame) -> void:
-	_add_car(game, game.player.position.x, game.player.position.y - 90.0)
+	_add_car(game, game.world.player.position.x, game.world.player.position.y - 90.0)
 	_drive(game, 1.0)
 
 

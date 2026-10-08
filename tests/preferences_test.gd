@@ -125,7 +125,7 @@ func _test_menu_connections() -> void:
 	options.haptics_button.button_pressed = false
 	_check(not game.pickup_feedback.haptics_enabled, "Menu vibration reaches the feedback owner")
 	game.start_run()
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	game.advance(0.2)
 	var distance := game.distance_metres
 	game.notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST)
@@ -135,7 +135,7 @@ func _test_menu_connections() -> void:
 	game.advance(10.0)
 	_check(game.distance_metres == distance, "Changing preferences never resumes gameplay")
 	await _click(game.hud.menu.primary_button)
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	_check(
 		game.state == CruiseGame.RunState.PLAYING,
 		"Resume remains connected after a language change"
@@ -149,7 +149,7 @@ func _test_menu_connections() -> void:
 	_check(not game.pickup_feedback.haptics_enabled, "A fresh scene restores vibration preference")
 	_check(not game.hud.menu.preferences.sound_button.button_pressed, "The menu mirrors saved mute")
 	game.start_run()
-	_check(not game.hud.controls_label.visible, "Existing onboarding remains remembered")
+	_check(not game.hud.drive.controls_label.visible, "Existing onboarding remains remembered")
 	game.free()
 
 
@@ -193,7 +193,7 @@ func _new_game() -> CruiseGame:
 	(game.get_node("Progress") as LocalProgressStore).save_path = _path
 	root.add_child(game)
 	game.set_process(false)
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	return game
 
 

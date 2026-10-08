@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="FuelSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/fuel/fuel_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+tank_metres = 1500.0
+first_station_metres = 550.0
+station_metres_min = 500.0
+station_metres_max = 700.0
+refuel_distance = 18.0
+zone_height = 80.0
+low_share = 0.25
+spawn_y = -100.0
+despawn_y = 900.0

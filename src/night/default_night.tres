@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="NightSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/night/night_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+start_metres = 1200.0
+dusk_metres = 250.0
+darkness = 0.6
+tint = Color(0.03, 0.05, 0.16, 1)
+bonus_percent = 50
+beam_length = 300.0
+lamp_spacing = 260.0

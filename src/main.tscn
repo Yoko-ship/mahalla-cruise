@@ -1,20 +1,17 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1"]
-[ext_resource type="PackedScene" path="res://src/driving/player_car.tscn" id="2"]
-[ext_resource type="PackedScene" path="res://src/road/road.tscn" id="3"]
-[ext_resource type="PackedScene" path="res://src/scenery/scenery.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://src/world/drive_world.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://src/ui/hud.tscn" id="5"]
 [ext_resource type="Resource" path="res://src/road/default_road.tres" id="6"]
-[ext_resource type="PackedScene" path="res://src/traffic/traffic.tscn" id="7"]
 [ext_resource type="Resource" path="res://src/traffic/default_traffic.tres" id="8"]
-[ext_resource type="PackedScene" path="res://src/pickups/pickups.tscn" id="9"]
 [ext_resource type="Resource" path="res://src/pickups/default_pickups.tres" id="10"]
 [ext_resource type="PackedScene" path="res://src/pickups/pickup_feedback.tscn" id="11"]
 [ext_resource type="PackedScene" path="res://src/progress/progress.tscn" id="12"]
 [ext_resource type="Resource" path="res://src/garage/default_garage.tres" id="13"]
 [ext_resource type="PackedScene" path="res://src/daily/daily_tasks.tscn" id="14"]
 [ext_resource type="PackedScene" path="res://src/audio/game_audio.tscn" id="15"]
+[ext_resource type="PackedScene" path="res://src/achievements/achievements.tscn" id="16"]
 
 [node name="MahallaCruise" type="Node2D"]
 script = ExtResource("1")
@@ -23,25 +20,15 @@ traffic_settings = ExtResource("8")
 pickup_settings = ExtResource("10")
 garage = ExtResource("13")
 
-[node name="Road" parent="." instance=ExtResource("3")]
-
-[node name="Scenery" parent="." instance=ExtResource("4")]
-
-[node name="Traffic" parent="." instance=ExtResource("7")]
-z_index = 2
-
-[node name="Pickups" parent="." instance=ExtResource("9")]
-z_index = 1
-
-[node name="PlayerCar" parent="." instance=ExtResource("2")]
-z_index = 2
-position = Vector2(216, 604)
+[node name="World" parent="." instance=ExtResource("2")]
 
 [node name="PickupFeedback" parent="." instance=ExtResource("11")]
 
 [node name="Progress" parent="." instance=ExtResource("12")]
 
 [node name="DailyTasks" parent="." instance=ExtResource("14")]
+
+[node name="Achievements" parent="." instance=ExtResource("16")]
 
 [node name="GameAudio" parent="." instance=ExtResource("15")]
 

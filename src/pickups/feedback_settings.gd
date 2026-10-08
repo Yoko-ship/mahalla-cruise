@@ -12,3 +12,4 @@ extends Resource
 @export_range(1, 100) var close_call_vibration_ms: int = 12
 ## Each combo step raises the close-call whoosh pitch by this fraction.
 @export_range(0.0, 0.3) var close_call_pitch_step: float = 0.06
+@export_range(1, 100) var bump_vibration_ms: int = 40

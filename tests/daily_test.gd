@@ -140,11 +140,11 @@ func _test_game_flow() -> void:
 	await _click(menu.back_button)
 	_check(not menu.visible and game.hud.menu.visible, "Back returns to start")
 	game.start_run()
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	game.som_collected = 15
 	game.score = 20
 	game.distance_metres = 420.0
-	game.traffic.contacted.emit()
+	game.world.traffic.contacted.emit()
 	_check(game.progress.wallet == 20 + 40 + 50, "Finished tasks pay into the wallet")
 	var wallet_text := game.hud.game_over_panel.wallet_result.text
 	_check(wallet_text.contains("Task complete! +40 pts"), "Results announce completed tasks")

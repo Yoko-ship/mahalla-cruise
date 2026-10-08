@@ -1,6 +1,6 @@
 # Mahalla Cruise Project Tracker
 
-Last updated: 2026-10-07
+Last updated: 2026-10-08
 
 Mahalla Cruise is a planned 2D Android game for people in Uzbekistan. The goal is a simple, relaxing time killer: open the game, steer with one finger, and enjoy a familiar neighborhood without puzzles or complicated decisions. Development should stay manageable for a first version.
 
@@ -68,8 +68,10 @@ describes the boundaries, `AGENTS.md` defines the AI workflow, and
 `./scripts/check.sh` runs the local quality gate. Development tooling uses
 gdtoolkit 4.5.0 in `.venv`.
 
-**Next task:** playtest on Windows (garage cars, close calls, sheep crossings, and
-daily tasks) and tune speeds, prices, sheep frequency, and task rewards by feel.
+**Next task:** playtest on Windows (fuel stations, hazards, night, upgrades,
+achievements, plus earlier garage, close calls, sheep, power-ups, and passengers)
+and tune tank size, station spacing, hazard frequency and penalties, night start,
+upgrade prices, and achievement rewards by feel.
 Replace the temporary car and sheep art with final artwork
 ([docs/art-direction/CAR_ROSTER_ART.md](docs/art-direction/CAR_ROSTER_ART.md)). Car-name
 trademark review remains open before a public release. No Android device is
@@ -112,6 +114,12 @@ The intermittent initial emulator launch exit remains outstanding.
   buy cars; stats are fixed per car (no upgrades yet). Cars appear only once real
   artwork exists. This replaces the earlier "no saved wallet" decision. Later the
   same day the user asked for temporary art so all cars can be tested now.
+  Per-car upgrades were added on 2026-10-08 (see below), so base stats are no
+  longer the only difference.
+- Add methane fuel with METAN stations, potholes and road works, a night drive,
+  per-car upgrades, and lifetime achievements (user's choice, 2026-10-08). An empty
+  tank ends the drive; hazards only cost points. The user approved the world/HUD
+  overlay split by asking for these features after it was named as a prerequisite.
 - Add pickup sounds/light vibration and gradual traffic difficulty, as requested
   by the user. Keep the traffic increase capped and maintain generous gaps.
 
@@ -198,6 +206,9 @@ Track asset sources and applicable usage terms when assets are added. Keep sourc
 - [x] Add paint colors, horn, music, and keep money away from sheep.
 - [x] Add road power-ups: magnet, double points, and shield.
 - [x] Add marshrutka bus-stop passengers and a daily streak bonus.
+- [x] Split the drive world and HUD overlay out of main and the HUD.
+- [x] Add methane fuel and METAN stations, potholes and road works, and a night drive.
+- [x] Add per-car upgrades (handling, tank, suspension) and lifetime achievements.
 - [ ] Add more places once painted street artwork exists.
 - [ ] Replace the Matiz, Cobalt, and black Gentra test sprites with final artwork.
 - [ ] Test touch controls and performance on a physical Android phone.
@@ -636,6 +647,31 @@ not asserted, when a test catalogue lacks the 5,000 note.
 Validation: `./scripts/check.sh` passed **1,135 game checks and 19 tooling tests**,
 including new `passenger_test.gd` (21) and `streak_test.gd` (20). Reviewed a Mac render
 of a stop with three passengers beside the curb.
+
+Five features and a structural split (2026-10-08): the user chose methane fuel,
+potholes/road works, night drive, car upgrades, and achievements.
+- Split: `DriveWorld` (`src/world/`) now owns road, scenery, hazards, fuel, traffic,
+  pickups, player, and night; main keeps run state, score, progress, and routing.
+  The HUD's road-time controls moved to `DriveOverlay`. `ProgressFile` took file I/O
+  from the store. `main.gd` is 293 lines (from 286 before adding five features).
+- Fuel: 1,500 m tank; METAN stations on the left curb from 550 m, every 500–700 m;
+  hug the curb bay to refill; an empty tank ends the drive ("Out of methane!").
+- Hazards: potholes (−10) and road works (−20) near the centre line from 250 m,
+  every 120–260 m; score never below zero; bump sound and vibration.
+- Night: dusk from 1,200 m over 250 m; headlights and lamps via a shader; money and
+  close calls +50% once dark.
+- Upgrades: handling (+10%/level), tank (+25%/level), suspension (−25% penalty/level),
+  three levels each, per car, in the garage.
+- Achievements: 16 lifetime goals across seven kinds; Tasks screen switch; results.
+Existing suites changed only where the new rules apply: test paths now go through
+`game.world` and `game.hud.drive`; three long-drive suites (driving, power-up, passenger)
+give their never-steering car an unlimited tank, since an empty tank now ends a run.
+Validation: `./scripts/check.sh` passed **1,449 game checks and 19 tooling tests**,
+including new `fuel_test.gd` (45), `hazard_test.gd` (28), `night_test.gd` (15),
+`upgrade_test.gd` (62), and `achievement_test.gd` (76). Reviewed Mac renders of a
+station, pothole, and road works by day; the night shade with headlights and lamps;
+the garage with upgrades (uz/ru/en); the achievements screen; and the fuel results.
+Android and Windows were not run in this session.
 
 ## Running and Checking the Starter
 

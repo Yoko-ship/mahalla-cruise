@@ -86,7 +86,7 @@ func _test_garage_flow() -> void:
 	root.add_child(game)
 	game.set_language("en")
 	game.set_process(false)
-	var sprite := game.player.visual.sprite
+	var sprite := game.world.player.visual.sprite
 	var material := sprite.material as ShaderMaterial
 	_check(material != null and material.shader == CarVisual.PAINT_SHADER, "The car uses paint")
 	_check(_paint_of(sprite) == GARAGE.find_paint("white").color, "Damas is painted white")
@@ -106,7 +106,7 @@ func _test_garage_flow() -> void:
 	_check((picker.swatches["teal"] as Button).disabled, "Unaffordable paints are disabled")
 	game.hud.garage_menu.close()
 	game.start_run()
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	game.choose_paint("white")
 	_check(_paint_of(sprite) == sky, "Paint cannot change during a drive")
 	game.free()

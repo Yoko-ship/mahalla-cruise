@@ -1,0 +1,37 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://src/world/drive_world.gd" id="1"]
+[ext_resource type="PackedScene" path="res://src/road/road.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://src/scenery/scenery.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://src/hazards/hazards.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://src/fuel/fuel.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://src/traffic/traffic.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://src/pickups/pickups.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://src/driving/player_car.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://src/night/night_view.tscn" id="9"]
+
+[node name="World" type="Node2D"]
+script = ExtResource("1")
+
+[node name="Road" parent="." instance=ExtResource("2")]
+
+[node name="Scenery" parent="." instance=ExtResource("3")]
+
+[node name="Hazards" parent="." instance=ExtResource("4")]
+z_index = 1
+
+[node name="Fuel" parent="." instance=ExtResource("5")]
+z_index = 1
+
+[node name="Traffic" parent="." instance=ExtResource("6")]
+z_index = 2
+
+[node name="Pickups" parent="." instance=ExtResource("7")]
+z_index = 1
+
+[node name="PlayerCar" parent="." instance=ExtResource("8")]
+z_index = 2
+position = Vector2(216, 604)
+
+[node name="Night" parent="." instance=ExtResource("9")]
+z_index = 3

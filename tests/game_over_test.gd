@@ -27,16 +27,16 @@ func _new_game() -> CruiseGame:
 	game.set_language("en")
 	game.start_run()
 	game.set_process(false)
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	return game
 
 
 func _crash(game: CruiseGame) -> void:
 	game.advance(game.traffic_settings.first_spawn_distance / game.road_settings.scroll_speed)
-	var vehicle: TrafficCar = game.traffic.vehicles.front()
-	game.player.position.x = vehicle.position.x
-	game.player.configure_bounds(game.road_settings.left_edge, game.road_settings.right_edge)
-	var seconds_to_contact := game.player.position.y - vehicle.position.y
+	var vehicle: TrafficCar = game.world.traffic.vehicles.front()
+	game.world.player.position.x = vehicle.position.x
+	game.world.player.configure_bounds(game.road_settings.left_edge, game.road_settings.right_edge)
+	var seconds_to_contact := game.world.player.position.y - vehicle.position.y
 	seconds_to_contact /= game.road_settings.scroll_speed * game.traffic_settings.relative_speed
 	game.advance(seconds_to_contact)
 
@@ -50,35 +50,39 @@ func _test_crash_and_mouse_restart() -> void:
 	_crash(game)
 	_check(game.is_game_over, "The first collision ends the run")
 	_check(game.hud.game_over_panel.visible, "Collision shows the game-over overlay")
-	_check(not game.player.is_physics_processing(), "Driving physics stops after a crash")
+	_check(not game.world.player.is_physics_processing(), "Driving physics stops after a crash")
 	_check(not paused, "The scene tree stays active so restart UI can respond")
 	_check(
 		game.hud.game_over_panel.result_label.text == "%d m travelled" % int(game.distance_metres),
 		"The overlay displays the final distance"
 	)
 	var distance_before := game.distance_metres
-	var road_before := game.road.scroll_offset
-	var scenery_before := game.scenery.scroll_offset
-	var traffic_before: Vector2 = game.traffic.vehicles.front().position
-	var player_before := game.player.position
-	var target_before := game.player.target_x
-	var count_before := game.traffic.vehicles.size()
+	var road_before := game.world.road.scroll_offset
+	var scenery_before := game.world.scenery.scroll_offset
+	var traffic_before: Vector2 = game.world.traffic.vehicles.front().position
+	var player_before := game.world.player.position
+	var target_before := game.world.player.target_x
+	var count_before := game.world.traffic.vehicles.size()
 	game.advance(20.0)
 	Input.action_press("ui_right")
-	game.player.advance(1.0)
+	game.world.player.advance(1.0)
 	Input.action_release("ui_right")
 	var motion := InputEventMouseMotion.new()
 	motion.relative = Vector2(100, 0)
 	root.push_input(motion, true)
-	game.player.advance(1.0)
+	game.world.player.advance(1.0)
 	_check(is_equal_approx(game.distance_metres, distance_before), "Final distance stays frozen")
-	_check(is_equal_approx(game.road.scroll_offset, road_before), "Road stays frozen")
-	_check(is_equal_approx(game.scenery.scroll_offset, scenery_before), "Scenery stays frozen")
-	_check(game.traffic.vehicles.front().position == traffic_before, "Traffic stays frozen")
-	_check(game.traffic.vehicles.size() == count_before, "No traffic spawns after game over")
-	_check(game.player.position == player_before, "Keyboard and mouse cannot move a crashed car")
+	_check(is_equal_approx(game.world.road.scroll_offset, road_before), "Road stays frozen")
 	_check(
-		is_equal_approx(game.player.target_x, target_before),
+		is_equal_approx(game.world.scenery.scroll_offset, scenery_before), "Scenery stays frozen"
+	)
+	_check(game.world.traffic.vehicles.front().position == traffic_before, "Traffic stays frozen")
+	_check(game.world.traffic.vehicles.size() == count_before, "No traffic spawns after game over")
+	_check(
+		game.world.player.position == player_before, "Keyboard and mouse cannot move a crashed car"
+	)
+	_check(
+		is_equal_approx(game.world.player.target_x, target_before),
 		"Input cannot queue post-crash steering"
 	)
 
@@ -93,26 +97,28 @@ func _test_crash_and_mouse_restart() -> void:
 	_check(not game.is_game_over, "Clicking Drive again starts a new run")
 	_check(not game.hud.game_over_panel.visible, "Restart hides the game-over overlay")
 	_check(is_zero_approx(game.distance_metres), "Restart resets distance")
-	_check(game.traffic.vehicles.is_empty(), "Restart removes old traffic")
-	_check(_car_children(game.traffic) == 0, "Old vehicles are detached immediately")
-	_check(game.player.position == Vector2(216, 604), "Restart restores the starting position")
-	_check(is_zero_approx(game.player.rotation), "Restart clears steering lean")
-	_check(is_zero_approx(game.road.scroll_offset), "Restart resets the road")
-	_check(is_zero_approx(game.scenery.scroll_offset), "Restart resets scenery")
-	game.player.set_physics_process(false)
-	root.push_input(motion, true)
-	game.player.advance(0.1)
+	_check(game.world.traffic.vehicles.is_empty(), "Restart removes old traffic")
+	_check(_car_children(game.world.traffic) == 0, "Old vehicles are detached immediately")
 	_check(
-		is_equal_approx(game.player.position.x, 216.0),
+		game.world.player.position == Vector2(216, 604), "Restart restores the starting position"
+	)
+	_check(is_zero_approx(game.world.player.rotation), "Restart clears steering lean")
+	_check(is_zero_approx(game.world.road.scroll_offset), "Restart resets the road")
+	_check(is_zero_approx(game.world.scenery.scroll_offset), "Restart resets scenery")
+	game.world.player.set_physics_process(false)
+	root.push_input(motion, true)
+	game.world.player.advance(0.1)
+	_check(
+		is_equal_approx(game.world.player.position.x, 216.0),
 		"Old mouse gesture cannot resume after restart"
 	)
 	game.advance(0.1)
 	_check(game.distance_metres > 0.0, "The new run advances normally")
-	_check(game.traffic.vehicles.is_empty(), "Restart restores the initial clear-road delay")
+	_check(game.world.traffic.vehicles.is_empty(), "Restart restores the initial clear-road delay")
 	Input.action_press("ui_left")
-	game.player.advance(0.1)
+	game.world.player.advance(0.1)
 	Input.action_release("ui_left")
-	_check(game.player.position.x < 216.0, "Steering works again in the new run")
+	_check(game.world.player.position.x < 216.0, "Steering works again in the new run")
 	_crash(game)
 	_check(game.is_game_over, "Collision still ends the second run")
 	game.free()
@@ -137,14 +143,14 @@ func _test_touch_restart() -> void:
 	Input.parse_input_event(touch)
 	await process_frame
 	_check(not game.is_game_over, "Touching Drive again restarts through the real UI input path")
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	var drag := InputEventScreenDrag.new()
 	drag.index = 0
 	drag.relative = Vector2(80, 0)
 	root.push_input(drag, true)
-	game.player.advance(0.1)
+	game.world.player.advance(0.1)
 	_check(
-		is_equal_approx(game.player.position.x, 216.0),
+		is_equal_approx(game.world.player.position.x, 216.0),
 		"Old touch gesture cannot resume after restart"
 	)
 	game.free()

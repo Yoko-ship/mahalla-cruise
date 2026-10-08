@@ -62,4 +62,5 @@ static func view(
 		"paint": current_paint(catalogue, store, car).id,
 		"owned_paints": owned_paints,
 		"colors": colors,
+		"upgrades": UpgradeRules.levels(catalogue, store, car),
 	}

@@ -44,7 +44,7 @@ func _test_default_roster() -> void:
 	await _click(game.hud.garage_menu.back_button)
 	_check(not game.hud.garage_menu.visible and game.hud.menu.visible, "Back returns to start")
 	game.start_run()
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	game.hud.menu.show_pause(0, 0.0)
 	_check(not game.hud.menu.garage_button.visible, "The garage is not offered while paused")
 	game.free()
@@ -67,12 +67,12 @@ func _test_purchase_flow() -> void:
 	await _click(menu.row_for("matiz").action)
 	_check(game.progress.wallet == 100 and game.car.id == "matiz", "A real click buys the Matiz")
 	var matiz := game.garage.find("matiz")
-	_check(game.player.settings == matiz.settings, "The Matiz handling drives the player")
+	_check(game.world.player.settings == matiz.settings, "The Matiz handling drives the player")
 	_check(
-		game.player.collision_bounds().size == matiz.settings.collision_half_size * 2.0,
+		game.world.player.collision_bounds().size == matiz.settings.collision_half_size * 2.0,
 		"The Matiz uses its smaller collision size"
 	)
-	_check(game.player.visual.sprite.texture == matiz.texture, "The road car shows the Matiz")
+	_check(game.world.player.visual.sprite.texture == matiz.texture, "The road car shows the Matiz")
 	_check(game.hud.menu.car.texture == matiz.texture, "The start screen shows the chosen car")
 	_check(menu.row_for("matiz").action.text == "Selected", "The garage marks the new car")
 	_check(menu.row_for("damas").action.text == "Select", "Owned cars can be chosen again")
@@ -81,7 +81,7 @@ func _test_purchase_flow() -> void:
 	_check(game.progress.wallet == 100 and game.car.id == "matiz", "Unaffordable buys are refused")
 	menu.close()
 	game.start_run()
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	game.choose_car("damas")
 	_check(game.car.id == "matiz", "Cars cannot change during a drive")
 	game.advance(1.0)
@@ -99,9 +99,9 @@ func _test_purchase_flow() -> void:
 	await _click(game.hud.game_over_panel.garage_button)
 	_check(game.state == CruiseGame.RunState.START, "Results can return to the garage")
 	_check(game.distance_metres == 0.0 and game.score == 0, "Leaving results resets the run")
-	_check(game.traffic.vehicles.is_empty(), "Leaving results clears traffic")
+	_check(game.world.traffic.vehicles.is_empty(), "Leaving results clears traffic")
 	_check(menu.visible and not game.hud.game_over_panel.visible, "The garage replaces results")
-	_check(not game.player.visible, "The road car waits for Play")
+	_check(not game.world.player.visible, "The road car waits for Play")
 	game.choose_car("damas")
 	_check(game.car.id == "damas" and game.progress.wallet == 140, "Switching owned cars is free")
 	await _click(menu.back_button)
@@ -197,10 +197,10 @@ func _without_art(id: String) -> GarageCatalogue:
 func _crash(game: CruiseGame) -> void:
 	var settings := game.traffic_settings.duplicate() as TrafficSettings
 	settings.first_spawn_distance = 1.0
-	game.traffic.configure(game.road_settings, settings)
-	game.traffic.advance(1.0, game.player.collision_bounds())
-	var car: TrafficCar = game.traffic.vehicles.front()
-	car.position = game.player.position - Vector2(0, 90)
+	game.world.traffic.configure(game.road_settings, settings)
+	game.world.traffic.advance(1.0, game.world.player.collision_bounds())
+	var car: TrafficCar = game.world.traffic.vehicles.front()
+	car.position = game.world.player.position - Vector2(0, 90)
 	game.advance(0.5)
 
 

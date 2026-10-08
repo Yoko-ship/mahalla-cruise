@@ -12,6 +12,7 @@ var _focused: bool = true
 @onready var som_sound: AudioStreamPlayer = $SomSound
 @onready var dollar_sound: AudioStreamPlayer = $DollarSound
 @onready var close_call_sound: AudioStreamPlayer = $CloseCallSound
+@onready var bump_sound: AudioStreamPlayer = $BumpSound
 
 
 func _ready() -> void:
@@ -21,6 +22,7 @@ func _ready() -> void:
 	som_sound.volume_db = settings.volume_db
 	dollar_sound.volume_db = settings.volume_db
 	close_call_sound.volume_db = settings.volume_db
+	bump_sound.volume_db = settings.volume_db
 
 
 func play_pickup(is_dollar: bool) -> void:
@@ -49,6 +51,17 @@ func play_close_call(combo: int) -> void:
 		Input.vibrate_handheld(settings.close_call_vibration_ms, settings.vibration_strength)
 
 
+## A pothole or road works: a low thud and a firmer pulse.
+func play_bump() -> void:
+	if not _focused:
+		return
+	_last_feedback_ms = Time.get_ticks_msec()
+	if sound_enabled:
+		bump_sound.play()
+	if haptics_enabled and OS.has_feature("android"):
+		Input.vibrate_handheld(settings.bump_vibration_ms, settings.vibration_strength)
+
+
 func set_sound_enabled(enabled: bool) -> void:
 	sound_enabled = enabled
 	if not enabled:
@@ -63,6 +76,7 @@ func stop() -> void:
 	som_sound.stop()
 	dollar_sound.stop()
 	close_call_sound.stop()
+	bump_sound.stop()
 	_last_feedback_ms = -100000
 
 

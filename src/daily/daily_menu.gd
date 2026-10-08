@@ -1,6 +1,7 @@
 class_name DailyMenu
 extends Control
-## Lists today's tasks with progress and rewards. Read-only; main supplies the entries.
+## Lists today's tasks, or lifetime achievements, with progress and rewards. Read-only;
+## main supplies both lists and the switch button flips between them.
 
 signal closed
 
@@ -8,30 +9,30 @@ const TEXT_COLOR := Color(1, 0.96, 0.85, 1)
 const MUTED_COLOR := Color(0.78, 0.86, 0.81, 1)
 const GOLD := Color(1, 0.85, 0.47, 1)
 
+var showing_achievements: bool = false
 var _entries: Array[Dictionary] = []
+var _achievements: Array[Dictionary] = []
 
 @onready var title: Label = $Center/Card/Margin/Content/Title
 @onready var rows: VBoxContainer = $Center/Card/Margin/Content/Rows
 @onready var footer: Label = $Center/Card/Margin/Content/Footer
+@onready var switch_button: Button = $Center/Card/Margin/Content/Switch
 @onready var back_button: Button = $Center/Card/Margin/Content/Back
 
 
 func _ready() -> void:
 	back_button.pressed.connect(close)
+	switch_button.pressed.connect(func() -> void: _show_list(not showing_achievements))
 
 
-func set_entries(entries: Array[Dictionary]) -> void:
+func set_entries(entries: Array[Dictionary], achievement_entries: Array[Dictionary] = []) -> void:
 	_entries = entries.duplicate(true)
-	for child in rows.get_children():
-		rows.remove_child(child)
-		child.queue_free()
-	for entry in _entries:
-		rows.add_child(_row())
-	refresh_text()
+	_achievements = achievement_entries.duplicate(true)
+	_rebuild()
 
 
 func open() -> void:
-	refresh_text()
+	_show_list(false)
 	show()
 	back_button.grab_focus()
 
@@ -44,12 +45,33 @@ func close() -> void:
 	closed.emit()
 
 
+func _show_list(achievements: bool) -> void:
+	showing_achievements = achievements
+	_rebuild()
+
+
+func _shown() -> Array[Dictionary]:
+	return _achievements if showing_achievements else _entries
+
+
+func _rebuild() -> void:
+	for child in rows.get_children():
+		rows.remove_child(child)
+		child.queue_free()
+	for entry in _shown():
+		rows.add_child(_row())
+	refresh_text()
+
+
 func refresh_text() -> void:
-	title.text = tr("daily_title")
-	footer.text = tr("tasks_footer")
+	title.text = tr("achievements" if showing_achievements else "daily_title")
+	footer.text = tr("ach_footer" if showing_achievements else "tasks_footer")
+	switch_button.text = tr("daily_title" if showing_achievements else "achievements")
+	switch_button.visible = not _achievements.is_empty()
 	back_button.text = tr("back")
-	for index in range(_entries.size()):
-		var entry := _entries[index]
+	var entries := _shown()
+	for index in range(entries.size()):
+		var entry := entries[index]
 		var row := rows.get_child(index)
 		(row.get_node("Layout/Text") as Label).text = tr(entry.text_key) % entry.target
 		(row.get_node("Layout/Status/Bar") as ProgressBar).value = (

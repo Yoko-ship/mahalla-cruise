@@ -33,7 +33,7 @@ func _run() -> void:
 
 func _test_first_crossing() -> void:
 	var game := _new_game(false)
-	var traffic := game.traffic
+	var traffic := game.world.traffic
 	var crossing := traffic.sheep_crossing
 	traffic.set_distance(249.0)
 	traffic.advance(STEP_PIXELS, FAR_AWAY)
@@ -73,12 +73,16 @@ func _test_first_crossing() -> void:
 
 func _test_always_passable() -> void:
 	var game := _new_game(false)
-	var traffic := game.traffic
+	var traffic := game.world.traffic
 	var crossing := traffic.sheep_crossing
-	var row := game.player.collision_bounds()
+	var row := game.world.player.collision_bounds()
 	var half := row.size.x * 0.5
-	var left_lane := Rect2(game.player.left_limit - half, row.position.y, row.size.x, row.size.y)
-	var right_lane := Rect2(game.player.right_limit - half, row.position.y, row.size.x, row.size.y)
+	var left_lane := Rect2(
+		game.world.player.left_limit - half, row.position.y, row.size.x, row.size.y
+	)
+	var right_lane := Rect2(
+		game.world.player.right_limit - half, row.position.y, row.size.x, row.size.y
+	)
 	var metres := 0.0
 	var crossings := 0
 	var blocked_frames := 0
@@ -102,7 +106,7 @@ func _test_always_passable() -> void:
 
 func _test_cars_and_sheep_never_overlap() -> void:
 	var game := _new_game(true)
-	var traffic := game.traffic
+	var traffic := game.world.traffic
 	var crossing := traffic.sheep_crossing
 	var metres := 0.0
 	var overlaps := 0
@@ -131,21 +135,23 @@ func _test_contact_and_restart() -> void:
 	var game := _new_game(false)
 	game.start_run()
 	game.set_process(false)
-	game.player.set_physics_process(false)
-	game.traffic.set_distance(300.0)
-	game.traffic.advance(STEP_PIXELS, FAR_AWAY)
-	var sheep: Sheep = game.traffic.sheep_crossing.flock[0]
-	sheep.position = game.player.position - Vector2(0, 40)
+	game.world.player.set_physics_process(false)
+	game.world.traffic.set_distance(300.0)
+	game.world.traffic.advance(STEP_PIXELS, FAR_AWAY)
+	var sheep: Sheep = game.world.traffic.sheep_crossing.flock[0]
+	sheep.position = game.world.player.position - Vector2(0, 40)
 	game.advance(0.2)
 	_check(game.is_game_over and sheep.has_contacted, "Hitting a sheep ends the run")
-	_check(game.traffic.last_contact_kind == "sheep", "The crash is reported as sheep")
+	_check(game.world.traffic.last_contact_kind == "sheep", "The crash is reported as sheep")
 	var message := game.hud.game_over_panel.message_label.text
 	_check(message == "The sheep had right of way!", "Results explain the sheep crash")
 	game.restart_run()
-	game.player.set_physics_process(false)
-	_check(game.traffic.sheep_crossing.flock.is_empty(), "Restart clears the flock")
-	_check(game.traffic.sheep_crossing.next_crossing_metres == 250.0, "Restart resets crossings")
-	game.traffic.contacted.emit()
+	game.world.player.set_physics_process(false)
+	_check(game.world.traffic.sheep_crossing.flock.is_empty(), "Restart clears the flock")
+	_check(
+		game.world.traffic.sheep_crossing.next_crossing_metres == 250.0, "Restart resets crossings"
+	)
+	game.world.traffic.contacted.emit()
 	_check(
 		game.hud.game_over_panel.message_label.text == "You hit another car.",
 		"Car crashes keep their message"
@@ -155,8 +161,8 @@ func _test_contact_and_restart() -> void:
 
 func _test_money_and_sheep_stay_apart() -> void:
 	var game := _new_game(false)
-	var traffic := game.traffic
-	var pickups := game.pickups
+	var traffic := game.world.traffic
+	var pickups := game.world.pickups
 	var metres := 0.0
 	var touching := 0
 	var crossings := 0

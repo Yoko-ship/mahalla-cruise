@@ -6,6 +6,7 @@ const VERSION: int = 1
 const MAX_SCORE: int = 2147483647
 const LANGUAGES: Array[String] = ["uz", "ru", "en"]
 const DEFAULT_CAR: String = "damas"
+const MAX_UPGRADE_LEVEL: int = 10
 
 
 static func defaults() -> Dictionary:
@@ -63,7 +64,8 @@ static func garage(document: Dictionary) -> Dictionary:
 		"owned": [DEFAULT_CAR],
 		"selected": DEFAULT_CAR,
 		"owned_paints": [],
-		"paints": {}
+		"paints": {},
+		"upgrades": {},
 	}
 	var saved: Variant = document.get("garage", {})
 	if not saved is Dictionary:
@@ -85,7 +87,20 @@ static func garage(document: Dictionary) -> Dictionary:
 		for car: Variant in saved.paints:
 			if car is String and saved.paints[car] is String:
 				result.paints[car] = saved.paints[car]
+	if saved.get("upgrades") is Dictionary:
+		for car: Variant in saved.upgrades:
+			if car is String and saved.upgrades[car] is Dictionary:
+				result.upgrades[car] = _levels(saved.upgrades[car])
 	return result
+
+
+static func _levels(saved: Dictionary) -> Dictionary:
+	var levels := {}
+	for id: Variant in saved:
+		var level: Variant = saved[id]
+		if id is String and is_integer(level) and level > 0 and level <= MAX_UPGRADE_LEVEL:
+			levels[id] = int(level)
+	return levels
 
 
 static func is_integer(value: Variant) -> bool:

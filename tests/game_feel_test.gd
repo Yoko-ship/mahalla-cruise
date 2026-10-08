@@ -35,7 +35,7 @@ func _new_game() -> CruiseGame:
 	game.set_language("en")
 	game.start_run()
 	game.set_process(false)
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	return game
 
 
@@ -87,22 +87,27 @@ func _test_collection_feedback_and_restart() -> void:
 	_check(
 		feedback.som_sound.playing or feedback.dollar_sound.playing, "Real collection plays audio"
 	)
-	game.traffic.set_distance(game.traffic_settings.difficulty_full_metres)
-	game.player.position.x = game.traffic.vehicles.front().position.x
+	game.world.traffic.set_distance(game.traffic_settings.difficulty_full_metres)
+	game.world.player.position.x = game.world.traffic.vehicles.front().position.x
 	game.advance(5.0)
 	_check(game.is_game_over, "Traffic still causes game over with the feedback module")
 	_check(
 		not feedback.som_sound.playing and not feedback.dollar_sound.playing,
 		"Crash stops both chimes"
 	)
-	var frozen := game.traffic.difficulty_progress
+	var frozen := game.world.traffic.difficulty_progress
 	game.advance(1000.0)
-	_check(game.traffic.difficulty_progress == frozen, "Difficulty stops advancing at game over")
+	_check(
+		game.world.traffic.difficulty_progress == frozen, "Difficulty stops advancing at game over"
+	)
 	game.hud.menu.preferences.sound_button.button_pressed = false
 	game.hud.menu.preferences.haptics_button.button_pressed = false
 	game.restart_run()
-	game.player.set_physics_process(false)
-	_check(is_zero_approx(game.traffic.difficulty_progress), "Restart restores initial difficulty")
+	game.world.player.set_physics_process(false)
+	_check(
+		is_zero_approx(game.world.traffic.difficulty_progress),
+		"Restart restores initial difficulty"
+	)
 	_check(
 		not feedback.sound_enabled and not feedback.haptics_enabled,
 		"Restart retains the player's feedback preferences"
@@ -121,28 +126,32 @@ func _test_collection_feedback_and_restart() -> void:
 func _test_difficulty_curve() -> void:
 	var game := _new_game()
 	var settings := game.traffic_settings
-	game.traffic.set_distance(0.0)
-	_check(is_zero_approx(game.traffic.difficulty_progress), "A run starts at the easy baseline")
-	game.traffic.set_distance(settings.difficulty_start_metres)
-	_check(is_zero_approx(game.traffic.difficulty_progress), "The opening section stays gentle")
-	game.traffic.set_distance(
+	game.world.traffic.set_distance(0.0)
+	_check(
+		is_zero_approx(game.world.traffic.difficulty_progress), "A run starts at the easy baseline"
+	)
+	game.world.traffic.set_distance(settings.difficulty_start_metres)
+	_check(
+		is_zero_approx(game.world.traffic.difficulty_progress), "The opening section stays gentle"
+	)
+	game.world.traffic.set_distance(
 		(settings.difficulty_start_metres + settings.difficulty_full_metres) / 2.0
 	)
 	_check(
-		is_equal_approx(game.traffic.difficulty_progress, 0.5),
+		is_equal_approx(game.world.traffic.difficulty_progress, 0.5),
 		"Difficulty increases smoothly midway through the ramp"
 	)
-	game.traffic.set_distance(settings.difficulty_full_metres)
+	game.world.traffic.set_distance(settings.difficulty_full_metres)
 	_check(
-		is_equal_approx(game.traffic.difficulty_progress, 1.0),
+		is_equal_approx(game.world.traffic.difficulty_progress, 1.0),
 		"Difficulty reaches its configured cap"
 	)
-	game.traffic.set_distance(1000000.0)
+	game.world.traffic.set_distance(1000000.0)
 	_check(
-		is_equal_approx(game.traffic.difficulty_progress, 1.0),
+		is_equal_approx(game.world.traffic.difficulty_progress, 1.0),
 		"Very long runs never exceed the difficulty cap"
 	)
-	game.traffic.configure(game.road_settings, settings)
+	game.world.traffic.configure(game.road_settings, settings)
 	game.advance(
 		(
 			(settings.difficulty_start_metres + 50.0)
@@ -151,7 +160,8 @@ func _test_difficulty_curve() -> void:
 		)
 	)
 	_check(
-		game.traffic.difficulty_progress > 0.0, "Main supplies actual run distance to difficulty"
+		game.world.traffic.difficulty_progress > 0.0,
+		"Main supplies actual run distance to difficulty"
 	)
 	_check(
 		settings.spawn_distance_min == 550.0 and settings.spawn_distance_max == 720.0,

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="HazardSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/hazards/hazard_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+first_metres = 250.0
+spawn_metres_min = 120.0
+spawn_metres_max = 260.0
+works_chance = 0.35
+pothole_penalty = 10
+works_penalty = 20
+pothole_half_size = Vector2(15, 9)
+works_half_size = Vector2(22, 12)
+centre_spread = 16.0
+traffic_clearance = 40.0
+item_gap = 70.0
+spawn_y = -40.0
+despawn_y = 830.0

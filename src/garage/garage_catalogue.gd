@@ -4,6 +4,7 @@ extends Resource
 
 @export var cars: Array[CarDefinition] = []
 @export var paints: Array[PaintDefinition] = []
+@export var upgrades: Array[UpgradeDefinition] = []
 
 
 func find(id: String) -> CarDefinition:
@@ -17,6 +18,13 @@ func find_paint(id: String) -> PaintDefinition:
 	for paint in paints:
 		if paint.id == id:
 			return paint
+	return null
+
+
+func find_upgrade(id: String) -> UpgradeDefinition:
+	for upgrade in upgrades:
+		if upgrade.id == id:
+			return upgrade
 	return null
 
 

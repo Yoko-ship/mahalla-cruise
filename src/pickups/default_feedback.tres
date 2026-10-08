@@ -13,3 +13,4 @@ dollar_vibration_ms = 26
 vibration_strength = 0.25
 close_call_vibration_ms = 12
 close_call_pitch_step = 0.06
+bump_vibration_ms = 40

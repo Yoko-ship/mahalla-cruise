@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GarageCatalogue" load_steps=23 format=3]
+[gd_resource type="Resource" script_class="GarageCatalogue" load_steps=27 format=3]
 
 [ext_resource type="Script" path="res://src/garage/garage_catalogue.gd" id="1"]
 [ext_resource type="Script" path="res://src/garage/car_definition.gd" id="2"]
@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" path="res://assets/cars/vehicles_aligned.png" id="7"]
 [ext_resource type="Texture2D" path="res://assets/cars/placeholder_roster.png" id="8"]
 [ext_resource type="Script" path="res://src/garage/paint_definition.gd" id="9"]
+[ext_resource type="Script" path="res://src/garage/upgrade_definition.gd" id="10"]
 
 [sub_resource type="AtlasTexture" id="DamasAtlas"]
 atlas = ExtResource("7")
@@ -102,7 +103,27 @@ texture = SubResource("GentraPlaceholder")
 sprite_scale = 0.1
 factory_paint = "black"
 
+[sub_resource type="Resource" id="upgrade_handling"]
+script = ExtResource("10")
+id = "handling"
+prices = Array[int]([200, 450, 900])
+step = 0.1
+
+[sub_resource type="Resource" id="upgrade_tank"]
+script = ExtResource("10")
+id = "tank"
+prices = Array[int]([150, 350, 700])
+step = 0.25
+
+[sub_resource type="Resource" id="upgrade_suspension"]
+script = ExtResource("10")
+id = "suspension"
+prices = Array[int]([150, 350, 700])
+step = 0.25
+reduces = true
+
 [resource]
 script = ExtResource("1")
+upgrades = Array[ExtResource("10")]([SubResource("upgrade_handling"), SubResource("upgrade_tank"), SubResource("upgrade_suspension")])
 paints = Array[ExtResource("9")]([SubResource("paint_white"), SubResource("paint_cherry"), SubResource("paint_black"), SubResource("paint_sky"), SubResource("paint_teal"), SubResource("paint_gold")])
 cars = Array[ExtResource("2")]([SubResource("damas"), SubResource("matiz"), SubResource("cobalt"), SubResource("gentra")])

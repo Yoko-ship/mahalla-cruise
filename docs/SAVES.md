@@ -42,13 +42,18 @@ On this Mac the default directory is
     "owned": ["damas", "matiz"],
     "selected": "matiz",
     "owned_paints": ["sky"],
-    "paints": {"matiz": "sky"}
+    "paints": {"matiz": "sky"},
+    "upgrades": {"damas": {"handling": 2, "tank": 1}}
   },
   "daily": {
     "day": "2026-10-07",
     "tasks": ["notes_15", "distance_400", "runs_3"],
     "progress": {"notes_15": 15, "distance_400": 260, "runs_3": 2},
     "done": ["notes_15"]
+  },
+  "achievements": {
+    "stats": {"metres": 5240, "notes": 131, "runs": 12, "best_metres": 1320},
+    "done": ["distance_5km", "notes_100", "runs_10", "run_1000"]
   }
 }
 ```
@@ -72,6 +77,15 @@ rewriting the saved choice.
 Garage `owned_paints` and per-car `paints` are optional; invalid entries fall back
 to each car's free factory paint. `preferences.music_enabled` (default true) is
 saved separately from `sound_enabled`.
+
+Garage `upgrades` is optional: levels per car id and upgrade id, whole numbers from
+1 to 10. Invalid cars or levels are dropped individually; the wallet and record stay.
+
+`achievements` is optional in v1. `stats` holds lifetime totals (`metres`, `notes`,
+`close_calls`, `runs`, `refuels`) and single-drive bests (`best_metres`,
+`best_score`); `done` lists unlocked ids. Negative or non-numeric stats and unknown
+ids are dropped; unknown fields survive writes. A finished run stages achievements
+with the daily state, so the run is still one write.
 
 `daily` is optional in v1. A state for another day, unknown task ids, a wrong task
 count, or negative progress is replaced by today's fresh draw without touching the

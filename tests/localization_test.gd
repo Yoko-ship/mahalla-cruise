@@ -55,20 +55,23 @@ func _test_language(locale: String) -> void:
 	_check(game.hud.menu.instructions.text.contains("\n"), "Instructions use a real line break")
 	_check(game.hud.menu.primary_button.size.y >= 48, "Primary touch target is at least 48 pixels")
 	game.start_run()
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	game.hud.set_score(175, 5, 1)
 	game.hud.show_pickup(100, "100 000 soʻm")
-	_check(not game.hud.score_label.text.contains("points_short"), "Scores use translated values")
+	_check(
+		not game.hud.drive.score_label.text.contains("points_short"), "Scores use translated values"
+	)
 	if locale == "uz":
-		_check(game.hud.score_label.text == "175 ball", "Uzbek score is readable")
+		_check(game.hud.drive.score_label.text == "175 ball", "Uzbek score is readable")
 	elif locale == "ru":
 		_check(
-			game.hud.pickup_label.text == "100 000 сум  +100 очк.", "Russian pickup is localized"
+			game.hud.drive.pickup_label.text == "100 000 сум  +100 очк.",
+			"Russian pickup is localized"
 		)
 	game.hud.set_score(ProgressData.MAX_SCORE, 1, 1)
 	game.hud.set_best(ProgressData.MAX_SCORE)
 	await _settle()
-	for label: Label in [game.hud.score_label, game.hud.best_label]:
+	for label: Label in [game.hud.drive.score_label, game.hud.drive.best_label]:
 		var width := (
 			label
 			. get_theme_font("font")
@@ -82,7 +85,7 @@ func _test_language(locale: String) -> void:
 	await _settle()
 	_check(Rect2(0, 0, 432, 768).encloses(card.get_global_rect()), "Pause card fits: " + locale)
 	game.resume_run()
-	game.traffic.contacted.emit()
+	game.world.traffic.contacted.emit()
 	game.hud.set_score(ProgressData.MAX_SCORE, 999999, 999999)
 	game.hud.set_best(ProgressData.MAX_SCORE, true, true)
 	await _settle()

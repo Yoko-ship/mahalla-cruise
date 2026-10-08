@@ -75,8 +75,8 @@ func _test_menu_and_results() -> void:
 	_check(not (row.get_node("Layout/Status/Count") as Label).visible, "The streak has no counter")
 	_check((row.get_node("Layout/Status/Reward") as Label).text == "+20 pts", "Shows its reward")
 	game.start_run()
-	game.player.set_physics_process(false)
-	game.traffic.contacted.emit()
+	game.world.player.set_physics_process(false)
+	game.world.traffic.contacted.emit()
 	_check(game.progress.wallet >= 20, "The streak reward reaches the wallet")
 	var wallet := game.hud.game_over_panel.wallet_result.text
 	_check(wallet.contains("+20 pts"), "Results list the streak reward")

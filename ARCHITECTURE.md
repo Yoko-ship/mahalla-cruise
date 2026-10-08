@@ -19,7 +19,12 @@ local collision coordinates stay unchanged; taller screens reveal more road.
 
 | Location | Responsibility |
 | --- | --- |
-| `src/main.gd` and `main.tscn` | Compose features, own run state, advance shared travel, and coordinate restart. |
+| `src/main.gd` and `main.tscn` | Own run state, score, and progress; route signals between the world, HUD, and features. |
+| `src/world/` | `DriveWorld` groups everything on the street, advances it with shared travel, and signals road events. |
+| `src/fuel/` | Own the methane tank, METAN stations, and refuelling. |
+| `src/hazards/` | Spawn potholes and road works and report point penalties. |
+| `src/night/` | Draw nightfall, headlights, and street lamps; own the night bonus. |
+| `src/achievements/` | Keep lifetime totals and unlocked goals; pay each goal once. |
 | `src/driving/player_car.gd` | Own the player's position, steering target, road limits, and lean. |
 | `src/driving/steering_input.gd` | Translate mouse, single-finger touch, and keyboard input. Cancel gestures on focus loss. |
 | `src/driving/car_visual.gd` | Own the Damas sprite child and draw its shadow; leave steering and collision logic on the player. |
@@ -31,8 +36,8 @@ local collision coordinates stay unchanged; taller screens reveal more road.
 | `src/progress/` | Own the versioned save document, local files, recovery, best score, wallet, and owned cars. |
 | `src/audio/` | Own background music and the horn; main starts, pauses, and stops music with the run. |
 | `src/daily/` | Draw today's tasks, apply finished runs, and present the tasks screen. |
-| `src/garage/` | Define the car roster (`CarDefinition`, `GarageCatalogue`) and present the garage screen. |
-| `src/ui/` | Present start/pause menus, first-run instructions, HUD values, and run results. |
+| `src/garage/` | Define the car roster, paints, and upgrades; present the garage screen. |
+| `src/ui/` | Present start/pause menus, the drive overlay (values, fuel gauge, hint), and run results. |
 | `tests/` and `scripts/` | Verify behavior and run development tools. |
 
 Keep each feature's scenes, scripts, and default resources together. Imported
@@ -54,14 +59,22 @@ CanvasLayer. Assets, original prompts and source records are in `assets/ANGLED_A
 
 ```mermaid
 flowchart TD
-    Main[Main scene and travel state] --> Player[Player car]
-    Main --> Road[Road view]
-    Main --> Scenery[Scenery view]
-    Main --> Traffic[Traffic controller]
-    Traffic -->|contacted signal| Main
-    Traffic -->|near_missed points and combo| Main
-    Main --> Pickups[Pickup controller]
-    Pickups -->|collected points and denomination| Main
+    Main[Main scene: run state, score, progress] --> World[Drive world]
+    World --> Player[Player car]
+    World --> Road[Road view]
+    World --> Scenery[Scenery view]
+    World --> Traffic[Traffic controller]
+    World --> Pickups[Pickup controller]
+    World --> Hazards[Hazards]
+    World --> Fuel[Fuel and stations]
+    World --> Night[Night view]
+    Traffic -->|contacted, near_missed| World
+    Pickups -->|collected, power-ups| World
+    Hazards -->|hit kind and penalty| World
+    Fuel -->|refueled, running_low, ran_out, level| World
+    Night -->|fell| World
+    World -->|crashed, notice, money, near misses, hazards, fuel| Main
+    Main --> Achievements[Achievements]
     Main --> Feedback[Pickup sounds and haptics]
     Main --> Progress[Local progress storage]
     Main --> HUD[HUD]
@@ -82,15 +95,16 @@ The main scene routes communication between features. A feature must not reach
 into a sibling, walk to a parent for hidden dependencies, or use `/root` lookups.
 Do not add a global event bus, service locator, or autoload without approval.
 
-`CruiseGame` owns travelled distance, run score, and currency counts. It distributes
-the same pixel movement to road, scenery, and pickups each frame. `PlayerCar` owns its movement and uses the physics
+`CruiseGame` owns travelled distance, run score, and currency counts. It passes the
+frame's pixel movement and distance to `DriveWorld.advance()`, which distributes it
+to road, scenery, traffic, pickups, hazards, fuel, and night. `PlayerCar` owns its movement and uses the physics
 clock. Renderers keep only their scrolling offsets; the HUD receives distance
 through `set_distance()`. Views do not modify gameplay state.
 
 The main scene owns `RunState` (START, PLAYING, PAUSED, GAME_OVER).
 `is_game_over` is a derived compatibility getter. Startup shows the start menu,
 loads the best score, and disables steering. Only PLAYING advances the world.
-It passes travel and the player's collision
+The world passes travel and the player's collision
 rectangle to `TrafficController`. Traffic never reads the player or HUD directly.
 The first contact signals upward and ends the run: the main scene stops advancing
 the world, disables player driving, and shows the final distance and restart UI.
@@ -103,7 +117,7 @@ active gestures, so a drag from the old run cannot carry over. Touch-to-mouse
 emulation supports native UI buttons; steering ignores emulated events to avoid
 counting a finger drag twice.
 
-Money is composed through `src/pickups/pickups.tscn`. The main scene obtains
+Money is composed through `src/pickups/pickups.tscn`. The drive world obtains
 traffic rectangle snapshots through `blocking_bounds()` and passes them to the
 pickup controller with the player's bounds and traffic speed ratio. Pickups never
 read sibling nodes. Spawn candidates avoid traffic along the predicted route to
@@ -220,9 +234,80 @@ streak row without a counter. Older states without these keys show no streak row
 music on for a drive, pauses it with the run, and restarts it on Drive again.
 `PreferenceRules` (static, in `src/progress/`) saves sound, vibration, and music
 options and applies them to feedback, audio, and HUD. These helpers, `GarageRules`,
-and `DailyTasks.summary()` keep `main.gd` a coordinator. It is now 286 of 300 lines
-and the HUD 280; the next feature should first split the drive-time HUD overlay and
-group the world nodes (an architecture change that needs approval).
+`UpgradeRules`, and `DailyTasks.summary()` keep `main.gd` a coordinator.
+
+## Drive World and HUD Overlay
+
+`src/world/drive_world.tscn` holds Road, Scenery, Hazards, Fuel, Traffic, Pickups,
+PlayerCar, and Night (z 0–3). Main calls `configure()`/`reset_run()` with the road,
+traffic, and pickup settings, `set_car()` with tuned settings and upgrade boosts,
+`set_driving()`, `set_view()`, and `advance(travel, metres)`. The world connects its
+children and re-emits upward: `crashed(kind)` ("car", "sheep", or "fuel"), `notice`
+(text key and values for shield saves, low fuel, and nightfall), money and close
+calls (already including ×2 and the night bonus), power-ups, hazard hits, refuels,
+and fuel level. It asks the shield before reporting a crash and skips the rest of
+the frame after one. Main never reaches into world children; tests do, via
+`game.world.<child>`.
+
+Inside one frame: traffic first (crash priority), then pickups (traffic rows and
+hazards as obstacles), hazards (traffic rows, notes, and power-ups to avoid), fuel,
+and night. Sheep wait for notes and hazards near the top; new cars wait for hazards.
+`RoadPath.is_clear()` (in `src/road/`) is the shared path check for money,
+power-ups, and road-works barriers.
+
+The HUD's drive-time controls live in `DriveOverlay` (`$HUD/Drive`): title,
+distance, points, record, pause, horn, power-up chips, `FuelGauge`, feedback popup,
+and the first-drive hint. The HUD remains the facade main talks to (20 public
+methods); `show_feedback(text_key, values)` replaces the separate close-call and
+power-up popups. `main.gd` is 293 lines and `hud.gd` 222 after the split.
+
+## Fuel
+
+`FuelController` (`src/fuel/`, `default_fuel.tres`) drains the tank by distance.
+From 550 m it spawns one `FuelStation` at a time on the left curb, every 500–700 m.
+A car whose box enters the curbside bay (18 px) beside an open station fills up;
+every car can reach it, centre driving cannot. Spacing is checked so that after a
+refuel one missed station still leaves fuel for the next. Signals: `refueled`,
+`running_low` (once per tank, below 25%), `ran_out`, and `level_changed(share, low)`.
+The world turns `ran_out` into `crashed("fuel")`; shields do not help. Main counts
+refuels for achievements. The tank upgrade scales capacity between drives.
+
+## Hazards
+
+`HazardController` (`src/hazards/`, `default_hazards.tres`) spawns one `RoadHazard`
+every 120–260 m from 250 m, near the centre line only (potholes ±16 px, road works
+on it), so refuel and boarding positions never touch one. Hazards keep a vertical
+gap from notes and power-ups; potholes lie flat and may pass under cars, while
+road-works barriers spawn only on a path clear of traffic. A hit marks the hazard
+and emits `hit(kind, penalty)` once; main subtracts it (never below zero) and plays
+the bump sound. The suspension upgrade sets `penalty_scale`.
+
+## Night
+
+`NightView` (`src/night/`, z 3 above cars) draws one rectangle over the visible street
+with `night.gdshader`: a tinted shade, a headlight beam and glow at the player's car,
+and street lamps scrolling with the road. Darkness grows from 1,200 m over 250 m of
+dusk. When fully dark it emits `fell(bonus_percent)` once, and `bonus()` adds 50%
+(rounded up) to money and close-call points as the world forwards them.
+
+## Upgrades
+
+`UpgradeDefinition`s (handling, tank, suspension; three priced levels each) live in
+the garage catalogue. `UpgradeRules` reads levels per car from the store, buys the
+next level (`LocalProgressStore.buy_upgrade`), builds multipliers, and returns a
+duplicated `CarSettings` with faster steering when handling is upgraded, so shared
+resources stay untouched. `GarageRules.view()` includes the levels; `UpgradePicker`
+shows them in the garage and emits `upgrade_chosen` upward. Purchases only in START.
+
+## Achievements
+
+`Achievements` (a main-scene child, `default_achievements.tres`) keeps lifetime
+totals (metres, notes, close calls, drives, refuels) and bests (metres, score). At
+the end of a drive main passes the same summary as daily tasks; newly reached goals
+return their rewards, which `stage_achievements()` adds with the daily state before
+`complete_run()` writes once. `entries()` shows one row per kind (the next locked
+goal, distance in km). The tasks screen switches between daily tasks and
+achievements; results list unlocked goals.
 
 ## Sheep Crossings
 
@@ -256,8 +341,9 @@ and calls `record_score(score)` once on collision,
 then sends best-score and save-status values to the HUD. Run restart never resets
 persistent progress. Collection and frame updates perform no file I/O.
 
-`ProgressData` owns the versioned JSON schema and validation; the store owns
-file access, temporary replacement, and backup recovery. The default path is
+`ProgressData` owns the versioned JSON schema and validation; the store owns the
+backup policy and error state, and `ProgressFile` (static) reads, writes, and
+renames files. The default path is
 `user://progress.json`, outside the repository. Tests inject a unique temporary
 path or an empty path for memory-only behavior before scene initialization.
 No autoload or sibling lookup is used.

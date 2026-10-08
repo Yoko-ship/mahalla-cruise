@@ -151,6 +151,12 @@ text = "tasks_footer"
 horizontal_alignment = 1
 autowrap_mode = 2
 
+[node name="Switch" type="Button" parent="Center/Card/Margin/Content"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "achievements"
+
 [node name="Back" type="Button" parent="Center/Card/Margin/Content"]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2

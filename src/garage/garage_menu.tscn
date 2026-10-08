@@ -1,7 +1,8 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://src/garage/garage_menu.gd" id="1"]
 [ext_resource type="Script" path="res://src/garage/paint_picker.gd" id="2"]
+[ext_resource type="Script" path="res://src/garage/upgrade_picker.gd" id="3"]
 
 [sub_resource type="StyleBoxFlat" id="CardStyle"]
 bg_color = Color(0.12549, 0.243137, 0.219608, 1)
@@ -159,6 +160,18 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_constants/separation = 4
 script = ExtResource("2")
+
+[node name="UpgradeLabel" type="Label" parent="Center/Card/Margin/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.86, 0.81, 1)
+theme_override_font_sizes/font_size = 13
+text = "upgrades"
+horizontal_alignment = 1
+
+[node name="Upgrades" type="HBoxContainer" parent="Center/Card/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 4
+script = ExtResource("3")
 
 [node name="Rows" type="VBoxContainer" parent="Center/Card/Margin/Content"]
 layout_mode = 2

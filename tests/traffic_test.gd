@@ -28,18 +28,18 @@ func _new_game() -> CruiseGame:
 	game.set_language("en")
 	game.start_run()
 	game.set_process(false)
-	game.player.set_physics_process(false)
+	game.world.player.set_physics_process(false)
 	return game
 
 
 func _spawn_first(game: CruiseGame) -> TrafficCar:
 	game.advance(game.traffic_settings.first_spawn_distance / game.road_settings.scroll_speed)
-	return game.traffic.vehicles.front()
+	return game.world.traffic.vehicles.front()
 
 
 func _test_spawning_and_cleanup() -> void:
 	var game := _new_game()
-	_check(game.traffic.vehicles.is_empty(), "The player starts with a clear road")
+	_check(game.world.traffic.vehicles.is_empty(), "The player starts with a clear road")
 	var first := _spawn_first(game)
 	_check(first.position.y < 0, "Traffic enters from beyond the visible road")
 	var clear_player := Rect2(-1000, -1000, 1, 1)
@@ -51,8 +51,8 @@ func _test_spawning_and_cleanup() -> void:
 	var spawns: int = 1
 	var peak_count: int = 0
 	for frame in range(2400):
-		game.traffic.advance(game.road_settings.scroll_speed / 60.0, clear_player)
-		var cars := game.traffic.vehicles
+		game.world.traffic.advance(game.road_settings.scroll_speed / 60.0, clear_player)
+		var cars := game.world.traffic.vehicles
 		peak_count = maxi(peak_count, cars.size())
 		for index in range(cars.size()):
 			var bounds := cars[index].collision_bounds()
@@ -78,7 +78,7 @@ func _test_spawning_and_cleanup() -> void:
 	_check(within_road, "Traffic stays inside the configured road edges")
 	_check(peak_count <= game.traffic_settings.max_vehicles, "Active traffic stays bounded")
 	_check(
-		_car_children(game.traffic) == game.traffic.vehicles.size(),
+		_car_children(game.world.traffic) == game.world.traffic.vehicles.size(),
 		"Passed traffic nodes are freed, not just removed from the active list"
 	)
 	game.free()
@@ -87,7 +87,7 @@ func _test_spawning_and_cleanup() -> void:
 func _test_swept_contact() -> void:
 	var game := _new_game()
 	var vehicle := _spawn_first(game)
-	game.player.position.x = vehicle.position.x
+	game.world.player.position.x = vehicle.position.x
 	game.advance(10.0)
 	_check(game.is_game_over, "A long frame cannot skip a car crossing the player")
 	game.free()
@@ -97,7 +97,7 @@ func _test_clear_pass() -> void:
 	var game := _new_game()
 	var vehicle := _spawn_first(game)
 	var side := 1.0 if vehicle.position.x < 216.0 else -1.0
-	game.player.position.x = vehicle.position.x + side * 45.0
+	game.world.player.position.x = vehicle.position.x + side * 45.0
 	game.advance(10.0)
 	_check(not game.is_game_over, "Passing beside traffic does not cause a false collision")
 	game.free()

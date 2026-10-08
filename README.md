@@ -54,6 +54,29 @@ a day restarts at day one.
 for 110 m, and **Shield** absorbs one crash (car or sheep) plus a short grace.
 Active power-ups show as chips with countdown rings under Pause.
 
+**Methane fuel:** a full tank lasts 1,500 m (the gauge is under the record). From
+550 m, a METAN station appears on the left sidewalk every 500–700 m; hug the left
+curb inside the yellow bay to fill up. After a refuel you can skip one station and
+still reach the next. An empty tank ends the drive. A low-fuel warning shows once.
+
+**Potholes and road works:** from 250 m, a hazard appears near the centre line every
+120–260 m. A pothole costs 10 points and road works 20 (never below zero); the drive
+continues. Curbside refuelling and boarding never touch a hazard. Potholes may lie
+under passing cars; road-works barriers never spawn in a car's path.
+
+**Night drive:** from 1,200 m dusk falls over 250 m. Once it is dark, headlights and
+street lamps light the road, and money and close calls pay 50% more (rounded up,
+stacking with ×2). Every drive starts in daylight.
+
+**Car upgrades:** in the garage, each car can buy three levels of **Handling**
+(+10% steering each; 200/450/900), **Tank** (+25% fuel each; 150/350/700), and
+**Suspension** (−25% hazard penalty each; 150/350/700). Levels belong to one car.
+
+**Achievements:** 16 lifetime goals (total distance in km, notes, close calls,
+drives, refuels, longest drive, best score) pay 100–1,200 points once. The Tasks
+screen has an **Achievements** button showing the next goal of each kind; unlocked
+goals are listed on the results screen.
+
 **Paint:** the garage shows six colors for the selected car. Each car's factory
 color is free; other colors cost 150 points once and then work on every car. A
 shader repaints only the body, keeping lamps, glass, and stripes.
@@ -196,17 +219,22 @@ CI is not configured; run the local quality gate before pushing.
 
 | Path | Purpose |
 | --- | --- |
-| `src/main.tscn`, `src/main.gd` | Compose features and own shared travel progress. |
+| `src/main.tscn`, `src/main.gd` | Own run state, scoring, and progress; route features. |
+| `src/world/` | The drive world: groups everything on the street and advances it. |
 | `src/driving/` | Car scene, input, movement, visual, and car settings. |
 | `src/road/` | Road renderer and shared route settings. |
 | `src/scenery/` | Decorative buildings and trees. |
 | `src/traffic/` | Spawning, contact detection, sedan sprites, and traffic settings. |
 | `src/pickups/` | Money spawning, collection, banknote visuals, and point values. |
 | `src/progress/` | Versioned save data, local persistence, wallet, and recovery. |
-| `src/garage/` | Car roster, per-car stats and prices, and the garage screen. |
+| `src/garage/` | Car roster, stats, prices, paints, upgrades, and the garage screen. |
 | `src/audio/` | Background music and horn playback. |
 | `src/daily/` | Daily task pool, today's draw and progress, and the tasks screen. |
-| `src/ui/` | HUD, shared start/pause menu, hint timing resource, and display logic. |
+| `src/achievements/` | Lifetime goals, totals, and one-time rewards. |
+| `src/fuel/` | Methane tank, METAN stations, and refuelling. |
+| `src/hazards/` | Potholes, road works, and their point penalties. |
+| `src/night/` | Nightfall shader, headlights, street lamps, and the night bonus. |
+| `src/ui/` | HUD, drive overlay and fuel gauge, start/pause menu, and results. |
 | `tests/`, `scripts/` | Behavior checks and development commands. |
 
 Tune handling in `src/driving/default_car.tres` and road speed/geometry in
@@ -220,6 +248,11 @@ The Damas and traffic share `assets/cars/vehicles_aligned.png`. The connected
 street uses `assets/scenery/mahalla_street.png`. Both use mipmaps; artwork and
 generation records are documented in `assets/ANGLED_ART.md`.
 `assets/icon.svg` is the temporary launcher icon.
+
+Tune fuel in `src/fuel/default_fuel.tres`, hazards in
+`src/hazards/default_hazards.tres`, night in `src/night/default_night.tres`, upgrade
+prices in `src/garage/default_garage.tres`, and achievements in
+`src/achievements/default_achievements.tres`.
 
 Tune pickup volume and vibration in `src/pickups/default_feedback.tres`.
 Original chimes and their reproducible generator are documented in
