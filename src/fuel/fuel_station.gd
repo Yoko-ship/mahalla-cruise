@@ -1,7 +1,8 @@
 class_name FuelStation
 extends Node2D
 ## A METAN station on the left sidewalk, placed at the curb. Drawn in code (temporary art):
-## a pad with pumps, a canopy edge, a sign, and a painted bay showing where to pull in.
+## a pad with pumps, a canopy edge, a sign, a painted bay showing where to pull in, and
+## any queue of waiting cars on the forecourt behind the pumps.
 
 const CANOPY := Color("2f8a57")
 const PAD := Color("c9c2b0")
@@ -13,13 +14,18 @@ const BAY := Color(1.0, 0.86, 0.35, 0.22)
 const BAY_EDGE := Color(1.0, 0.9, 0.5, 0.7)
 
 var is_open: bool = true
+## Cars waiting ahead of the player; 0 fills at once.
+var queue: int = 0
+## Seconds the player has spent in the bay waiting.
+var waited: float = 0.0
 var _zone_height: float = 80.0
 var _bay_width: float = 18.0
 
 
-func configure(zone_height: float, bay_width: float) -> void:
+func configure(zone_height: float, bay_width: float, waiting_cars: int = 0) -> void:
 	_zone_height = zone_height
 	_bay_width = bay_width
+	queue = waiting_cars
 	queue_redraw()
 
 
@@ -42,6 +48,7 @@ func _draw() -> void:
 		var bay := Rect2(0, -_zone_height * 0.5, _bay_width + 22.0, _zone_height)
 		draw_rect(bay, BAY)
 		draw_rect(bay, BAY_EDGE, false, 2.0)
+	_draw_queue()
 	draw_rect(Rect2(-74, -34, 68, 68), PAD)
 	for y: float in [-14.0, 12.0]:
 		draw_rect(Rect2(-40, y - 7, 13, 15), PUMP)
@@ -59,3 +66,13 @@ func _draw() -> void:
 		12,
 		SIGN_TEXT
 	)
+
+
+func _draw_queue() -> void:
+	var paints: Array[Color] = [Color("d9dde0"), Color("b8303a"), Color("2b2d33")]
+	for index in range(queue if is_open else 0):
+		var spot := Rect2(-54, 44 + index * 40, 30, 38)
+		draw_rect(spot.grow(-3).grow_individual(0, 0, 4, 0), Color(0.1, 0.1, 0.1, 0.18))
+		draw_texture_rect_region(
+			TrafficVisual.VEHICLES, spot, TrafficVisual.SEDAN_REGION, paints[index % paints.size()]
+		)

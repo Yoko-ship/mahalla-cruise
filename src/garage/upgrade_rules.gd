@@ -18,7 +18,13 @@ static func choose(
 	var current := level(store, car, upgrade)
 	if current >= upgrade.max_level():
 		return false
-	return store.buy_upgrade(car.id, id, upgrade.price_for(current))
+	var levels: Dictionary = store.upgrades.get(car.id, {})
+	return store.spend(
+		upgrade.price_for(current),
+		func() -> void:
+			levels[id] = current + 1
+			store.upgrades[car.id] = levels
+	)
 
 
 static func levels(

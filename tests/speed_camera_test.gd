@@ -160,7 +160,12 @@ func _test_layout(locale: String) -> void:
 		"taxi_call": [],
 		"taxi_aboard": [450],
 		"taxi_paid": [100],
-		"taxi_missed": []
+		"taxi_missed": [],
+		"fuel_queue": [3],
+		"fuel_partial": [100],
+		"police_ahead": [],
+		"police_ok": [99],
+		"police_fine": [99],
 	}
 	for key: String in messages:
 		var values: Array = messages[key]

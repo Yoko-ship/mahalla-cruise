@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MarketSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/market/market_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+offers = 3
+used_price_share = 0.7
+condition_min = 50
+condition_max = 85
+condition_step = 5
+worn_factor = 0.7
+repair_step = 10
+repair_price_share = 0.06
+repair_price_min = 20

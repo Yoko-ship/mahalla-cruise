@@ -87,12 +87,15 @@ func _test_ride_and_fare() -> void:
 	_check(absf(taxi.ride_left) < 0.5, "The bay reaches the car when the ride ends")
 	_check(game.hud.drive.ride_chip.text() == "Pull over right!", "The chip asks to pull over")
 	game.world.pickups.effects.activate("double")
+	# A nice number plate earns one tip note (see plate_test).
+	taxi.tip_notes = 1
 	player.position.x = player.right_limit
 	_drive(game, 2.0)
-	var notes := TAXI.notes_for(ride)
-	_check(notes >= 3 and notes <= 5, "Fares are 3 to 5 notes")
+	var fare_notes := TAXI.notes_for(ride)
+	_check(fare_notes >= 3 and fare_notes <= 5, "Fares are 3 to 5 notes")
+	var notes := fare_notes + 1
 	_check(drop.is_served and not taxi.is_riding, "Pulling into the bay drops the passenger off")
-	_check(game.score == notes * 10 * 2, "Each 10,000 soʻm note pays; double points applies")
+	_check(game.score == notes * 10 * 2, "Each note pays, plus the tip; double points applies")
 	_check(game.som_collected == notes, "Fares count as soʻm notes")
 	_check(
 		game.hud.drive.pickup_label.text == "Fare paid!  +%d pts" % game.score,

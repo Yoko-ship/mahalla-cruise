@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Generate original pickup chimes, the close-call whoosh, the pothole bump, and the speed
-camera shutter using only Python's stdlib."""
+"""Generate original pickup chimes, the close-call whoosh, the pothole bump, the speed
+camera shutter, and the police whistle using only Python's stdlib."""
 
 import math
 import random
@@ -84,6 +84,24 @@ def write_shutter(name, duration):
     write_samples(name, samples, duration)
 
 
+def write_whistle(name, duration):
+    """A pea whistle: a bright tone warbling about 30 times a second, in two short blasts."""
+    samples = []
+    phase = 0.0
+    for index in range(round(duration * RATE)):
+        time = index / RATE
+        blast = 0.0
+        for start, length in ((0.0, 0.16), (0.22, 0.24)):
+            elapsed = time - start
+            if 0 <= elapsed <= length:
+                blast = min(1.0, elapsed / 0.01, (length - elapsed) / 0.02)
+        warble = math.sin(math.tau * 31 * time)
+        phase += math.tau * (2900 + 260 * warble) / RATE
+        tone = math.sin(phase) + 0.2 * math.sin(2 * phase)
+        samples.append(blast * (0.75 + 0.25 * warble) * tone)
+    write_samples(name, samples, duration)
+
+
 def write_samples(name, samples, duration):
     peak = max(abs(value) for value in samples)
     # Leave headroom for overlapping pickups; runtime volume is lower still.
@@ -108,3 +126,4 @@ if __name__ == "__main__":
     write_whoosh("close_call.wav", 0.28)
     write_bump("bump.wav", 0.22)
     write_shutter("camera_flash.wav", 0.18)
+    write_whistle("police_whistle.wav", 0.48)

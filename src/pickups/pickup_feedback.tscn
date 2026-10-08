@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://src/pickups/pickup_feedback.gd" id="1"]
 [ext_resource type="Resource" path="res://src/pickups/default_feedback.tres" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="AudioStream" path="res://assets/audio/close_call.wav" id="5"]
 [ext_resource type="AudioStream" path="res://assets/audio/bump.wav" id="6"]
 [ext_resource type="AudioStream" path="res://assets/audio/camera_flash.wav" id="7"]
+[ext_resource type="AudioStream" path="res://assets/audio/police_whistle.wav" id="8"]
 
 [node name="PickupFeedback" type="Node"]
 script = ExtResource("1")
@@ -30,4 +31,8 @@ max_polyphony = 2
 
 [node name="CameraSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("7")
+max_polyphony = 2
+
+[node name="WhistleSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("8")
 max_polyphony = 2

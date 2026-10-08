@@ -26,6 +26,10 @@ local collision coordinates stay unchanged; taller screens reveal more road.
 | `src/night/` | Draw nightfall, headlights, and street lamps; own the night bonus. |
 | `src/cameras/` | Spawn speed-camera gantries, check speed under them, and report fines. |
 | `src/taxi/` | Own taxi hails, rides, drop-off bays, and fares on the right curb. |
+| `src/police/` | Spawn YHXB (GAI) posts on the left curb; report stops (reward) and fines. |
+| `src/routes/` | Define city routes, unlock and choose them, draw sidewalk landmarks, and the start-screen picker. |
+| `src/plates/` | Uzbek number plates: rarity tiers, the daily auction, and the plate drawing. |
+| `src/market/` | The avtobozor: daily used cars, condition, the workshop, and the market screen. |
 | `src/achievements/` | Keep lifetime totals and unlocked goals; pay each goal once. |
 | `src/driving/player_car.gd` | Own the player's position, steering target, road limits, lean, and braking speed share. |
 | `src/driving/steering_input.gd` | Translate mouse, single-finger touch, and keyboard input. Cancel gestures on focus loss. |
@@ -72,6 +76,9 @@ flowchart TD
     World --> Night[Night view]
     World --> Cameras[Speed cameras]
     World --> Taxi[Taxi orders]
+    World --> Police[GAI posts]
+    World --> Landmarks[City landmarks]
+    Police -->|warned, cleared, fined| World
     Cameras -->|warned, fined, passed_clean| World
     Taxi -->|called, boarded, delivered, missed| World
     Traffic -->|contacted, near_missed| World
@@ -79,14 +86,14 @@ flowchart TD
     Hazards -->|hit kind and penalty| World
     Fuel -->|refueled, running_low, ran_out, level| World
     Night -->|fell| World
-    World -->|crashed, notice, money, near misses, hazards, dashboard| Main
+    World -->|crashed, notice, money, near misses, road points, dashboard| Main
     Main --> Achievements[Achievements]
     Main --> Feedback[Pickup sounds and haptics]
     Main --> Progress[Local progress storage]
     Main --> HUD[HUD]
     Main --> Daily[Daily tasks]
     GarageData[Garage catalogue resource] --> Main
-    HUD -->|garage requested, car chosen| Main
+    HUD -->|garage requested, garage_action| Main
     HUD -->|play, pause, resume, restart signals| Main
     HUD -->|brake_changed| Main
     Input[Steering input] -->|steering_delta signal| Player
@@ -198,10 +205,15 @@ spacing stay distance-based: faster cars meet both sooner. Control is
 `steering_speed`; size is `collision_half_size`. Garage stat bars normalize those
 three values in `CarDefinition`.
 
-The garage screen (`GarageMenu` with code-built `GarageRow`s) is a HUD child. It
-emits `car_chosen(id)` upward; HUD forwards it and `garage_requested` to main.
-Main accepts choices only in START, buys through `LocalProgressStore.buy_car()`
-(which also selects), or selects an owned car. Results offer Garage, which resets
+The garage screen (`GarageMenu` with code-built `GarageRow`s) is a HUD child. Every
+shop screen (garage, market, start-screen route picker) emits a shop action
+(`action, id`); HUD forwards it as `garage_action` to main, which accepts it only in
+START and passes it to `GarageRules.apply()`. That one static entry dispatches to
+`GarageRules`, `UpgradeRules`, `RouteRules`, `PlateRules`, and `MarketRules`; all
+purchases go through `LocalProgressStore.spend(price, change)` (wallet check, edit,
+one write) and selections through `update(change)`. `GarageRules.drive_setup()`
+returns what the drive needs: tuned settings (upgrades × condition), paint, boosts
+(tank, suspension, plate, taxi tip), and the route. Results offer Garage, which resets
 the world to START without beginning a drive. A finished run calls
 `complete_run(score)`, crediting the wallet and checking the record in one write.
 
@@ -249,11 +261,12 @@ options and applies them to feedback, audio, and HUD. These helpers, `GarageRule
 `src/world/drive_world.tscn` holds Road, Scenery, Hazards, Fuel, Traffic, Pickups,
 PlayerCar, and Night (z 0–3). Main calls `configure()`/`reset_run()` with the road,
 traffic, and pickup settings, `set_car()` with tuned settings and upgrade boosts,
-`set_driving()`, `set_view()`, and `advance(travel, metres)`. The world connects its
-children and re-emits upward: `crashed(kind)` ("car", "sheep", or "fuel"), `notice`
-(text key and values for shield saves, low fuel, and nightfall), money and close
-calls (already including ×2 and the night bonus), power-ups, hazard hits, refuels,
-and fuel level. It asks the shield before reporting a crash and skips the rest of
+`set_route()`, `set_driving()`, `set_view()`, and `advance(travel, metres)`. The world
+connects its children and re-emits upward: `crashed(kind)` ("car", "sheep", or
+"fuel"), `notice` (text key and values), money and close calls (already including ×2,
+the route bonus, and the night bonus), power-ups, `road_points(points, text_key,
+sound)` for hazard, camera, and police penalties and police rewards, refuels, and the
+dashboard. It asks the shield before reporting a crash and skips the rest of
 the frame after one. Main never reaches into world children; tests do, via
 `game.world.<child>`.
 
@@ -267,8 +280,9 @@ The HUD's drive-time controls live in `DriveOverlay` (`$HUD/Drive`): title,
 distance, points, record, pause, horn, power-up chips, `FuelGauge`, feedback popup,
 and the first-drive hint. The HUD remains the facade main talks to (20 public
 methods); `show_feedback(text_key, values)` replaces the separate close-call and
-power-up popups. `main.gd` is 294 lines and `hud.gd` 225; the next feature that needs
-main should first move run bookkeeping (`_end_run`) into a helper.
+power-up popups. Shop actions arrive as one `garage_action` signal and finished
+drives are booked by `RunRecords.finish()` (daily tasks, achievements, wallet, record
+in one write), so `main.gd` is 279 lines; `hud.gd` is 238.
 
 ## Braking and Speed
 
@@ -301,7 +315,7 @@ under the cars and the `SpeedCameraGantry` child draws at z 3 over them (Night s
 shades it). On spawn it emits `warned(limit)`; when the gantry crosses the car's
 centre line it compares the world's `speed_kmh()` with the limit, then flashes and
 emits `fined(points)` (15 + 1 per km/h over) or `passed_clean`. The world turns a
-fine into `hazard_hit("camera", points)`, so main scores it like a hazard; feedback
+fine into `road_points(-points, "hazard_camera", "camera")`, so main scores it; feedback
 plays the shutter instead of the bump. `active_limit()` feeds the speedometer's sign.
 Every car's braked speed is under the lowest limit and its full speed over the
 highest; a test checks this.
@@ -332,6 +346,59 @@ refuel one missed station still leaves fuel for the next. Signals: `refueled`,
 The world turns `ran_out` into `crashed("fuel")`; shields do not help. Main counts
 refuels for achievements. The tank upgrade scales capacity between drives.
 
+Queues: half the stations (`queue_chance`) have one to three cars waiting on the
+forecourt and emit `queue_ahead(cars)`. The world passes each frame's real seconds
+(travel ÷ speed, so pause freezes it); time in the bay adds to `waited`, and
+`queue × wait_seconds_per_car` (0.45 s) fills the tank. Driving on earlier gives a
+share of the missing fuel and `partly_refueled(percent)`, which is not counted as a
+refuel. Braking makes a queue of two possible for every car; a test checks it.
+`hold_stations` (set while a police post is on screen) delays a due station.
+
+## Police Posts
+
+`PoliceController` (`src/police/`, `default_police.tres`) spawns one `PolicePost`
+(YHXB booth, officer, stop bay) at the left curb from 600 m, every 600–1000 m, only
+while no METAN station is on screen; the world sets `fuel.hold_stations` while a post
+is, so the left curb is never shared. 60% of officers wave (`warned`); then being in
+the bay at or below 40 km/h emits `cleared(20)` (with the route bonus) and passing it
+without stopping emits `fined(30)`. Every car's braked speed is at or below 40. The
+world maps both to `road_points` (chime or whistle) and adds the stop speed to the
+dashboard limit while a waving officer is ahead.
+
+## City Routes
+
+`RouteDefinition`s (`src/routes/*.tres`) live in the garage catalogue: Tashkent
+(free), Samarkand, Bukhara, and Khiva, with rising prices and points bonuses (+15%,
++30%, +50%), a plate region code, a street tint, and a landmark set. `RouteRules`
+unlocks and chooses them; the selection is saved in the garage section. Main passes
+the route to `world.set_route()`: the scenery is tinted, `LandmarkView` (z 0 above the
+street) draws code-made landmarks on alternating sidewalks every 620 px, and the
+world's `_pay()` applies the bonus before the night bonus. Landmarks are temporary
+art until each city has its own painted street. `RoutePicker` on the start card
+browses routes: an owned one is chosen at once, a locked one shows its price and
+disables Play until unlocked.
+
+## Number Plates
+
+Plates are codes like `01A777AA` (`ProgressData.is_plate()` validates them; everyone
+owns `01A482DM`). `PlateRules.tier()` scores rarity: mirrored digits or three equal
+letters are nice (1), three equal digits or 001–009 special (2), both legendary (3).
+`offers()` draws three plates a day from the date and the route's region (common,
+nice, special or legendary), priced by `PlateSettings`. Buying or switching a plate
+is a "plate" shop action. The plate tier is the taxi tip (extra fare notes);
+`CarVisual` draws a small plate on the rear bumper and `PlateView` draws a readable
+one on the start card and in the market.
+
+## Car Market
+
+`MarketRules` (`default_market.tres`) offers up to three cars the player does not own
+each day (seeded by date), each with a 50–85% condition and 70% of the new price ×
+condition. A bought car keeps its condition in `garage.conditions`; condition scales
+steering and tank (`worn_factor` 0.7 at 0%) through `drive_setup()`. The workshop
+repairs the current car 10% at a time for 6% of its price (at least 20). `MarketMenu`
+(a HUD child opened from the garage) shows the offers, the player's plates with
+arrows, the plate auction, and the workshop in fixed slots.
+
 ## Hazards
 
 `HazardController` (`src/hazards/`, `default_hazards.tres`) spawns one `RoadHazard`
@@ -339,8 +406,8 @@ every 120–260 m from 250 m, near the centre line only (potholes ±16 px, road 
 on it), so refuel and boarding positions never touch one. Hazards keep a vertical
 gap from notes and power-ups; potholes lie flat and may pass under cars, while
 road-works barriers spawn only on a path clear of traffic. A hit marks the hazard
-and emits `hit(kind, penalty)` once; main subtracts it (never below zero) and plays
-the bump sound. The suspension upgrade sets `penalty_scale`.
+and emits `hit(kind, penalty)` once; the world turns it into `road_points`, main
+subtracts it (never below zero) and plays the bump sound. The suspension upgrade sets `penalty_scale`.
 
 ## Night
 

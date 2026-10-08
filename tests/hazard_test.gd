@@ -102,8 +102,8 @@ func _test_suspension() -> void:
 	game.world.traffic.contacted.emit()
 	game.open_garage()
 	game.progress.wallet = 10000
-	game.choose_upgrade("suspension")
-	game.choose_upgrade("suspension")
+	game.garage_action("upgrade", "suspension")
+	game.garage_action("upgrade", "suspension")
 	_check(game.world.hazards.penalty_for("works") == 10, "Two suspension levels halve penalties")
 	_check(HAZARDS.works_penalty == 20, "Shared hazard settings never change")
 	game.start_run()

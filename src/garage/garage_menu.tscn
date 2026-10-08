@@ -1,8 +1,9 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://src/garage/garage_menu.gd" id="1"]
 [ext_resource type="Script" path="res://src/garage/paint_picker.gd" id="2"]
 [ext_resource type="Script" path="res://src/garage/upgrade_picker.gd" id="3"]
+[ext_resource type="Theme" path="res://src/ui/shop_theme.tres" id="4"]
 
 [sub_resource type="StyleBoxFlat" id="CardStyle"]
 bg_color = Color(0.12549, 0.243137, 0.219608, 1)
@@ -12,87 +13,6 @@ corner_radius_bottom_left = 20
 corner_radius_bottom_right = 20
 shadow_color = Color(0, 0, 0, 0.25)
 shadow_size = 12
-
-[sub_resource type="StyleBoxFlat" id="RowStyle"]
-content_margin_left = 8.0
-content_margin_top = 6.0
-content_margin_right = 8.0
-content_margin_bottom = 6.0
-bg_color = Color(0.075, 0.175, 0.155, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_left = 12
-corner_radius_bottom_right = 12
-
-[sub_resource type="StyleBoxFlat" id="ActionNormal"]
-bg_color = Color(0.88, 0.81, 0.57, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_left = 10
-corner_radius_bottom_right = 10
-
-[sub_resource type="StyleBoxFlat" id="ActionHover"]
-bg_color = Color(0.98, 0.9, 0.67, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_left = 10
-corner_radius_bottom_right = 10
-
-[sub_resource type="StyleBoxFlat" id="ActionPressed"]
-bg_color = Color(0.78, 0.7, 0.46, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_left = 10
-corner_radius_bottom_right = 10
-
-[sub_resource type="StyleBoxFlat" id="ActionDisabled"]
-bg_color = Color(0.2, 0.31, 0.27, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_left = 10
-corner_radius_bottom_right = 10
-
-[sub_resource type="StyleBoxFlat" id="ActionFocus"]
-bg_color = Color(0, 0, 0, 0)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.97, 0.85, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_left = 10
-corner_radius_bottom_right = 10
-
-[sub_resource type="StyleBoxFlat" id="BarBackground"]
-bg_color = Color(0.2, 0.31, 0.27, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_left = 3
-corner_radius_bottom_right = 3
-
-[sub_resource type="StyleBoxFlat" id="BarFill"]
-bg_color = Color(1, 0.85, 0.47, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_left = 3
-corner_radius_bottom_right = 3
-
-[sub_resource type="Theme" id="GarageTheme"]
-Button/colors/font_color = Color(0.1, 0.2, 0.17, 1)
-Button/colors/font_disabled_color = Color(0.88, 0.91, 0.83, 1)
-Button/colors/font_focus_color = Color(0.1, 0.2, 0.17, 1)
-Button/colors/font_hover_color = Color(0.1, 0.2, 0.17, 1)
-Button/colors/font_pressed_color = Color(0.1, 0.2, 0.17, 1)
-Button/font_sizes/font_size = 13
-Button/styles/disabled = SubResource("ActionDisabled")
-Button/styles/focus = SubResource("ActionFocus")
-Button/styles/hover = SubResource("ActionHover")
-Button/styles/normal = SubResource("ActionNormal")
-Button/styles/pressed = SubResource("ActionPressed")
-PanelContainer/styles/panel = SubResource("RowStyle")
-ProgressBar/styles/background = SubResource("BarBackground")
-ProgressBar/styles/fill = SubResource("BarFill")
 
 [node name="GarageMenu" type="Control"]
 layout_mode = 3
@@ -120,7 +40,7 @@ mouse_filter = 2
 [node name="Card" type="PanelContainer" parent="Center"]
 custom_minimum_size = Vector2(344, 0)
 layout_mode = 2
-theme = SubResource("GarageTheme")
+theme = ExtResource("4")
 theme_override_styles/panel = SubResource("CardStyle")
 
 [node name="Margin" type="MarginContainer" parent="Center/Card"]
@@ -185,8 +105,20 @@ text = "more_cars"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="Back" type="Button" parent="Center/Card/Margin/Content"]
+[node name="Buttons" type="HBoxContainer" parent="Center/Card/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Market" type="Button" parent="Center/Card/Margin/Content/Buttons"]
 custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 17
+text = "market"
+
+[node name="Back" type="Button" parent="Center/Card/Margin/Content/Buttons"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 19
 text = "back"

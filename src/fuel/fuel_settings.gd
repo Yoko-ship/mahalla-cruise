@@ -13,5 +13,10 @@ extends Resource
 @export_range(20.0, 300.0) var zone_height: float = 80.0
 ## Below this share of the tank the gauge turns red and a warning shows once.
 @export_range(0.0, 1.0) var low_share: float = 0.25
+## Some stations have a queue: waiting cars that need time in the bay before a full tank.
+@export_range(0.0, 1.0) var queue_chance: float = 0.5
+@export_range(1, 5) var queue_max: int = 3
+## Seconds in the bay per waiting car. Leaving early gives a partial fill.
+@export_range(0.05, 5.0) var wait_seconds_per_car: float = 0.45
 @export var spawn_y: float = -100.0
 @export var despawn_y: float = 900.0

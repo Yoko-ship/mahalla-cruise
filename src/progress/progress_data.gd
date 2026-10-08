@@ -7,6 +7,8 @@ const MAX_SCORE: int = 2147483647
 const LANGUAGES: Array[String] = ["uz", "ru", "en"]
 const DEFAULT_CAR: String = "damas"
 const MAX_UPGRADE_LEVEL: int = 10
+const DEFAULT_PLATE: String = "01A482DM"
+const DEFAULT_ROUTE: String = "tashkent"
 
 
 static func defaults() -> Dictionary:
@@ -66,6 +68,11 @@ static func garage(document: Dictionary) -> Dictionary:
 		"owned_paints": [],
 		"paints": {},
 		"upgrades": {},
+		"plates": [DEFAULT_PLATE],
+		"plate": DEFAULT_PLATE,
+		"conditions": {},
+		"routes": [DEFAULT_ROUTE],
+		"route": DEFAULT_ROUTE,
 	}
 	var saved: Variant = document.get("garage", {})
 	if not saved is Dictionary:
@@ -91,7 +98,40 @@ static func garage(document: Dictionary) -> Dictionary:
 		for car: Variant in saved.upgrades:
 			if car is String and saved.upgrades[car] is Dictionary:
 				result.upgrades[car] = _levels(saved.upgrades[car])
+	_collection(saved, "plates", "plate", result, is_plate)
+	_collection(
+		saved, "routes", "route", result, func(id: String) -> bool: return not id.is_empty()
+	)
+	if saved.get("conditions") is Dictionary:
+		for car: Variant in saved.conditions:
+			var percent: Variant = saved.conditions[car]
+			if car is String and is_integer(percent) and percent >= 1 and percent < 100:
+				result.conditions[car] = int(percent)
 	return result
+
+
+## Uzbek private plate code: region digits, a letter, three digits, two letters.
+static func is_plate(code: String) -> bool:
+	if code.length() != 8 or code.substr(3, 3) == "000":
+		return false
+	for index in range(8):
+		var digit := index < 2 or (index >= 3 and index <= 5)
+		var letter := code[index] >= "A" and code[index] <= "Z"
+		if (code[index].is_valid_int() if digit else letter) == false:
+			return false
+	return true
+
+
+## Owned ids (merged into the defaults) and a selection that must be owned.
+static func _collection(
+	saved: Dictionary, list_key: String, pick_key: String, result: Dictionary, valid: Callable
+) -> void:
+	if saved.get(list_key) is Array:
+		for id: Variant in saved[list_key]:
+			if id is String and valid.call(id) and id not in result[list_key]:
+				result[list_key].append(id)
+	if saved.get(pick_key) is String and saved[pick_key] in result[list_key]:
+		result[pick_key] = saved[pick_key]
 
 
 static func _levels(saved: Dictionary) -> Dictionary:

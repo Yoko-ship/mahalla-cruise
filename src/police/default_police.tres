@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="PoliceSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/police/police_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+first_metres = 600.0
+spawn_metres_min = 600.0
+spawn_metres_max = 1000.0
+wave_chance = 0.6
+stop_kmh = 40
+reward_points = 20
+fine_points = 30
+stop_distance = 18.0
+zone_height = 90.0
+spawn_y = -90.0
+despawn_y = 900.0

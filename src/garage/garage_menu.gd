@@ -1,10 +1,10 @@
 class_name GarageMenu
 extends Control
-## Presents the car roster. Emits choices upward; main validates purchases and saves.
+## Presents the car roster, paints, and upgrades, and opens the market. Emits choices
+## upward as shop actions ("car", "paint", "upgrade"); main validates purchases and saves.
 
-signal car_chosen(id: String)
-signal paint_chosen(id: String)
-signal upgrade_chosen(id: String)
+signal action_chosen(action: String, id: String)
+signal market_pressed
 signal closed
 
 var _catalogue: GarageCatalogue
@@ -18,13 +18,15 @@ var _view: Dictionary = {"owned": [], "selected": "", "wallet": 0, "paint": "", 
 @onready var upgrades: UpgradePicker = $Center/Card/Margin/Content/Upgrades
 @onready var rows: VBoxContainer = $Center/Card/Margin/Content/Rows
 @onready var note: Label = $Center/Card/Margin/Content/Note
-@onready var back_button: Button = $Center/Card/Margin/Content/Back
+@onready var back_button: Button = $Center/Card/Margin/Content/Buttons/Back
+@onready var market_button: Button = $Center/Card/Margin/Content/Buttons/Market
 
 
 func _ready() -> void:
 	back_button.pressed.connect(close)
-	paints.paint_chosen.connect(func(id: String) -> void: paint_chosen.emit(id))
-	upgrades.upgrade_chosen.connect(func(id: String) -> void: upgrade_chosen.emit(id))
+	market_button.pressed.connect(func() -> void: market_pressed.emit())
+	paints.paint_chosen.connect(func(id: String) -> void: action_chosen.emit("paint", id))
+	upgrades.upgrade_chosen.connect(func(id: String) -> void: action_chosen.emit("upgrade", id))
 
 
 ## view comes from GarageRules.view(): owned, selected, wallet, paint, owned_paints, colors,
@@ -61,11 +63,13 @@ func refresh_text() -> void:
 	upgrade_label.text = tr("upgrades")
 	upgrades.refresh(_view.get("upgrades", {}), _view.wallet)
 	back_button.text = tr("back")
+	market_button.text = tr("market")
 	note.text = tr("more_cars")
 	note.visible = _catalogue != null and _catalogue.available().size() < _catalogue.cars.size()
 	for row: GarageRow in rows.get_children():
 		row.refresh(row.car.id in _view.owned, row.car.id == _view.selected, _view.wallet)
 		row.set_paint(_view.colors.get(row.car.id, Color.WHITE))
+		row.set_condition(_view.get("conditions", {}).get(row.car.id, 100))
 
 
 func row_for(id: String) -> GarageRow:
@@ -86,4 +90,4 @@ func _rebuild() -> void:
 		var row := GarageRow.new()
 		rows.add_child(row)
 		row.setup(car)
-		row.chosen.connect(func() -> void: car_chosen.emit(car.id))
+		row.chosen.connect(func() -> void: action_chosen.emit("car", car.id))

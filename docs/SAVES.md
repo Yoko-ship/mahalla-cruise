@@ -43,7 +43,12 @@ On this Mac the default directory is
     "selected": "matiz",
     "owned_paints": ["sky"],
     "paints": {"matiz": "sky"},
-    "upgrades": {"damas": {"handling": 2, "tank": 1}}
+    "upgrades": {"damas": {"handling": 2, "tank": 1}},
+    "plates": ["01A482DM", "30B121KM"],
+    "plate": "30B121KM",
+    "conditions": {"matiz": 65},
+    "routes": ["tashkent", "samarkand"],
+    "route": "samarkand"
   },
   "daily": {
     "day": "2026-10-07",
@@ -77,6 +82,13 @@ rewriting the saved choice.
 Garage `owned_paints` and per-car `paints` are optional; invalid entries fall back
 to each car's free factory paint. `preferences.music_enabled` (default true) is
 saved separately from `sound_enabled`.
+
+Garage `plates`, `plate`, `conditions`, `routes`, and `route` are optional. Plates are
+eight-character codes (two digits, a letter, three digits other than `000`, two
+letters); invalid entries are dropped and `01A482DM` is always owned. `plate` and
+`route` must be owned, otherwise the default is used. `conditions` holds whole percents
+1–99 for used cars; anything else counts as 100. `routes` always includes `tashkent`;
+unknown route ids are kept for future builds.
 
 Garage `upgrades` is optional: levels per car id and upgrade id, whole numbers from
 1 to 10. Invalid cars or levels are dropped individually; the wallet and record stay.

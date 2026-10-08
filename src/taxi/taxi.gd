@@ -16,6 +16,8 @@ const SPOT_SCENE: PackedScene = preload("res://src/taxi/taxi_spot.tscn")
 
 var spots: Array[TaxiSpot] = []
 var is_riding: bool = false
+## Extra fare notes per ride: passengers tip cars with rarer number plates.
+var tip_notes: int = 0
 ## Metres of the current ride still to go; the drop-off is due at zero.
 var ride_left: float = 0.0
 var _ride_notes: int = 0
@@ -98,7 +100,7 @@ func _serve(spot: TaxiSpot) -> void:
 		_drop_off = null
 		is_riding = false
 		_schedule_order()
-		delivered.emit(_fare, _ride_notes, _fare_points)
+		delivered.emit(_fare, _ride_notes + tip_notes, _fare_points)
 		return
 	is_riding = true
 	ride_left = roundf(_random.randf_range(settings.ride_metres_min, settings.ride_metres_max))

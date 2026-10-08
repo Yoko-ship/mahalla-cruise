@@ -77,12 +77,12 @@ func _test_purchase_flow() -> void:
 	_check(menu.row_for("matiz").action.text == "Selected", "The garage marks the new car")
 	_check(menu.row_for("damas").action.text == "Select", "Owned cars can be chosen again")
 	_check(menu.wallet_label.text == "Wallet: 100 pts", "The wallet updates after buying")
-	game.choose_car("cobalt")
+	game.garage_action("car", "cobalt")
 	_check(game.progress.wallet == 100 and game.car.id == "matiz", "Unaffordable buys are refused")
 	menu.close()
 	game.start_run()
 	game.world.player.set_physics_process(false)
-	game.choose_car("damas")
+	game.garage_action("car", "damas")
 	_check(game.car.id == "matiz", "Cars cannot change during a drive")
 	game.advance(1.0)
 	var expected := game.road_settings.scroll_speed * 0.95 / game.road_settings.pixels_per_metre
@@ -102,7 +102,7 @@ func _test_purchase_flow() -> void:
 	_check(game.world.traffic.vehicles.is_empty(), "Leaving results clears traffic")
 	_check(menu.visible and not game.hud.game_over_panel.visible, "The garage replaces results")
 	_check(not game.world.player.visible, "The road car waits for Play")
-	game.choose_car("damas")
+	game.garage_action("car", "damas")
 	_check(game.car.id == "damas" and game.progress.wallet == 140, "Switching owned cars is free")
 	await _click(menu.back_button)
 	await _click(game.hud.menu.primary_button)
@@ -149,7 +149,7 @@ func _test_layout(locale: String) -> void:
 	var owned: Array[String] = ["damas", "matiz"]
 	game.progress.owned_cars.assign(owned)
 	game.progress.wallet = ProgressData.MAX_SCORE
-	game.choose_car("matiz")
+	game.garage_action("car", "matiz")
 	game.open_garage()
 	await _settle()
 	var card := game.hud.garage_menu.get_node("Center/Card") as Control

@@ -107,7 +107,7 @@ func _test_garage_flow() -> void:
 	game.hud.garage_menu.close()
 	game.start_run()
 	game.world.player.set_physics_process(false)
-	game.choose_paint("white")
+	game.garage_action("paint", "white")
 	_check(_paint_of(sprite) == sky, "Paint cannot change during a drive")
 	game.free()
 

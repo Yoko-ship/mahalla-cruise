@@ -145,8 +145,8 @@ func _test_tank_upgrade() -> void:
 	game.world.traffic.contacted.emit()
 	game.open_garage()
 	game.progress.wallet = 10000
-	game.choose_upgrade("tank")
-	game.choose_upgrade("tank")
+	game.garage_action("upgrade", "tank")
+	game.garage_action("upgrade", "tank")
 	var fuel := game.world.fuel
 	_check(is_equal_approx(fuel.capacity_metres, FUEL.tank_metres * 1.5), "Two tank levels +50%")
 	_check(is_equal_approx(FUEL.tank_metres, 1500.0), "Shared fuel settings never change")
@@ -198,9 +198,16 @@ func _new_game() -> CruiseGame:
 	pickups.power_up_settings.first_spawn_metres = 1.0e9
 	pickups.passenger_settings = pickups.passenger_settings.duplicate() as PassengerSettings
 	pickups.passenger_settings.first_stop_metres = 1.0e9
+	var fuel := game.get_node("World/Fuel") as FuelController
 	var hazards := game.get_node("World/Hazards") as HazardController
 	hazards.settings = hazards.settings.duplicate() as HazardSettings
 	hazards.settings.first_metres = 1.0e9
+	# Queues and police posts change refuelling and station timing; their own suites cover them.
+	fuel.settings = fuel.settings.duplicate() as FuelSettings
+	fuel.settings.queue_chance = 0.0
+	var police := game.get_node("World/Police") as PoliceController
+	police.settings = police.settings.duplicate() as PoliceSettings
+	police.settings.first_metres = 1.0e9
 	root.add_child(game)
 	game.set_language("en")
 	game.start_run()

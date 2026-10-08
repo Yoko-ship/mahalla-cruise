@@ -19,6 +19,13 @@ var owned_paints: Array[String] = []
 var paints: Dictionary = {}
 ## Upgrade levels per car id: {car_id: {upgrade_id: level}}.
 var upgrades: Dictionary = {}
+## Number plates (codes like "01A777AA"); the default plate is always owned.
+var owned_plates: Array[String] = [ProgressData.DEFAULT_PLATE]
+var plate: String = ProgressData.DEFAULT_PLATE
+## Condition percent of used cars bought on the market; absent means 100.
+var conditions: Dictionary = {}
+var owned_routes: Array[String] = [ProgressData.DEFAULT_ROUTE]
+var route: String = ProgressData.DEFAULT_ROUTE
 ## Saved daily task state; DailyTasks validates it against today's date and its catalogue.
 var daily: Dictionary = {}
 ## Saved lifetime totals and unlocked ids; Achievements validates them.
@@ -151,57 +158,43 @@ static func _section(document: Dictionary, key: String) -> Dictionary:
 	return saved.duplicate(true) if saved is Dictionary else {}
 
 
+## Takes price from the wallet and applies change (edits to the garage fields above) in
+## one write. Rules classes check what may be bought; this only checks the wallet.
+func spend(price: int, change: Callable) -> bool:
+	if price < 0 or price > wallet:
+		return false
+	wallet -= price
+	update(change)
+	return true
+
+
+## Applies a free garage change, such as a selection, in one write.
+func update(change: Callable) -> void:
+	change.call()
+	_store_garage()
+	_commit()
+
+
 func buy_car(id: String, price: int) -> bool:
 	# Buying also selects the car, so the purchase is one write.
-	if id.is_empty() or id in owned_cars or price < 0 or price > wallet:
+	if id.is_empty() or id in owned_cars:
 		return false
-	wallet -= price
-	owned_cars.append(id)
-	selected_car = id
-	_store_garage()
-	_commit()
-	return true
-
-
-func buy_paint(car_id: String, paint_id: String, price: int) -> bool:
-	# Buying also applies the paint to the current car in the same write.
-	if paint_id.is_empty() or paint_id in owned_paints or price < 0 or price > wallet:
-		return false
-	wallet -= price
-	owned_paints.append(paint_id)
-	paints[car_id] = paint_id
-	_store_garage()
-	_commit()
-	return true
-
-
-func buy_upgrade(car_id: String, upgrade_id: String, price: int) -> bool:
-	# Raises one level; UpgradeRules checks the level limit before buying.
-	if car_id.is_empty() or upgrade_id.is_empty() or price < 0 or price > wallet:
-		return false
-	wallet -= price
-	var levels: Dictionary = upgrades.get(car_id, {})
-	levels[upgrade_id] = int(levels.get(upgrade_id, 0)) + 1
-	upgrades[car_id] = levels
-	_store_garage()
-	_commit()
-	return true
+	return spend(
+		price,
+		func() -> void:
+			owned_cars.append(id)
+			selected_car = id
+	)
 
 
 func select_paint(car_id: String, paint_id: String) -> void:
-	if paints.get(car_id) == paint_id and not has_unsaved_changes:
-		return
-	paints[car_id] = paint_id
-	_store_garage()
-	_commit()
+	if paints.get(car_id) != paint_id or has_unsaved_changes:
+		update(func() -> void: paints[car_id] = paint_id)
 
 
 func select_car(id: String) -> void:
-	if id not in owned_cars or (id == selected_car and not has_unsaved_changes):
-		return
-	selected_car = id
-	_store_garage()
-	_commit()
+	if id in owned_cars and (id != selected_car or has_unsaved_changes):
+		update(func() -> void: selected_car = id)
 
 
 func _apply_garage(values: Dictionary) -> void:
@@ -211,6 +204,11 @@ func _apply_garage(values: Dictionary) -> void:
 	owned_paints.assign(values.owned_paints)
 	paints = values.paints.duplicate()
 	upgrades = values.upgrades.duplicate(true)
+	owned_plates.assign(values.plates)
+	plate = values.plate
+	conditions = values.conditions.duplicate()
+	owned_routes.assign(values.routes)
+	route = values.route
 
 
 func _store_garage() -> void:
@@ -227,6 +225,11 @@ func _store_garage() -> void:
 				"owned_paints": owned_paints.duplicate(),
 				"paints": paints.duplicate(),
 				"upgrades": upgrades.duplicate(true),
+				"plates": owned_plates.duplicate(),
+				"plate": plate,
+				"conditions": conditions.duplicate(),
+				"routes": owned_routes.duplicate(),
+				"route": route,
 			},
 			true
 		)

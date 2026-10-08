@@ -14,6 +14,8 @@ No recordings, third-party samples, or external packages are used.
   and road works; Android adds a 40 ms pulse.
 - `camera_flash.wav`: 0.18-second speed-camera shutter: two noise clicks over a short
   rising flash whine, played with a speeding fine.
+- `police_whistle.wav`: 0.48-second pea whistle (2.9 kHz tone warbling at 31 Hz) in two
+  short blasts, played when a GAI officer fines a driver who did not stop.
 
 The pickup files are mono 44.1 kHz, 16-bit PCM WAV. Smooth attacks and tails avoid abrupt
 waveform edges. Source peak is 0.55; runtime gain defaults to -8 dB.

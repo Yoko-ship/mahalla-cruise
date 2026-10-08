@@ -41,7 +41,7 @@ func _ready() -> void:
 	world.money_collected.connect(_on_money_collected)
 	world.power_up_collected.connect(_on_power_up_collected)
 	world.power_ups_changed.connect(hud.set_power_ups)
-	world.hazard_hit.connect(_on_hazard_hit)
+	world.road_points.connect(_on_road_points)
 	world.refueled.connect(_on_refueled)
 	world.dashboard_changed.connect(hud.set_dashboard)
 	hud.brake_changed.connect(world.set_braking)
@@ -55,9 +55,7 @@ func _ready() -> void:
 	hud.horn_pressed.connect(audio.play_horn)
 	hud.language_selected.connect(set_language)
 	hud.garage_requested.connect(open_garage)
-	hud.car_chosen.connect(choose_car)
-	hud.paint_chosen.connect(choose_paint)
-	hud.upgrade_chosen.connect(choose_upgrade)
+	hud.garage_action.connect(garage_action)
 	_show_score()
 	progress.load_progress()
 	_apply_preferences()
@@ -165,29 +163,19 @@ func open_garage() -> void:
 		hud.show_garage()
 
 
-# Cars, paints, and upgrades change only between drives; purchases are checked by the rules.
-func choose_car(id: String) -> void:
-	if state == RunState.START and GarageRules.choose_car(garage, progress, id):
-		_apply_car()
-
-
-func choose_paint(id: String) -> void:
-	if state == RunState.START and GarageRules.choose_paint(garage, progress, car, id):
-		_apply_car()
-
-
-func choose_upgrade(id: String) -> void:
-	if state == RunState.START and UpgradeRules.choose(garage, progress, car, id):
+## Every shop action (see GarageRules.apply): cars, paints, upgrades, routes, plates, and
+## the market. Only between drives; purchases are checked by the rules.
+func garage_action(action: String, id: String) -> void:
+	if state == RunState.START and GarageRules.apply(action, id, garage, progress, car):
 		_apply_car()
 
 
 func _apply_car() -> void:
 	car = GarageRules.current_car(garage, progress)
 	assert(car != null, "Garage requires an available default car")
-	var paint := GarageRules.current_paint(garage, progress, car).color
-	var boosts := UpgradeRules.boosts(garage, progress, car)
-	var settings := UpgradeRules.tuned_settings(car.settings, boosts)
-	world.set_car(settings, car.texture, car.sprite_scale, paint, boosts)
+	var setup := GarageRules.drive_setup(garage, progress, car)
+	world.set_car(setup.settings, car.texture, car.sprite_scale, setup.paint, setup.boosts)
+	world.set_route(setup.route)
 	hud.set_garage(garage, GarageRules.view(garage, progress, car))
 
 
@@ -229,13 +217,14 @@ func _on_power_up_collected(kind: String) -> void:
 	pickup_feedback.play_pickup(true)
 
 
-func _on_hazard_hit(kind: String, penalty: int) -> void:
+## Road points outside money: hazard and camera penalties, police rewards and fines.
+func _on_road_points(points: int, text_key: String, sound: String) -> void:
 	if state != RunState.PLAYING:
 		return
-	score = maxi(0, score - penalty)
+	score = maxi(0, score + points)
 	_show_score()
-	hud.show_feedback("hazard_" + kind, [penalty])
-	pickup_feedback.play_bump(kind == "camera")
+	hud.show_feedback(text_key, [absi(points)])
+	pickup_feedback.play_event(sound)
 
 
 func _on_refueled() -> void:
@@ -283,12 +272,8 @@ func _end_run(kind: String) -> void:
 	audio.set_music_playing(false)
 	var notes := som_collected + dollars_collected
 	var run := DailyTasks.summary(notes, near_misses, distance_metres, score, refuels)
-	var task_rewards := daily.record_run(run)
-	var unlocked := achievements.record_run(run)
-	progress.stage_daily(daily.state, task_rewards)
-	progress.stage_achievements(achievements.state, unlocked)
-	var new_best := progress.complete_run(score)
-	hud.set_best(progress.best_score, new_best, progress.has_unsaved_changes)
+	var booked := RunRecords.finish(run, daily, achievements, progress)
+	hud.set_best(progress.best_score, booked.new_best, progress.has_unsaved_changes)
 	hud.set_garage(garage, GarageRules.view(garage, progress, car))
 	_show_lists()
-	hud.show_game_over(distance_metres, kind, score, progress.wallet, task_rewards, unlocked)
+	hud.show_game_over(distance_metres, kind, score, progress.wallet, booked.tasks, booked.unlocked)

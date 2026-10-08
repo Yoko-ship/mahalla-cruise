@@ -125,9 +125,9 @@ func _test_garage_buttons() -> void:
 		"The road car steers faster at once"
 	)
 	game.progress.wallet = 5000
-	game.choose_upgrade("tank")
-	game.choose_upgrade("tank")
-	game.choose_upgrade("tank")
+	game.garage_action("upgrade", "tank")
+	game.garage_action("upgrade", "tank")
+	game.garage_action("upgrade", "tank")
 	_check(
 		(
 			(picker.buttons["tank"] as Button).text == "Tank\n3/3 · MAX"
@@ -135,7 +135,7 @@ func _test_garage_buttons() -> void:
 		),
 		"Maxed upgrades say MAX"
 	)
-	game.choose_car("matiz")
+	game.garage_action("car", "matiz")
 	_check(
 		(picker.buttons["handling"] as Button).text == "Handling\n0/3 · 200",
 		"Each car has its own levels"
@@ -144,7 +144,7 @@ func _test_garage_buttons() -> void:
 	game.start_run()
 	game.world.player.set_physics_process(false)
 	var wallet := game.progress.wallet
-	game.choose_upgrade("handling")
+	game.garage_action("upgrade", "handling")
 	_check(game.progress.wallet == wallet, "Upgrades cannot be bought during a drive")
 	game.free()
 
@@ -160,7 +160,7 @@ func _test_layout(locale: String) -> void:
 	game.set_language(locale)
 	game.progress.upgrades = {"damas": {"handling": 3, "tank": 1}}
 	game.progress.wallet = 1234567
-	game.choose_car("damas")
+	game.garage_action("car", "damas")
 	game.open_garage()
 	for _frame in range(3):
 		await process_frame

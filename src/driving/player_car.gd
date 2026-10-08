@@ -30,6 +30,10 @@ func apply_car(
 	visual.set_vehicle(texture, sprite_scale, paint)
 
 
+func set_plate(code: String) -> void:
+	visual.set_plate(code)
+
+
 func configure_bounds(road_left: float, road_right: float) -> void:
 	left_limit = road_left + settings.road_margin
 	right_limit = road_right - settings.road_margin

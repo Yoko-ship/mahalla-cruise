@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GarageCatalogue" load_steps=27 format=3]
+[gd_resource type="Resource" script_class="GarageCatalogue" load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://src/garage/garage_catalogue.gd" id="1"]
 [ext_resource type="Script" path="res://src/garage/car_definition.gd" id="2"]
@@ -10,6 +10,13 @@
 [ext_resource type="Texture2D" path="res://assets/cars/placeholder_roster.png" id="8"]
 [ext_resource type="Script" path="res://src/garage/paint_definition.gd" id="9"]
 [ext_resource type="Script" path="res://src/garage/upgrade_definition.gd" id="10"]
+[ext_resource type="Resource" path="res://src/routes/tashkent.tres" id="11"]
+[ext_resource type="Resource" path="res://src/routes/samarkand.tres" id="12"]
+[ext_resource type="Resource" path="res://src/routes/bukhara.tres" id="13"]
+[ext_resource type="Resource" path="res://src/routes/khiva.tres" id="14"]
+[ext_resource type="Resource" path="res://src/plates/default_plates.tres" id="15"]
+[ext_resource type="Resource" path="res://src/market/default_market.tres" id="16"]
+[ext_resource type="Script" path="res://src/routes/route_definition.gd" id="17"]
 
 [sub_resource type="AtlasTexture" id="DamasAtlas"]
 atlas = ExtResource("7")
@@ -124,6 +131,9 @@ reduces = true
 
 [resource]
 script = ExtResource("1")
+routes = Array[ExtResource("17")]([ExtResource("11"), ExtResource("12"), ExtResource("13"), ExtResource("14")])
+plates = ExtResource("15")
+market = ExtResource("16")
 upgrades = Array[ExtResource("10")]([SubResource("upgrade_handling"), SubResource("upgrade_tank"), SubResource("upgrade_suspension")])
 paints = Array[ExtResource("9")]([SubResource("paint_white"), SubResource("paint_cherry"), SubResource("paint_black"), SubResource("paint_sky"), SubResource("paint_teal"), SubResource("paint_gold")])
 cars = Array[ExtResource("2")]([SubResource("damas"), SubResource("matiz"), SubResource("cobalt"), SubResource("gentra")])

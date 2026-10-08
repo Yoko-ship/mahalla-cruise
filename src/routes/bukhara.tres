@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RouteDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/routes/route_definition.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "bukhara"
+name_key = "route_bukhara"
+price = 3000
+region_code = "80"
+points_scale = 1.3
+tint = Color(1, 0.92, 0.8, 1)
+landmarks = "kalyan"

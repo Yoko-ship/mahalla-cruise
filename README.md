@@ -82,6 +82,31 @@ ends. Pull in there for the fare: one 10,000 soʻm note per started 100 m (3–5
 with ×2 and the night bonus). Driving past either bay loses the order. Bus stops
 wait while an order is active, so the right curb is never shared.
 
+**City routes:** pick the city on the start screen with the arrows: Tashkent (free),
+Samarkand (1,500, +15% points), Bukhara (3,000, +30%), and Khiva (5,000, +50%). A
+locked city shows its price; press it to unlock (Play waits meanwhile). Each city has
+a street tint and landmarks drawn on the sidewalks (temporary art: Registan-style
+portals, the Kalyan minaret, Itchan Kala walls and Kalta Minor).
+
+**Number plates:** every car wears your plate (`01 A 482 DM` to start). The garage's
+**Car market** button opens the market, which sells three plates a day in the chosen
+city's region: common (150), nice (600, mirrored digits or AAA letters), and special
+(2,000, e.g. 555 or 007) or sometimes legendary (6,000, e.g. 777 AAA). Arrows switch
+between owned plates. Taxi passengers tip one extra fare note per rarity tier.
+
+**Car market and workshop:** up to three used cars a day at 70% of the new price ×
+their condition (50–85%). Condition lowers steering and tank size (85% at 50%); the
+workshop repairs the current car 10% at a time for 6% of its price.
+
+**METAN queues:** half the stations have one to three cars waiting. Each waiting car
+needs 0.45 s in the bay; brake while hugging the curb to wait for a full tank, or drive
+on for a partial fill.
+
+**GAI posts:** from 600 m, a YHXB post appears on the left curb every 600–1000 m. If the
+officer raises the baton, pull into the STOP bay at 40 km/h or less (brake) for +20
+points; driving past costs 30 and a whistle. Posts and METAN stations never share
+the curb.
+
 **Car upgrades:** in the garage, each car can buy three levels of **Handling**
 (+10% steering each; 200/450/900), **Tank** (+25% fuel each; 150/350/700), and
 **Suspension** (−25% hazard penalty each; 150/350/700). Levels belong to one car.
@@ -250,6 +275,10 @@ CI is not configured; run the local quality gate before pushing.
 | `src/night/` | Nightfall shader, headlights, street lamps, and the night bonus. |
 | `src/cameras/` | Speed-camera gantries, painted limits, speed checks, and fines. |
 | `src/taxi/` | Taxi hails, rides, drop-off bays, and fares. |
+| `src/police/` | GAI posts, stop bays, rewards, and fines. |
+| `src/routes/` | City routes, unlocks, landmarks, and the start-screen picker. |
+| `src/plates/` | Number plates, rarity, the daily auction, and plate drawing. |
+| `src/market/` | Used cars, condition, the workshop, and the market screen. |
 | `src/ui/` | HUD, drive overlay (fuel, speedometer, brake pedal, ride chip), menus, and results. |
 | `tests/`, `scripts/` | Behavior checks and development commands. |
 
@@ -270,7 +299,10 @@ Tune fuel in `src/fuel/default_fuel.tres`, hazards in
 prices in `src/garage/default_garage.tres`, achievements in
 `src/achievements/default_achievements.tres`, cameras in
 `src/cameras/default_speed_cameras.tres`, and taxi orders in
-`src/taxi/default_taxi.tres`. Brake strength is per car in `CarSettings`; the
+`src/taxi/default_taxi.tres`. Police posts are in `src/police/default_police.tres`,
+METAN queues in `src/fuel/default_fuel.tres`, routes in `src/routes/*.tres`, plate
+prices in `src/plates/default_plates.tres`, and the market in
+`src/market/default_market.tres`. Brake strength is per car in `CarSettings`; the
 speedometer scale is in `src/road/default_road.tres`.
 
 Tune pickup volume and vibration in `src/pickups/default_feedback.tres`.

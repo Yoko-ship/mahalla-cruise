@@ -11,9 +11,9 @@ signal sound_toggled(enabled: bool)
 signal haptics_toggled(enabled: bool)
 signal language_selected(locale: String)
 signal garage_requested
-signal car_chosen(id: String)
-signal paint_chosen(id: String)
-signal upgrade_chosen(id: String)
+## A shop action for main (see GarageRules.apply): "car", "paint", "upgrade", "route",
+## "plate", "used", or "repair".
+signal garage_action(action: String, id: String)
 signal music_toggled(enabled: bool)
 signal horn_pressed
 signal brake_changed(held: bool)
@@ -39,6 +39,7 @@ var _music: bool = true
 @onready var menu: RunMenu = $RunMenu
 @onready var garage_menu: GarageMenu = $GarageMenu
 @onready var daily_menu: DailyMenu = $DailyMenu
+@onready var market_menu: MarketMenu = $MarketMenu
 
 
 func _ready() -> void:
@@ -57,9 +58,11 @@ func _ready() -> void:
 	menu.music_toggled.connect(func(enabled: bool) -> void: music_toggled.emit(enabled))
 	menu.garage_pressed.connect(func() -> void: garage_requested.emit())
 	menu.tasks_pressed.connect(_show_tasks)
-	garage_menu.car_chosen.connect(func(id: String) -> void: car_chosen.emit(id))
-	garage_menu.paint_chosen.connect(func(id: String) -> void: paint_chosen.emit(id))
-	garage_menu.upgrade_chosen.connect(func(id: String) -> void: upgrade_chosen.emit(id))
+	garage_menu.action_chosen.connect(garage_action.emit)
+	market_menu.action_chosen.connect(garage_action.emit)
+	menu.route_chosen.connect(func(id: String) -> void: garage_action.emit("route", id))
+	garage_menu.market_pressed.connect(_show_market)
+	market_menu.closed.connect(garage_menu.open)
 	garage_menu.closed.connect(func() -> void: menu.show_start(_best))
 	daily_menu.closed.connect(func() -> void: menu.show_start(_best))
 
@@ -75,7 +78,9 @@ func show_start(best: int) -> void:
 
 func set_garage(catalogue: GarageCatalogue, view: Dictionary) -> void:
 	garage_menu.set_state(catalogue, view)
+	market_menu.set_state(catalogue, view)
 	menu.set_car(catalogue.find(view.selected).texture, view.colors[view.selected])
+	menu.set_garage(catalogue.routes, view)
 
 
 func show_garage() -> void:
@@ -86,6 +91,11 @@ func show_garage() -> void:
 
 func set_daily(entries: Array[Dictionary], achievements: Array[Dictionary] = []) -> void:
 	daily_menu.set_entries(entries, achievements)
+
+
+func _show_market() -> void:
+	garage_menu.hide()
+	market_menu.open()
 
 
 func _show_tasks() -> void:
@@ -130,7 +140,9 @@ func _on_menu_primary() -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("ui_cancel") or event.is_echo():
 		return
-	if garage_menu.visible:
+	if market_menu.visible:
+		market_menu.close()
+	elif garage_menu.visible:
 		garage_menu.close()
 	elif daily_menu.visible:
 		daily_menu.close()
@@ -161,6 +173,7 @@ func refresh_text() -> void:
 	game_over_panel.refresh_text()
 	menu.refresh_text()
 	garage_menu.refresh_text()
+	market_menu.refresh_text()
 	daily_menu.refresh_text()
 	menu.set_options(_sound, _haptics, _unsaved, _music)
 

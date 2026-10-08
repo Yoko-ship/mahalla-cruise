@@ -10,6 +10,7 @@ const MUTED_COLOR := Color(0.78, 0.86, 0.81, 1)
 
 var car: CarDefinition
 var action: Button
+var title: Label
 var _stat_labels: Array[Label] = []
 var _preview: TextureRect
 
@@ -34,7 +35,7 @@ func setup(definition: CarDefinition) -> void:
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.add_theme_constant_override("separation", 1)
 	layout.add_child(info)
-	var title := _label(car.display_name, 16, TEXT_COLOR)
+	title = _label(car.display_name, 16, TEXT_COLOR)
 	title.auto_translate_mode = Node.AUTO_TRANSLATE_MODE_DISABLED
 	info.add_child(title)
 	var ratings: Array[float] = [car.speed_rating(), car.control_rating(), car.size_rating()]
@@ -74,6 +75,11 @@ func refresh(owned: bool, selected: bool, wallet: int) -> void:
 		action.text = tr("buy").replace("\\n", "\n") % car.price
 	action.disabled = selected or (not owned and car.price > wallet)
 	action.focus_mode = Control.FOCUS_NONE if action.disabled else Control.FOCUS_ALL
+
+
+## A used car shows its condition after the name until it is fully repaired.
+func set_condition(percent: int) -> void:
+	title.text = car.display_name if percent >= 100 else "%s · %d%%" % [car.display_name, percent]
 
 
 func set_paint(color: Color) -> void:

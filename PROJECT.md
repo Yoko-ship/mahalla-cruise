@@ -68,10 +68,11 @@ describes the boundaries, `AGENTS.md` defines the AI workflow, and
 `./scripts/check.sh` runs the local quality gate. Development tooling uses
 gdtoolkit 4.5.0 in `.venv`.
 
-**Next task:** playtest on Windows (brake pedal, speed cameras, taxi orders, plus
-fuel stations, hazards, night, upgrades, achievements, and earlier features) and tune
-by feel: brake strength, camera spacing, limits, and fines, taxi ride lengths and
-fares, tank size, station spacing, hazard penalties, night start, and upgrade prices.
+**Next task:** playtest on Windows (city routes, number plates, the car market, METAN
+queues, GAI posts, plus the brake, cameras, taxi, and earlier features) and tune by
+feel: route prices and bonuses, plate prices, used-car discount and repair cost, queue
+wait time, police frequency, reward, and fine, and earlier values. Painted street art
+for Samarkand, Bukhara, and Khiva would replace the code-drawn landmarks.
 Check whether holding the brake all the time makes drives too easy (it costs nothing
 today). The two-finger pedal plus steering needs a real phone to judge.
 Replace the temporary car and sheep art with final artwork
@@ -126,6 +127,10 @@ The intermittent initial emulator launch exit remains outstanding.
   user asked how the camera would look and how slowing down would work: an
   overhead gantry with a painted limit, a hold-to-brake pedal, and a speedometer.
   Fines cost points only; a missed taxi drop-off loses the fare.
+- Add city routes, number plates, a used-car market, METAN queues, and GAI posts for the
+  Uzbek market (user's choice, 2026-10-08). City landmarks are code-drawn temporary art
+  until painted streets exist. Police are light-hearted and polite: stopping earns a
+  reward, not stopping a fine. Plates are cosmetic plus a small taxi tip.
 - Add pickup sounds/light vibration and gradual traffic difficulty, as requested
   by the user. Keep the traffic increase capped and maintain generous gaps.
 
@@ -216,7 +221,8 @@ Track asset sources and applicable usage terms when assets are added. Keep sourc
 - [x] Add methane fuel and METAN stations, potholes and road works, and a night drive.
 - [x] Add per-car upgrades (handling, tank, suspension) and lifetime achievements.
 - [x] Add a brake pedal and speedometer, speed cameras with fines, and taxi orders.
-- [ ] Add more places once painted street artwork exists.
+- [x] Add city routes, number plates, a used-car market and workshop, METAN queues, and GAI posts.
+- [ ] Add painted street artwork for Samarkand, Bukhara, and Khiva.
 - [ ] Replace the Matiz, Cobalt, and black Gentra test sprites with final artwork.
 - [ ] Test touch controls and performance on a physical Android phone.
 - [ ] Have a few players try it without instructions and record feedback.
@@ -705,6 +711,32 @@ tests, including new `brake_test.gd` (31), `speed_camera_test.gd` (191), and
 checks fail, confirming they test finger isolation. Reviewed Mac renders (uz/ru/en)
 of the camera approach, braking, the fine flash, a taxi hail, the ride chip with the
 drop-off bay, and a camera at night. Android and Windows were not run.
+
+Uzbek-market features (2026-10-08): the user chose number plates, METAN queues, a
+used-car market, city routes, and GAI posts.
+- Structure first: every shop action now goes through one `garage_action(action, id)`
+  and `GarageRules.apply()`; purchases use `LocalProgressStore.spend()`;
+  `RunRecords.finish()` books a finished drive; road penalties and rewards arrive as
+  `road_points`. `main.gd` went from 294 to 279 lines.
+- Routes: Tashkent, Samarkand (1,500, +15%), Bukhara (3,000, +30%), Khiva (5,000,
+  +50%), chosen with arrows on the start card; tint and code-drawn landmarks.
+- Plates: `01 A 777 AA` format, four rarity tiers, three auction plates a day in the
+  city's region, a plate on the car and the start card, taxi tip = tier.
+- Market: three used cars a day at 70% × condition (50–85%); condition lowers steering
+  and tank; workshop repairs 10% at a time. Opened from the garage.
+- METAN queues: 1–3 waiting cars; 0.45 s in the bay per car (brake to wait), else a
+  partial fill.
+- GAI posts: YHXB booth and officer on the left curb from 600 m; a waving officer
+  wants a stop at ≤40 km/h (+20) or fines 30 with a whistle. Never beside a station.
+Existing suites changed only where needed: calls to `choose_car/paint/upgrade` became
+`garage_action`, and the fuel suite turns off queues and police posts so its station
+timing and full refuels stay deterministic.
+Validation: `./scripts/check.sh` passed **3,000 game checks** plus the Python tooling
+tests, including new `plate_test.gd` (585), `market_test.gd` (414), `route_test.gd`
+(77), `police_test.gd` (37), and `fuel_queue_test.gd` (14). Reviewed Mac renders of the
+start card with route picker and plate (uz/ru/en, owned and locked), the garage with a
+65% used car, the market (uz/ru/en), a METAN queue, a waving GAI officer, and the
+Samarkand, Bukhara, and Khiva landmarks. Android and Windows were not run.
 
 ## Running and Checking the Starter
 
