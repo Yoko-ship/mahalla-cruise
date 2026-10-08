@@ -24,8 +24,10 @@ local collision coordinates stay unchanged; taller screens reveal more road.
 | `src/fuel/` | Own the methane tank, METAN stations, and refuelling. |
 | `src/hazards/` | Spawn potholes and road works and report point penalties. |
 | `src/night/` | Draw nightfall, headlights, and street lamps; own the night bonus. |
+| `src/cameras/` | Spawn speed-camera gantries, check speed under them, and report fines. |
+| `src/taxi/` | Own taxi hails, rides, drop-off bays, and fares on the right curb. |
 | `src/achievements/` | Keep lifetime totals and unlocked goals; pay each goal once. |
-| `src/driving/player_car.gd` | Own the player's position, steering target, road limits, and lean. |
+| `src/driving/player_car.gd` | Own the player's position, steering target, road limits, lean, and braking speed share. |
 | `src/driving/steering_input.gd` | Translate mouse, single-finger touch, and keyboard input. Cancel gestures on focus loss. |
 | `src/driving/car_visual.gd` | Own the Damas sprite child and draw its shadow; leave steering and collision logic on the player. |
 | `src/driving/car_settings.gd` and `default_car.tres` | Define and store car handling values. |
@@ -37,7 +39,7 @@ local collision coordinates stay unchanged; taller screens reveal more road.
 | `src/audio/` | Own background music and the horn; main starts, pauses, and stops music with the run. |
 | `src/daily/` | Draw today's tasks, apply finished runs, and present the tasks screen. |
 | `src/garage/` | Define the car roster, paints, and upgrades; present the garage screen. |
-| `src/ui/` | Present start/pause menus, the drive overlay (values, fuel gauge, hint), and run results. |
+| `src/ui/` | Present start/pause menus, the drive overlay (values, fuel gauge, speedometer, brake pedal, ride chip, hint), and run results. |
 | `tests/` and `scripts/` | Verify behavior and run development tools. |
 
 Keep each feature's scenes, scripts, and default resources together. Imported
@@ -68,12 +70,16 @@ flowchart TD
     World --> Hazards[Hazards]
     World --> Fuel[Fuel and stations]
     World --> Night[Night view]
+    World --> Cameras[Speed cameras]
+    World --> Taxi[Taxi orders]
+    Cameras -->|warned, fined, passed_clean| World
+    Taxi -->|called, boarded, delivered, missed| World
     Traffic -->|contacted, near_missed| World
     Pickups -->|collected, power-ups| World
     Hazards -->|hit kind and penalty| World
     Fuel -->|refueled, running_low, ran_out, level| World
     Night -->|fell| World
-    World -->|crashed, notice, money, near misses, hazards, fuel| Main
+    World -->|crashed, notice, money, near misses, hazards, dashboard| Main
     Main --> Achievements[Achievements]
     Main --> Feedback[Pickup sounds and haptics]
     Main --> Progress[Local progress storage]
@@ -82,6 +88,7 @@ flowchart TD
     GarageData[Garage catalogue resource] --> Main
     HUD -->|garage requested, car chosen| Main
     HUD -->|play, pause, resume, restart signals| Main
+    HUD -->|brake_changed| Main
     Input[Steering input] -->|steering_delta signal| Player
     Player --> Visual[Car visual child]
     CarData[Car settings resource] --> Player
@@ -95,9 +102,10 @@ The main scene routes communication between features. A feature must not reach
 into a sibling, walk to a parent for hidden dependencies, or use `/root` lookups.
 Do not add a global event bus, service locator, or autoload without approval.
 
-`CruiseGame` owns travelled distance, run score, and currency counts. It passes the
-frame's pixel movement and distance to `DriveWorld.advance()`, which distributes it
-to road, scenery, traffic, pickups, hazards, fuel, and night. `PlayerCar` owns its movement and uses the physics
+`CruiseGame` owns travelled distance, run score, and currency counts. Each frame it
+asks `DriveWorld.travel_pixels(delta)` for the car's travel (road speed × car speed ×
+braking share), then passes that and the distance to `DriveWorld.advance()`, which
+distributes it to road, scenery, cameras, traffic, pickups, taxi, hazards, fuel, and night. `PlayerCar` owns its movement and uses the physics
 clock. Renderers keep only their scrolling offsets; the HUD receives distance
 through `set_distance()`. Views do not modify gameplay state.
 
@@ -259,7 +267,59 @@ The HUD's drive-time controls live in `DriveOverlay` (`$HUD/Drive`): title,
 distance, points, record, pause, horn, power-up chips, `FuelGauge`, feedback popup,
 and the first-drive hint. The HUD remains the facade main talks to (20 public
 methods); `show_feedback(text_key, values)` replaces the separate close-call and
-power-up popups. `main.gd` is 293 lines and `hud.gd` 222 after the split.
+power-up popups. `main.gd` is 294 lines and `hud.gd` 225; the next feature that needs
+main should first move run bookkeeping (`_end_run`) into a helper.
+
+## Braking and Speed
+
+`PlayerCar.speed_share` (1 = full speed) falls by `brake_rate` per second to
+`brake_speed_share` while braking and recovers by `recover_rate` (all in
+`CarSettings`). Main advances it with the run clock through `world.travel_pixels()`,
+so pause freezes it. Braking scales the whole frame's travel, so traffic, money, and
+spawning stay distance-based and every path prediction remains valid; it also gives
+more steering time per metre. `RoadSettings.kmh()` turns travel into the arcade
+speedometer value (`speedometer_scale` makes a Damas read 60 km/h).
+
+Input: the Down key is read by `SteeringInput.keyboard_brake()`. The HUD `BrakePedal`
+(bottom left) tracks its own finger of any index in `_input` and marks those events
+handled. The HUD layer receives input before the world, so a finger on the pedal never
+steers while another finger keeps dragging; a test checks this order. Its
+`held_changed` goes through the overlay and HUD (`brake_changed`) to main, which
+calls `world.set_braking()`. Hiding the pedal (pause, results) or losing focus
+releases it, and disabling driving clears the held state.
+
+The world emits `dashboard_changed(view)` every frame with `fuel`, `fuel_low`,
+`speed_kmh`, `limit_kmh`, and `ride_metres`; `hud.set_dashboard()` replaced
+`set_fuel()`, keeping the HUD at 20 public methods.
+
+## Speed Cameras
+
+`SpeedCameraController` (`src/cameras/`, `default_speed_cameras.tres`) spawns one
+`SpeedCamera` at a time from 400 m, every 450–800 m, at the road centre. Its painted
+limit (40 or 50) enters first, 150 px ahead of the gantry; the controller sits at z 1
+under the cars and the `SpeedCameraGantry` child draws at z 3 over them (Night still
+shades it). On spawn it emits `warned(limit)`; when the gantry crosses the car's
+centre line it compares the world's `speed_kmh()` with the limit, then flashes and
+emits `fined(points)` (15 + 1 per km/h over) or `passed_clean`. The world turns a
+fine into `hazard_hit("camera", points)`, so main scores it like a hazard; feedback
+plays the shutter instead of the bump. `active_limit()` feeds the speedometer's sign.
+Every car's braked speed is under the lowest limit and its full speed over the
+highest; a test checks this.
+
+## Taxi Orders
+
+`TaxiController` (`src/taxi/`, `default_taxi.tres`) owns one order at a time on the
+right curb. A `TaxiSpot` hail (waving passenger, TAKSI bubble, yellow bay) appears
+from 350 m, then 400–700 m after each order ends. Entering the curbside zone (same
+rule as bus stops) boards the passenger: a 250–450 m ride starts counting down.
+When the remaining ride fits on screen, a drop-off `TaxiSpot` (pin and green bay) is
+placed so its centre reaches the car exactly as the ride ends. Pulling in emits
+`delivered(note, count, points)` (one 10,000 soʻm note per started 100 m); the world
+re-emits each note through `money_collected` with ×2 and the night bonus, then a
+`taxi_paid` notice with the total. Once the bay is fully behind the car, `missed`
+ends the order. The world sets `pickups.hold_stops` while the taxi `is_busy()` and
+passes `curb_clear` (no bus stop) to the taxi, so a hail and a bus stop never share
+the curb.
 
 ## Fuel
 

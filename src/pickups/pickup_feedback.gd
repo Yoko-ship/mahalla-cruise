@@ -13,6 +13,7 @@ var _focused: bool = true
 @onready var dollar_sound: AudioStreamPlayer = $DollarSound
 @onready var close_call_sound: AudioStreamPlayer = $CloseCallSound
 @onready var bump_sound: AudioStreamPlayer = $BumpSound
+@onready var camera_sound: AudioStreamPlayer = $CameraSound
 
 
 func _ready() -> void:
@@ -23,6 +24,7 @@ func _ready() -> void:
 	dollar_sound.volume_db = settings.volume_db
 	close_call_sound.volume_db = settings.volume_db
 	bump_sound.volume_db = settings.volume_db
+	camera_sound.volume_db = settings.volume_db
 
 
 func play_pickup(is_dollar: bool) -> void:
@@ -51,13 +53,13 @@ func play_close_call(combo: int) -> void:
 		Input.vibrate_handheld(settings.close_call_vibration_ms, settings.vibration_strength)
 
 
-## A pothole or road works: a low thud and a firmer pulse.
-func play_bump() -> void:
+## A pothole or road works: a low thud and a firmer pulse. A speed camera clicks instead.
+func play_bump(camera: bool = false) -> void:
 	if not _focused:
 		return
 	_last_feedback_ms = Time.get_ticks_msec()
 	if sound_enabled:
-		bump_sound.play()
+		(camera_sound if camera else bump_sound).play()
 	if haptics_enabled and OS.has_feature("android"):
 		Input.vibrate_handheld(settings.bump_vibration_ms, settings.vibration_strength)
 
@@ -77,6 +79,7 @@ func stop() -> void:
 	dollar_sound.stop()
 	close_call_sound.stop()
 	bump_sound.stop()
+	camera_sound.stop()
 	_last_feedback_ms = -100000
 
 

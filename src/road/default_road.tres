@@ -8,3 +8,4 @@ scroll_speed = 220.0
 left_edge = 124.0
 right_edge = 308.0
 pixels_per_metre = 20.0
+speedometer_scale = 1.52

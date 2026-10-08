@@ -16,6 +16,7 @@ signal paint_chosen(id: String)
 signal upgrade_chosen(id: String)
 signal music_toggled(enabled: bool)
 signal horn_pressed
+signal brake_changed(held: bool)
 
 const TRANSLATIONS: Array[Translation] = [
 	preload("res://src/ui/text_uz.tres"),
@@ -49,6 +50,7 @@ func _ready() -> void:
 	menu.primary_pressed.connect(_on_menu_primary)
 	drive.pause_pressed.connect(func() -> void: pause_requested.emit())
 	drive.horn_pressed.connect(func() -> void: horn_pressed.emit())
+	drive.brake_changed.connect(func(held: bool) -> void: brake_changed.emit(held))
 	menu.sound_toggled.connect(func(enabled: bool) -> void: sound_toggled.emit(enabled))
 	menu.haptics_toggled.connect(func(enabled: bool) -> void: haptics_toggled.emit(enabled))
 	menu.language_selected.connect(func(locale: String) -> void: language_selected.emit(locale))
@@ -184,7 +186,7 @@ func show_pickup(points: int, denomination_label: String) -> void:
 	drive.show_text(tr("pickup") % [denomination_label, points])
 
 
-## A brief road message: close calls, power-ups, hazards, fuel, and nightfall.
+## A brief road message: close calls, power-ups, hazards, fuel, nightfall, cameras, taxi.
 func show_feedback(text_key: String, values: Array = []) -> void:
 	if not _game_over:
 		drive.show_text(tr(text_key) % values if not values.is_empty() else tr(text_key))
@@ -194,8 +196,9 @@ func set_power_ups(view: Dictionary) -> void:
 	drive.set_power_ups(view)
 
 
-func set_fuel(share: float, low: bool) -> void:
-	drive.set_fuel(share, low)
+## Fuel, speed and camera limit, and taxi ride, every frame (see DriveWorld).
+func set_dashboard(view: Dictionary) -> void:
+	drive.set_dashboard(view)
 
 
 func show_game_over(

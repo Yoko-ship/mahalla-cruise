@@ -7,7 +7,10 @@ extends Node2D
 var left_limit: float = 0.0
 var right_limit: float = 0.0
 var target_x: float = 0.0
+## Share of full travel speed; braking lowers it, releasing recovers it.
+var speed_share: float = 1.0
 var _driving_enabled: bool = true
+var _brake_held: bool = false
 
 @onready var steering: SteeringInput = $SteeringInput
 @onready var visual: CarVisual = $Visual
@@ -58,12 +61,30 @@ func _on_steering_delta(pixels: float) -> void:
 	target_x = clampf(target_x + pixels * settings.drag_sensitivity, left_limit, right_limit)
 
 
+## The pedal (or Down key) brakes. Main advances this with the run clock, not physics.
+func set_braking(held: bool) -> void:
+	_brake_held = held and _driving_enabled
+
+
+func is_braking() -> bool:
+	return _brake_held or steering.keyboard_brake()
+
+
+func update_speed(delta: float) -> float:
+	if is_braking():
+		speed_share = maxf(settings.brake_speed_share, speed_share - settings.brake_rate * delta)
+	else:
+		speed_share = minf(1.0, speed_share + settings.recover_rate * delta)
+	return speed_share
+
+
 func collision_bounds() -> Rect2:
 	return Rect2(position - settings.collision_half_size, settings.collision_half_size * 2.0)
 
 
 func set_driving_enabled(enabled: bool) -> void:
 	_driving_enabled = enabled
+	_brake_held = false
 	steering.set_enabled(enabled)
 	set_physics_process(enabled)
 	target_x = position.x
@@ -72,4 +93,5 @@ func set_driving_enabled(enabled: bool) -> void:
 func reset_run(start_position: Vector2) -> void:
 	position = start_position
 	rotation = 0.0
+	speed_share = 1.0
 	set_driving_enabled(true)

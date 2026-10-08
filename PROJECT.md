@@ -68,10 +68,12 @@ describes the boundaries, `AGENTS.md` defines the AI workflow, and
 `./scripts/check.sh` runs the local quality gate. Development tooling uses
 gdtoolkit 4.5.0 in `.venv`.
 
-**Next task:** playtest on Windows (fuel stations, hazards, night, upgrades,
-achievements, plus earlier garage, close calls, sheep, power-ups, and passengers)
-and tune tank size, station spacing, hazard frequency and penalties, night start,
-upgrade prices, and achievement rewards by feel.
+**Next task:** playtest on Windows (brake pedal, speed cameras, taxi orders, plus
+fuel stations, hazards, night, upgrades, achievements, and earlier features) and tune
+by feel: brake strength, camera spacing, limits, and fines, taxi ride lengths and
+fares, tank size, station spacing, hazard penalties, night start, and upgrade prices.
+Check whether holding the brake all the time makes drives too easy (it costs nothing
+today). The two-finger pedal plus steering needs a real phone to judge.
 Replace the temporary car and sheep art with final artwork
 ([docs/art-direction/CAR_ROSTER_ART.md](docs/art-direction/CAR_ROSTER_ART.md)). Car-name
 trademark review remains open before a public release. No Android device is
@@ -120,6 +122,10 @@ The intermittent initial emulator launch exit remains outstanding.
   per-car upgrades, and lifetime achievements (user's choice, 2026-10-08). An empty
   tank ends the drive; hazards only cost points. The user approved the world/HUD
   overlay split by asking for these features after it was named as a prerequisite.
+- Add a brake with speed cameras and taxi orders (user's choice, 2026-10-08). The
+  user asked how the camera would look and how slowing down would work: an
+  overhead gantry with a painted limit, a hold-to-brake pedal, and a speedometer.
+  Fines cost points only; a missed taxi drop-off loses the fare.
 - Add pickup sounds/light vibration and gradual traffic difficulty, as requested
   by the user. Keep the traffic increase capped and maintain generous gaps.
 
@@ -209,6 +215,7 @@ Track asset sources and applicable usage terms when assets are added. Keep sourc
 - [x] Split the drive world and HUD overlay out of main and the HUD.
 - [x] Add methane fuel and METAN stations, potholes and road works, and a night drive.
 - [x] Add per-car upgrades (handling, tank, suspension) and lifetime achievements.
+- [x] Add a brake pedal and speedometer, speed cameras with fines, and taxi orders.
 - [ ] Add more places once painted street artwork exists.
 - [ ] Replace the Matiz, Cobalt, and black Gentra test sprites with final artwork.
 - [ ] Test touch controls and performance on a physical Android phone.
@@ -672,6 +679,32 @@ including new `fuel_test.gd` (45), `hazard_test.gd` (28), `night_test.gd` (15),
 station, pothole, and road works by day; the night shade with headlights and lamps;
 the garage with upgrades (uz/ru/en); the achievements screen; and the fuel results.
 Android and Windows were not run in this session.
+
+Brake, speed cameras, and taxi orders (2026-10-08): the user chose speed cameras
+(asking how the camera looks and how slowing down works) and taxi orders.
+- Brake: hold the bottom-left pedal (or Down) to ease to 50% speed in ~0.6 s; release
+  recovers in ~1 s. Braking scales the whole frame's travel, so spawning and path
+  checks stay valid. The pedal owns its own finger, so another finger can steer.
+  A speedometer (Damas 60 km/h, braked 30) shows above the pedal.
+- Speed cameras (`src/cameras/`): an overhead gantry with two cameras, a blinking
+  light, and a blue camera sign; the limit (40/50) is painted on the asphalt ahead
+  and shown beside the speedometer. From 400 m, every 450–800 m. Too fast under the
+  gantry: white flash, shutter sound, −(15 + 1 per km/h over) points.
+- Taxi orders (`src/taxi/`): a waving passenger with a TAKSI bubble on the right
+  curb from 350 m; pull in to board, a 250–450 m ride counts down in a HUD chip, and
+  a green drop-off bay with a pin arrives exactly at the end. Fare: one 10,000 soʻm
+  note per started 100 m. Bus stops wait during an order.
+- Also: `hud.set_fuel` became `set_dashboard` (fuel, speed, limit, ride); the English
+  fuel gauge label no longer cuts "Methane" to "Metha"; the first-drive hint mentions
+  the brake. `main.gd` stays at 294 lines (world computes travel now).
+Existing suites changed only where the new rules apply: night and passenger tests turn
+off cameras/taxi orders that would add popups or hold bus stops.
+Validation: `./scripts/check.sh` passed **1,761 game checks** plus the Python tooling
+tests, including new `brake_test.gd` (31), `speed_camera_test.gd` (191), and
+`taxi_test.gd` (43). A deliberate break of the pedal's input handling made the pedal
+checks fail, confirming they test finger isolation. Reviewed Mac renders (uz/ru/en)
+of the camera approach, braking, the fine flash, a taxi hail, the ride chip with the
+drop-off bay, and a camera at night. Android and Windows were not run.
 
 ## Running and Checking the Starter
 

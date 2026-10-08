@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/cameras/speed_cameras.gd" id="1"]
+[ext_resource type="Resource" path="res://src/cameras/default_speed_cameras.tres" id="2"]
+
+[node name="Cameras" type="Node2D"]
+script = ExtResource("1")
+settings = ExtResource("2")

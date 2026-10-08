@@ -11,7 +11,9 @@ The interface opens in **Uzbek Latin** (**Boshlash** starts a drive). Choose
 **Русский** or **English** from the start or pause menu. Menus, scoring, hints,
 pickup feedback, and results use the selected language, which survives relaunch.
 Drag with a mouse or one
-finger to steer; the left and right arrow keys also work on a computer. The car
+finger to steer; the left and right arrow keys also work on a computer. Hold the
+**Brake** pedal (bottom left; the Down arrow on a computer) to slow to half speed; a
+second finger can keep steering meanwhile. The speedometer sits above it. The car
 stays inside the road. Light traffic alternates between two lanes with small
 placement variations, so occasional steering is needed even from the center.
 Cars hold their line once visible. Collect real
@@ -67,6 +69,18 @@ under passing cars; road-works barriers never spawn in a car's path.
 **Night drive:** from 1,200 m dusk falls over 250 m. Once it is dark, headlights and
 street lamps light the road, and money and close calls pay 50% more (rounded up,
 stacking with ×2). Every drive starts in daylight.
+
+**Speed cameras:** from 400 m, an overhead camera gantry appears every 450–800 m,
+with its limit (40 or 50 km/h) painted on the road ahead and shown beside the
+speedometer. A Damas cruises at 60 km/h. Passing under too fast flashes the camera
+and costs 15 points plus 1 per km/h over (never below zero); braking avoids it.
+
+**Taxi orders:** from 350 m, a passenger waves from the right sidewalk with a TAKSI
+bubble. Pull in to the yellow bay to pick them up; the ride (250–450 m) counts down
+in a chip under the power-ups, and a green bay with a pin arrives exactly when it
+ends. Pull in there for the fare: one 10,000 soʻm note per started 100 m (3–5 notes,
+with ×2 and the night bonus). Driving past either bay loses the order. Bus stops
+wait while an order is active, so the right curb is never shared.
 
 **Car upgrades:** in the garage, each car can buy three levels of **Handling**
 (+10% steering each; 200/450/900), **Tank** (+25% fuel each; 150/350/700), and
@@ -234,7 +248,9 @@ CI is not configured; run the local quality gate before pushing.
 | `src/fuel/` | Methane tank, METAN stations, and refuelling. |
 | `src/hazards/` | Potholes, road works, and their point penalties. |
 | `src/night/` | Nightfall shader, headlights, street lamps, and the night bonus. |
-| `src/ui/` | HUD, drive overlay and fuel gauge, start/pause menu, and results. |
+| `src/cameras/` | Speed-camera gantries, painted limits, speed checks, and fines. |
+| `src/taxi/` | Taxi hails, rides, drop-off bays, and fares. |
+| `src/ui/` | HUD, drive overlay (fuel, speedometer, brake pedal, ride chip), menus, and results. |
 | `tests/`, `scripts/` | Behavior checks and development commands. |
 
 Tune handling in `src/driving/default_car.tres` and road speed/geometry in
@@ -251,8 +267,11 @@ generation records are documented in `assets/ANGLED_ART.md`.
 
 Tune fuel in `src/fuel/default_fuel.tres`, hazards in
 `src/hazards/default_hazards.tres`, night in `src/night/default_night.tres`, upgrade
-prices in `src/garage/default_garage.tres`, and achievements in
-`src/achievements/default_achievements.tres`.
+prices in `src/garage/default_garage.tres`, achievements in
+`src/achievements/default_achievements.tres`, cameras in
+`src/cameras/default_speed_cameras.tres`, and taxi orders in
+`src/taxi/default_taxi.tres`. Brake strength is per car in `CarSettings`; the
+speedometer scale is in `src/road/default_road.tres`.
 
 Tune pickup volume and vibration in `src/pickups/default_feedback.tres`.
 Original chimes and their reproducible generator are documented in

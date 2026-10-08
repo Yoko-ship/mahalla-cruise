@@ -8,7 +8,7 @@ const TRACK := Color(0.07, 0.15, 0.13, 0.8)
 const FULL := Color(0.56, 0.84, 0.45, 1)
 const LOW := Color(0.95, 0.36, 0.26, 1)
 const TEXT := Color(1, 0.96, 0.85, 1)
-const LABEL_WIDTH: float = 58.0
+const LABEL_SIZE: int = 13
 
 var share: float = 1.0
 var low: bool = false
@@ -36,19 +36,20 @@ func refresh_text() -> void:
 	queue_redraw()
 
 
+func label_width() -> float:
+	var font := get_theme_default_font()
+	return font.get_string_size(tr("fuel"), HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE).x
+
+
 func _draw() -> void:
 	draw_style_box(_box, Rect2(Vector2.ZERO, size))
 	var font := get_theme_default_font()
 	var baseline := size.y * 0.5 + 5.0
+	# The bar starts after the label, so longer names ("Methane") are never cut off.
+	var label_end := 10.0 + label_width()
 	draw_string(
-		font,
-		Vector2(10, baseline),
-		tr("fuel"),
-		HORIZONTAL_ALIGNMENT_LEFT,
-		LABEL_WIDTH - 12,
-		13,
-		TEXT
+		font, Vector2(10, baseline), tr("fuel"), HORIZONTAL_ALIGNMENT_LEFT, -1, LABEL_SIZE, TEXT
 	)
-	var bar := Rect2(LABEL_WIDTH, size.y * 0.5 - 4.0, size.x - LABEL_WIDTH - 12.0, 8.0)
+	var bar := Rect2(label_end + 8.0, size.y * 0.5 - 4.0, size.x - label_end - 20.0, 8.0)
 	draw_rect(bar, TRACK)
 	draw_rect(Rect2(bar.position, Vector2(bar.size.x * share, bar.size.y)), LOW if low else FULL)

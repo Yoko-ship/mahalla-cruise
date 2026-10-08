@@ -43,7 +43,8 @@ func _ready() -> void:
 	world.power_ups_changed.connect(hud.set_power_ups)
 	world.hazard_hit.connect(_on_hazard_hit)
 	world.refueled.connect(_on_refueled)
-	world.fuel_changed.connect(hud.set_fuel)
+	world.dashboard_changed.connect(hud.set_dashboard)
+	hud.brake_changed.connect(world.set_braking)
 	hud.restart_requested.connect(restart_run)
 	hud.play_requested.connect(start_run)
 	hud.pause_requested.connect(pause_run)
@@ -133,7 +134,7 @@ func _process(delta: float) -> void:
 func advance(delta: float) -> void:
 	if state != RunState.PLAYING:
 		return
-	var travel_pixels := road_settings.scroll_speed * car.settings.travel_speed_scale * delta
+	var travel_pixels := world.travel_pixels(delta)
 	distance_metres += travel_pixels / road_settings.pixels_per_metre
 	world.advance(travel_pixels, distance_metres)
 	hud.set_distance(distance_metres, delta)
@@ -234,7 +235,7 @@ func _on_hazard_hit(kind: String, penalty: int) -> void:
 	score = maxi(0, score - penalty)
 	_show_score()
 	hud.show_feedback("hazard_" + kind, [penalty])
-	pickup_feedback.play_bump()
+	pickup_feedback.play_bump(kind == "camera")
 
 
 func _on_refueled() -> void:

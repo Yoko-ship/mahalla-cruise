@@ -106,6 +106,10 @@ func _new_game() -> CruiseGame:
 	var fuel := game.get_node("World/Fuel") as FuelController
 	fuel.settings = fuel.settings.duplicate() as FuelSettings
 	fuel.settings.tank_metres = 1.0e9
+	# Taxi orders hold bus stops while busy; taxi_test covers that.
+	var taxi := game.get_node("World/Taxi") as TaxiController
+	taxi.settings = taxi.settings.duplicate() as TaxiSettings
+	taxi.settings.first_order_metres = 1.0e9
 	root.add_child(game)
 	game.set_language("en")
 	game.start_run()

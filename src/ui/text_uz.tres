@@ -2,6 +2,17 @@
 
 [resource]
 messages = {
+[&"", &"brake"]: [&"Tormoz"],
+[&"", &"kmh"]: [&"km/soat"],
+[&"", &"camera_ahead"]: [&"Radar %d km/soat! Sekinlang"],
+[&"", &"camera_clean"]: [&"Cheklovda, jarima yoʻq"],
+[&"", &"hazard_camera"]: [&"Tezlik jarimasi!  −%d ball"],
+[&"", &"taxi_call"]: [&"Taksi! Oʻngga toʻxtang"],
+[&"", &"taxi_aboard"]: [&"Yoʻlovchi bor! Manzil %d m"],
+[&"", &"taxi_paid"]: [&"Yoʻl haqi!  +%d ball"],
+[&"", &"taxi_missed"]: [&"Manzildan oʻtdingiz! Haq yoʻq"],
+[&"", &"taxi_ride"]: [&"Manzil %d m"],
+[&"", &"taxi_pull_over"]: [&"Oʻngga toʻxtang!"],
 [&"", &"fuel"]: [&"Metan"],
 [&"", &"crash_fuel"]: [&"Metan tugab qoldi! METAN shoxobchalarida toʻldiring."],
 [&"", &"refueled"]: [&"Bak toʻldi!"],
@@ -59,7 +70,7 @@ messages = {
 [&"", &"buy"]: [&"Sotib olish\n%d ball"],
 [&"", &"back"]: [&"Orqaga"],
 [&"", &"more_cars"]: [&"Yangi mashinalar tez orada"],
-[&"", &"hint"]: [&"Surib boshqaring\nPul yigʻing · Mashinalardan qoching"],
+[&"", &"hint"]: [&"Surib boshqaring · Radarda tormoz\nPul yigʻing · Mashinalardan qoching"],
 [&"", &"restart"]: [&"Yana haydash"],
 [&"", &"points"]: [&"%d ball"],
 [&"", &"play"]: [&"Boshlash"],

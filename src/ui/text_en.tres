@@ -2,6 +2,17 @@
 
 [resource]
 messages = {
+[&"", &"brake"]: [&"Brake"],
+[&"", &"kmh"]: [&"km/h"],
+[&"", &"camera_ahead"]: [&"Camera: %d km/h limit! Brake"],
+[&"", &"camera_clean"]: [&"Under the limit, no fine"],
+[&"", &"hazard_camera"]: [&"Speeding fine!  −%d pts"],
+[&"", &"taxi_call"]: [&"Taxi! Pull over right"],
+[&"", &"taxi_aboard"]: [&"Passenger in! Drop-off in %d m"],
+[&"", &"taxi_paid"]: [&"Fare paid!  +%d pts"],
+[&"", &"taxi_missed"]: [&"Missed the drop-off! No fare"],
+[&"", &"taxi_ride"]: [&"Drop-off %d m"],
+[&"", &"taxi_pull_over"]: [&"Pull over right!"],
 [&"", &"fuel"]: [&"Methane"],
 [&"", &"crash_fuel"]: [&"Out of methane! Fill up at METAN stations."],
 [&"", &"refueled"]: [&"Tank full!"],
@@ -59,7 +70,7 @@ messages = {
 [&"", &"buy"]: [&"Buy\n%d pts"],
 [&"", &"back"]: [&"Back"],
 [&"", &"more_cars"]: [&"More cars coming soon"],
-[&"", &"hint"]: [&"Drag to steer\nCollect money · Avoid cars"],
+[&"", &"hint"]: [&"Drag to steer · Brake for cameras\nCollect money · Avoid cars"],
 [&"", &"restart"]: [&"Drive again"],
 [&"", &"points"]: [&"%d points"],
 [&"", &"play"]: [&"Play"],

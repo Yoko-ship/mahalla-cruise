@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SpeedCameraSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/cameras/speed_camera_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+first_metres = 400.0
+spawn_metres_min = 450.0
+spawn_metres_max = 800.0
+limits_kmh = Array[int]([40, 50])
+fine_points = 15
+fine_per_kmh = 1
+marking_offset = 150.0
+flash_metres = 8.0
+spawn_y = -40.0
+despawn_y = 860.0

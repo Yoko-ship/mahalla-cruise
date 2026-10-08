@@ -23,6 +23,8 @@ var items: Array[MoneyPickup] = []
 var power_ups: Array[PowerUp] = []
 var effects: PowerUpEffects
 var bus_stops: Array[BusStop] = []
+## Set by the world while the curb is taken by a taxi order; due stops wait.
+var hold_stops: bool = false
 var _road: RoadSettings
 var _settings: PickupSettings
 var _distance_until_spawn: float = 0.0
@@ -98,7 +100,7 @@ func advance(
 		_try_spawn_power_up(player_bounds, traffic_bounds, traffic_speed_ratio)
 	_metres_until_stop -= travel_pixels / _road.pixels_per_metre
 	# Without a matching fare note in the catalogue, stops are simply not offered.
-	if _metres_until_stop <= 0.0 and bus_stops.is_empty() and _fare != null:
+	if _metres_until_stop <= 0.0 and bus_stops.is_empty() and _fare != null and not hold_stops:
 		_spawn_bus_stop()
 	if was_active or effects.is_active():
 		power_ups_changed.emit(effects.view())

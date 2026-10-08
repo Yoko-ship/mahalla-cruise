@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="TaxiSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/taxi/taxi_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+first_order_metres = 350.0
+order_metres_min = 400.0
+order_metres_max = 700.0
+ride_metres_min = 250.0
+ride_metres_max = 450.0
+fare_face_value = 10000
+metres_per_note = 100.0
+board_distance = 18.0
+zone_height = 64.0
+spawn_y = -60.0
+despawn_y = 900.0

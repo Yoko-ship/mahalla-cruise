@@ -12,6 +12,8 @@ No recordings, third-party samples, or external packages are used.
   Runtime pitch rises 6% per combo step; Android adds a 12 ms pulse.
 - `bump.wav`: 0.22-second low falling thud with a short noise rattle for potholes
   and road works; Android adds a 40 ms pulse.
+- `camera_flash.wav`: 0.18-second speed-camera shutter: two noise clicks over a short
+  rising flash whine, played with a speeding fine.
 
 The pickup files are mono 44.1 kHz, 16-bit PCM WAV. Smooth attacks and tails avoid abrupt
 waveform edges. Source peak is 0.55; runtime gain defaults to -8 dB.

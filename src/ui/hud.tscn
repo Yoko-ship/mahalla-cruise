@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://src/ui/hud.gd" id="1"]
 
@@ -11,6 +11,9 @@
 [ext_resource type="Script" path="res://src/ui/power_up_bar.gd" id="8"]
 [ext_resource type="Script" path="res://src/ui/drive_overlay.gd" id="9"]
 [ext_resource type="Script" path="res://src/ui/fuel_gauge.gd" id="10"]
+[ext_resource type="Script" path="res://src/ui/brake_pedal.gd" id="11"]
+[ext_resource type="Script" path="res://src/ui/speedometer.gd" id="12"]
+[ext_resource type="Script" path="res://src/ui/ride_chip.gd" id="13"]
 
 [sub_resource type="StyleBoxFlat" id="CardStyle"]
 bg_color = Color(0.12549, 0.243137, 0.219608, 1)
@@ -196,6 +199,36 @@ theme_override_styles/normal = SubResource("HornStyle")
 theme_override_styles/hover = SubResource("HornStyle")
 theme_override_styles/pressed = SubResource("HornStyle")
 text = "horn"
+
+[node name="Ride" type="Control" parent="Drive"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 18.0
+offset_top = 192.0
+offset_right = 176.0
+offset_bottom = 220.0
+mouse_filter = 2
+script = ExtResource("13")
+
+[node name="Speed" type="Control" parent="Drive"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 600.0
+offset_right = 124.0
+offset_bottom = 652.0
+mouse_filter = 2
+script = ExtResource("12")
+
+[node name="Brake" type="Control" parent="Drive"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 662.0
+offset_right = 96.0
+offset_bottom = 746.0
+mouse_filter = 2
+script = ExtResource("11")
 
 [node name="PickupFeedback" type="Label" parent="Drive"]
 visible = false

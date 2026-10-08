@@ -13,6 +13,11 @@ func keyboard_axis() -> float:
 	return Input.get_axis("ui_left", "ui_right") if _enabled else 0.0
 
 
+## The Down arrow brakes on a keyboard; touch uses the HUD brake pedal.
+func keyboard_brake() -> bool:
+	return _enabled and Input.is_action_pressed("ui_down")
+
+
 func set_enabled(enabled: bool) -> void:
 	_enabled = enabled
 	set_process_input(enabled)

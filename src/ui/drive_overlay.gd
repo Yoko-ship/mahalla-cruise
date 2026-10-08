@@ -1,10 +1,12 @@
 class_name DriveOverlay
 extends Control
-## Values over the road while driving: distance, points, record, pause, horn, power-ups,
-## fuel, feedback popups, and the first-drive hint. Display only; buttons signal upward.
+## Values over the road while driving: distance, points, record, pause, horn, brake pedal,
+## power-ups, fuel, speed, taxi ride, feedback popups, and the first-drive hint. Display
+## only; buttons and the pedal signal upward.
 
 signal pause_pressed
 signal horn_pressed
+signal brake_changed(held: bool)
 
 var _hint_remaining: float = 0.0
 var _metres: float = 0.0
@@ -20,6 +22,9 @@ var _playfield_offset := Vector2.ZERO
 @onready var horn_button: Button = $Horn
 @onready var power_up_bar: PowerUpBar = $PowerUps
 @onready var fuel_gauge: FuelGauge = $Fuel
+@onready var ride_chip: RideChip = $Ride
+@onready var speedometer: Speedometer = $Speed
+@onready var brake_pedal: BrakePedal = $Brake
 @onready var pickup_label: FeedbackPopup = $PickupFeedback
 @onready var controls_label: Label = $Controls
 
@@ -27,6 +32,7 @@ var _playfield_offset := Vector2.ZERO
 func _ready() -> void:
 	pause_button.pressed.connect(func() -> void: pause_pressed.emit())
 	horn_button.pressed.connect(func() -> void: horn_pressed.emit())
+	brake_pedal.held_changed.connect(brake_changed.emit)
 
 
 ## Every child follows the playfield; the overlay itself fills the screen.
@@ -47,7 +53,10 @@ func set_active(active: bool) -> void:
 		pause_button,
 		horn_button,
 		power_up_bar,
-		fuel_gauge
+		fuel_gauge,
+		ride_chip,
+		speedometer,
+		brake_pedal
 	]:
 		control.visible = active
 	controls_label.visible = active and _hint_remaining > 0.0
@@ -95,8 +104,11 @@ func set_power_ups(view: Dictionary) -> void:
 	power_up_bar.set_view(view)
 
 
-func set_fuel(share: float, low: bool) -> void:
-	fuel_gauge.set_level(share, low)
+## view: fuel, fuel_low, speed_kmh, limit_kmh, and ride_metres (see DriveWorld).
+func set_dashboard(view: Dictionary) -> void:
+	fuel_gauge.set_level(view.get("fuel", 1.0), view.get("fuel_low", false))
+	speedometer.set_speed(view.get("speed_kmh", 0), view.get("limit_kmh", 0))
+	ride_chip.set_metres(view.get("ride_metres", -1))
 
 
 func refresh_text() -> void:
@@ -106,6 +118,9 @@ func refresh_text() -> void:
 	controls_label.text = tr("hint").replace("\\n", "\n")
 	horn_button.text = tr("horn")
 	fuel_gauge.refresh_text()
+	speedometer.refresh_text()
+	ride_chip.refresh_text()
+	brake_pedal.refresh_text()
 	pickup_label.dismiss()
 
 

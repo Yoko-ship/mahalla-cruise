@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Generate original pickup chimes, the close-call whoosh, and the pothole bump using only
-Python's stdlib."""
+"""Generate original pickup chimes, the close-call whoosh, the pothole bump, and the speed
+camera shutter using only Python's stdlib."""
 
 import math
 import random
@@ -65,6 +65,25 @@ def write_bump(name, duration):
     write_samples(name, samples, duration)
 
 
+def write_shutter(name, duration):
+    """A camera: two bright noise clicks (shutter open and close) over a quick flash whine."""
+    noise = random.Random(40)
+    samples = []
+    phase = 0.0
+    for index in range(round(duration * RATE)):
+        time = index / RATE
+        value = 0.0
+        for start, gain in ((0.0, 1.0), (0.075, 0.7)):
+            elapsed = time - start
+            if elapsed >= 0:
+                value += gain * math.exp(-elapsed / 0.006) * noise.uniform(-1.0, 1.0)
+        phase += math.tau * (2600 + 1800 * time / duration) / RATE
+        tail = max(0.0, min(1.0, (duration - time) / 0.03))
+        value += 0.18 * math.exp(-time / 0.08) * math.sin(phase) * tail
+        samples.append(value)
+    write_samples(name, samples, duration)
+
+
 def write_samples(name, samples, duration):
     peak = max(abs(value) for value in samples)
     # Leave headroom for overlapping pickups; runtime volume is lower still.
@@ -88,3 +107,4 @@ if __name__ == "__main__":
     )
     write_whoosh("close_call.wav", 0.28)
     write_bump("bump.wav", 0.22)
+    write_shutter("camera_flash.wav", 0.18)
