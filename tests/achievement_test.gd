@@ -144,6 +144,9 @@ func _test_game_flow() -> void:
 	_check(notes.text == "Collect 500 notes in total", "The next goal is shown with its target")
 	var done := menu.rows.get_child(1).get_node("Layout/Status/Count") as Label
 	_check(done.text == "100 / 500", "Progress counts toward the next goal")
+	_check(menu.switch_button.text == "Mahalla rating", "The button moves on to the rating")
+	await _click(menu.switch_button)
+	_check(menu.list_index == 2 and menu.title.text == "Mahalla rating", "The rating shows")
 	_check(menu.switch_button.text == "Daily tasks", "The button switches back")
 	await _click(menu.back_button)
 	await _click(reopened.hud.menu.tasks_button)

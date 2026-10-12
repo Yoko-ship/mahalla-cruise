@@ -1,7 +1,7 @@
 class_name DailyMenu
 extends Control
-## Lists today's tasks, or lifetime achievements, with progress and rewards. Read-only;
-## main supplies both lists and the switch button flips between them.
+## Lists today's tasks, lifetime achievements, or the mahalla rating, with progress and
+## rewards. Read-only; main supplies the lists and the switch button cycles through them.
 
 signal closed
 
@@ -9,9 +9,12 @@ const TEXT_COLOR := Color(1, 0.96, 0.85, 1)
 const MUTED_COLOR := Color(0.78, 0.86, 0.81, 1)
 const GOLD := Color(1, 0.85, 0.47, 1)
 
-var showing_achievements: bool = false
-var _entries: Array[Dictionary] = []
-var _achievements: Array[Dictionary] = []
+## 0: today's tasks, 1: achievements, 2: the mahalla rating.
+var list_index: int = 0
+var showing_achievements: bool:
+	get:
+		return list_index == 1
+var _lists: Array = [[], [], []]
 
 @onready var title: Label = $Center/Card/Margin/Content/Title
 @onready var rows: VBoxContainer = $Center/Card/Margin/Content/Rows
@@ -22,17 +25,23 @@ var _achievements: Array[Dictionary] = []
 
 func _ready() -> void:
 	back_button.pressed.connect(close)
-	switch_button.pressed.connect(func() -> void: _show_list(not showing_achievements))
+	switch_button.pressed.connect(func() -> void: _show_list(_next_list()))
 
 
-func set_entries(entries: Array[Dictionary], achievement_entries: Array[Dictionary] = []) -> void:
-	_entries = entries.duplicate(true)
-	_achievements = achievement_entries.duplicate(true)
+## Rival rows (see RivalLadder.entries) carry a place and a name; an empty name is the player.
+func set_entries(
+	entries: Array[Dictionary],
+	achievement_entries: Array[Dictionary] = [],
+	rival_entries: Array[Dictionary] = []
+) -> void:
+	_lists = [
+		entries.duplicate(true), achievement_entries.duplicate(true), rival_entries.duplicate(true)
+	]
 	_rebuild()
 
 
 func open() -> void:
-	_show_list(false)
+	_show_list(0)
 	show()
 	back_button.grab_focus()
 
@@ -45,13 +54,21 @@ func close() -> void:
 	closed.emit()
 
 
-func _show_list(achievements: bool) -> void:
-	showing_achievements = achievements
+func _show_list(index: int) -> void:
+	list_index = index
 	_rebuild()
 
 
-func _shown() -> Array[Dictionary]:
-	return _achievements if showing_achievements else _entries
+func _next_list() -> int:
+	for step in range(1, _lists.size()):
+		var index := (list_index + step) % _lists.size()
+		if index == 0 or not _lists[index].is_empty():
+			return index
+	return 0
+
+
+func _shown() -> Array:
+	return _lists[list_index]
 
 
 func _rebuild() -> void:
@@ -64,16 +81,17 @@ func _rebuild() -> void:
 
 
 func refresh_text() -> void:
-	title.text = tr("achievements" if showing_achievements else "daily_title")
-	footer.text = tr("ach_footer" if showing_achievements else "tasks_footer")
-	switch_button.text = tr("daily_title" if showing_achievements else "achievements")
-	switch_button.visible = not _achievements.is_empty()
+	var titles := ["daily_title", "achievements", "rating_title"]
+	title.text = tr(titles[list_index])
+	footer.text = tr(["tasks_footer", "ach_footer", "rating_footer"][list_index])
+	switch_button.text = tr(titles[_next_list()])
+	switch_button.visible = _next_list() != list_index
 	back_button.text = tr("back")
 	var entries := _shown()
 	for index in range(entries.size()):
-		var entry := entries[index]
+		var entry: Dictionary = entries[index]
 		var row := rows.get_child(index)
-		(row.get_node("Layout/Text") as Label).text = tr(entry.text_key) % entry.target
+		(row.get_node("Layout/Text") as Label).text = _entry_text(entry)
 		(row.get_node("Layout/Status/Bar") as ProgressBar).value = (
 			float(entry.progress) / maxf(1.0, entry.target)
 		)
@@ -82,8 +100,21 @@ func refresh_text() -> void:
 		# The streak row has no counter; its target is the streak day.
 		count.visible = entry.get("counter", true)
 		var reward := row.get_node("Layout/Status/Reward") as Label
-		reward.text = tr("task_complete") if entry.done else tr("task_reward") % entry.reward
+		var done_key := "rating_passed" if entry.has("place") else "task_complete"
+		reward.text = tr(done_key) if entry.done else tr("task_reward") % entry.reward
+		reward.visible = entry.done or entry.reward > 0
 		reward.add_theme_color_override("font_color", GOLD if entry.done else TEXT_COLOR)
+		var you: bool = entry.get("name", "-") == ""
+		row.self_modulate = Color(1.5, 1.35, 0.9) if you else Color.WHITE
+
+
+func _entry_text(entry: Dictionary) -> String:
+	if entry.has("place"):
+		var shown_name: String = (
+			entry.name if entry.name != "" else tr("rating_you") % entry.progress
+		)
+		return "%d. %s" % [entry.place, shown_name]
+	return tr(entry.text_key) % entry.target
 
 
 func _row() -> PanelContainer:

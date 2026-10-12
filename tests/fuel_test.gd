@@ -53,7 +53,9 @@ func _test_draining_and_stations() -> void:
 		"The tank drains by distance driven"
 	)
 	_check(fuel.stations.is_empty(), "No station before 550 m")
-	_drive(game, 255.0)
+	# Step until the first station appears, so spacing is measured from its real spawn.
+	while fuel.stations.is_empty() and game.distance_metres < 560.0:
+		game.advance(1.0 / 30.0)
 	_check(fuel.stations.size() == 1, "A station appears after 550 m")
 	_check(fuel.stations[0].position.x == ROAD.left_edge, "Stations stand at the left curb")
 	var first_seen := game.distance_metres

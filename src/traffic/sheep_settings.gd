@@ -2,7 +2,9 @@ class_name SheepSettings
 extends Resource
 ## Occasional flock crossing. Walking follows road travel, so every car meets the same pattern.
 
-@export_range(0.0, 5000.0) var first_crossing_metres: float = 250.0
+## After the second-chance distance: a balance playtest lost many early drives to a flock
+## at 250 m, before new players had learned to steer.
+@export_range(0.0, 5000.0) var first_crossing_metres: float = 450.0
 @export_range(50.0, 5000.0) var crossing_metres_min: float = 600.0
 @export_range(50.0, 5000.0) var crossing_metres_max: float = 1000.0
 ## Two or three sheep keep the flock at most 78 px wide, leaving a passable side.

@@ -100,12 +100,9 @@ func dismiss_text() -> void:
 	pickup_label.dismiss()
 
 
-func set_power_ups(view: Dictionary) -> void:
-	power_up_bar.set_view(view)
-
-
-## view: fuel, fuel_low, speed_kmh, limit_kmh, and ride_metres (see DriveWorld).
+## view: fuel, fuel_low, speed_kmh, limit_kmh, ride_metres, and power_ups (see DriveWorld).
 func set_dashboard(view: Dictionary) -> void:
+	power_up_bar.set_view(view.get("power_ups", {}))
 	fuel_gauge.set_level(view.get("fuel", 1.0), view.get("fuel_low", false))
 	speedometer.set_speed(view.get("speed_kmh", 0), view.get("limit_kmh", 0))
 	ride_chip.set_metres(view.get("ride_metres", -1))

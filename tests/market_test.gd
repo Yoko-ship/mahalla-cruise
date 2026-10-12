@@ -48,7 +48,7 @@ func _test_offers() -> void:
 	_check(conditions_seen.size() >= 5, "Conditions vary from day to day")
 	store.owned_cars.append("matiz")
 	var without := MarketRules.used_offers(GARAGE, store, DAY)
-	_check(without.size() == 2, "Owned cars are not offered")
+	_check(without.size() == 3, "Owned cars are not offered; others take the slot")
 	for offer in without:
 		_check(offer.car != "matiz", "Matiz is owned")
 	var same := true
@@ -57,7 +57,7 @@ func _test_offers() -> void:
 			if earlier.car == offer.car:
 				same = same and earlier.condition == offer.condition
 	_check(same, "Each car keeps its condition when another is bought")
-	store.owned_cars.append_array(["cobalt", "gentra"])
+	store.owned_cars.append_array(["spark", "nexia", "cobalt", "gentra", "malibu"])
 	_check(MarketRules.used_offers(GARAGE, store, DAY).is_empty(), "No offers when all are owned")
 	store.free()
 

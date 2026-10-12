@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/weather/weather_view.gd" id="1"]
+[ext_resource type="Resource" path="res://src/weather/default_weather.tres" id="2"]
+
+[node name="Weather" type="Node2D"]
+z_index = 4
+script = ExtResource("1")
+settings = ExtResource("2")

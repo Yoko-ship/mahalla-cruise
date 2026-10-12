@@ -5,6 +5,8 @@ extends Node2D
 signal contacted
 ## Points already include the combo multiplier.
 signal near_missed(points: int, combo: int)
+## A flock has started crossing ahead.
+signal sheep_started
 
 const CAR_SCENE: PackedScene = preload("res://src/traffic/traffic_car.tscn")
 const PAINTS: Array[Color] = [Color("dfceb1"), Color("a1bbcc"), Color("c0c7b1")]
@@ -20,6 +22,8 @@ var difficulty_progress: float = 0.0
 var near_miss_combo: int = 0
 ## "car" or "sheep": what ended the run, for the results message.
 var last_contact_kind: String = "car"
+## Set by the world while a wedding convoy is due or on the road: no new cars or sheep.
+var hold_spawns: bool = false
 var _road: RoadSettings
 var _settings: TrafficSettings
 var _distance_until_spawn: float = 0.0
@@ -100,8 +104,9 @@ func advance(
 		last_contact_kind = "sheep"
 		contacted.emit()
 		return
-	if sheep_crossing.is_due(_metres) and _road_clear_for_sheep(money_bounds):
+	if not hold_spawns and sheep_crossing.is_due(_metres) and _road_clear_for_sheep(money_bounds):
 		sheep_crossing.start(_settings.spawn_y - _vertical_padding, _metres)
+		sheep_started.emit()
 	# Awarded after the loop: a crash anywhere in this frame returns first and pays nothing.
 	_pixels_since_near_miss += travel_pixels
 	for _near_miss in range(near_misses):
@@ -145,6 +150,11 @@ func clear_contact() -> void:
 	sheep_crossing.clear_contact()
 
 
+## No car and no sheep is on the road.
+func is_clear() -> bool:
+	return vehicles.is_empty() and sheep_crossing.flock.is_empty()
+
+
 func _road_clear_for_sheep(money_bounds: Array[Rect2]) -> bool:
 	# Sheep move with the road, faster than cars; start only if no car can be caught up with.
 	var top := _settings.spawn_y - _vertical_padding
@@ -161,7 +171,7 @@ func _road_clear_for_sheep(money_bounds: Array[Rect2]) -> bool:
 
 
 func _can_spawn(hazard_bounds: Array[Rect2]) -> bool:
-	if vehicles.size() >= _settings.max_vehicles or sheep_crossing.is_due(_metres):
+	if hold_spawns or vehicles.size() >= _settings.max_vehicles or sheep_crossing.is_due(_metres):
 		return false
 	var top := _settings.spawn_y - _vertical_padding
 	var reach := _settings.collision_half_size.y + 20.0

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="WeddingSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/wedding/wedding_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+first_metres = 700.0
+convoy_metres_min = 1100.0
+convoy_metres_max = 1600.0
+cars = 3
+car_gap = 86.0
+cruise_y = 250.0
+arrive_rate = 0.6
+leave_rate = 0.7
+cruise_metres = 150.0
+toss_pixels = 170.0
+notes_per_toss = 3
+toss_spread = 30.0
+toss_gap = 30.0
+toss_depth = 26.0
+toss_values = Array[int]([1000, 5000, 10000])
+toss_weights = Array[float]([65.0, 28.0, 7.0])
+spawn_y = -80.0
+collision_half_size = Vector2(20, 36)

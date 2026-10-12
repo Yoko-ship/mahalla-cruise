@@ -1,7 +1,8 @@
 class_name GarageCatalogue
 extends Resource
 ## Everything the player can buy: the ordered car roster (only cars with artwork are
-## offered), paints, upgrades, city routes, number plates, and the used-car market.
+## offered), paints, upgrades, city routes, number plates, the used-car market, and the
+## free daily lucky wheel.
 
 @export var cars: Array[CarDefinition] = []
 @export var paints: Array[PaintDefinition] = []
@@ -9,6 +10,7 @@ extends Resource
 @export var routes: Array[RouteDefinition] = []
 @export var plates: PlateSettings
 @export var market: MarketSettings
+@export var wheel: WheelSettings
 
 
 func find(id: String) -> CarDefinition:

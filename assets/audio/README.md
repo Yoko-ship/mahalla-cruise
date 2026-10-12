@@ -16,6 +16,9 @@ No recordings, third-party samples, or external packages are used.
   rising flash whine, played with a speeding fine.
 - `police_whistle.wav`: 0.48-second pea whistle (2.9 kHz tone warbling at 31 Hz) in two
   short blasts, played when a GAI officer fines a driver who did not stop.
+- `karnay.wav`: 1.8-second wedding fanfare: a swelling karnay drone (116.5 Hz with eight
+  harmonics), a five-note surnay phrase with vibrato, and doira hits every 0.3 s; played
+  when a toʻy korteji (wedding convoy) arrives.
 
 The pickup files are mono 44.1 kHz, 16-bit PCM WAV. Smooth attacks and tails avoid abrupt
 waveform edges. Source peak is 0.55; runtime gain defaults to -8 dB.

@@ -219,6 +219,10 @@ func _new_game(stops_on: bool) -> CruiseGame:
 		var taxi := game.get_node("World/Taxi") as TaxiController
 		taxi.settings = taxi.settings.duplicate() as TaxiSettings
 		taxi.settings.first_order_metres = 10.0
+	# Wedding convoys would add their own sochqi money.
+	var wedding := game.get_node("World/Wedding") as WeddingController
+	wedding.settings = wedding.settings.duplicate() as WeddingSettings
+	wedding.settings.first_metres = 1.0e9
 	root.add_child(game)
 	game.set_language("en")
 	game.start_run()

@@ -1,12 +1,17 @@
 # Mahalla Cruise Project Tracker
 
-Last updated: 2026-10-08
+Last updated: 2026-10-12
 
 Mahalla Cruise is a planned 2D Android game for people in Uzbekistan. The goal is a simple, relaxing time killer: open the game, steer with one finger, and enjoy a familiar neighborhood without puzzles or complicated decisions. Development should stay manageable for a first version.
 
 ## Current Status
 
-**Stage: localized Android build, full-screen phone layouts, and varied gentle traffic.**
+**Stage: Uzbek-market growth rounds (feature choice delegated by the user on 2026-10-12)
+on top of the localized Android build.** Latest round: wedding convoys with sochqi, a
+paid second chance, the mahalla rating, the daily lucky wheel, and calendar weather with
+holiday greetings, and point popups with crash dust and shake (see the last three
+work-log entries), Telegram sharing, seven cars, Android Back for menus, and tuning from
+an Android emulator run and an automated balance playtest.
 
 The game now defaults to Uzbek Latin, with Russian and English selectable before
 play or while paused. Menus, instructions, run values, pickups, and results are
@@ -68,9 +73,12 @@ describes the boundaries, `AGENTS.md` defines the AI workflow, and
 `./scripts/check.sh` runs the local quality gate. Development tooling uses
 gdtoolkit 4.5.0 in `.venv`.
 
-**Next task:** playtest on Windows (city routes, number plates, the car market, METAN
-queues, GAI posts, plus the brake, cameras, taxi, and earlier features) and tune by
-feel: route prices and bonuses, plate prices, used-car discount and repair cost, queue
+**Next task:** continue the 2026-10-12 goal (the user delegated feature choice) with
+the next improvement round, then playtest (wedding convoys, second chance, mahalla
+rating, city routes, number plates, the car market, METAN queues, GAI posts, plus the
+brake, cameras, taxi, and earlier features) and tune by feel: convoy frequency and
+sochqi value, second-chance price, rival scores and rewards, wheel prizes and weights,
+weather density, route prices and bonuses, plate prices, used-car discount and repair cost, queue
 wait time, police frequency, reward, and fine, and earlier values. Painted street art
 for Samarkand, Bukhara, and Khiva would replace the code-drawn landmarks.
 Check whether holding the brake all the time makes drives too easy (it costs nothing
@@ -79,6 +87,11 @@ Replace the temporary car and sheep art with final artwork
 ([docs/art-direction/CAR_ROSTER_ART.md](docs/art-direction/CAR_ROSTER_ART.md)). Car-name
 trademark review remains open before a public release. No Android device is
 currently available, so phone testing is paused.
+
+Emulator evidence (2026-10-12): the ARM64 debug APK ran on the Android 15 emulator
+(start card with weather and the wheel button, a drive to results, Share handing off to
+the browser, the garage list, and a wheel spin landing on its prize). A physical phone and
+human playtests are still needed.
 
 **Paused until a phone is available:** test the complete Uzbek/Russian flow on a physical Android phone,
 including Back, touch targets, readability, audio/vibration feel, and difficulty.
@@ -131,6 +144,13 @@ The intermittent initial emulator launch exit remains outstanding.
   Uzbek market (user's choice, 2026-10-08). City landmarks are code-drawn temporary art
   until painted streets exist. Police are light-hearted and polite: stopping earns a
   reward, not stopping a fine. Plates are cosmetic plus a small taxi tip.
+- Make "the best game on the Uzbek market" (user's goal, 2026-10-12). The user has no
+  feature ideas and explicitly delegated choosing and building improvements, which
+  authorizes added gameplay scope for this goal. Dependencies, engine upgrades, and
+  monetization still need the user. First round: toʻy korteji (wedding convoy) with
+  sochqi, a paid second chance, and an offline mahalla rating. Second round: a daily
+  lucky wheel and cosmetic weather/holidays (weather never changes points, so tests
+  stay deterministic on any date).
 - Add pickup sounds/light vibration and gradual traffic difficulty, as requested
   by the user. Keep the traffic increase capped and maintain generous gaps.
 
@@ -222,8 +242,13 @@ Track asset sources and applicable usage terms when assets are added. Keep sourc
 - [x] Add per-car upgrades (handling, tank, suspension) and lifetime achievements.
 - [x] Add a brake pedal and speedometer, speed cameras with fines, and taxi orders.
 - [x] Add city routes, number plates, a used-car market and workshop, METAN queues, and GAI posts.
+- [x] Add toʻy korteji convoys with sochqi, a paid second chance, and the mahalla rating.
+- [x] Add the daily lucky wheel and calendar weather with holiday greetings.
+- [x] Add point popups, crash dust, and street shake; split the drive world.
+- [x] Add Telegram sharing and the Spark, Nexia, and Malibu (temporary art).
+- [x] Run the new features on the Android emulator; add a balance bot and tune from it.
 - [ ] Add painted street artwork for Samarkand, Bukhara, and Khiva.
-- [ ] Replace the Matiz, Cobalt, and black Gentra test sprites with final artwork.
+- [ ] Replace the Matiz, Spark, Nexia, Cobalt, Gentra, and Malibu test sprites with final artwork.
 - [ ] Test touch controls and performance on a physical Android phone.
 - [ ] Have a few players try it without instructions and record feedback.
 
@@ -737,6 +762,119 @@ tests, including new `plate_test.gd` (585), `market_test.gd` (414), `route_test.
 start card with route picker and plate (uz/ru/en, owned and locked), the garage with a
 65% used car, the market (uz/ru/en), a METAN queue, a waving GAI officer, and the
 Samarkand, Bukhara, and Khiva landmarks. Android and Windows were not run.
+
+Wedding convoys, second chance, and mahalla rating (2026-10-12): the user set the goal
+"make the best game on the Uzbek market" and delegated choosing features. Chosen for
+local recognition and for retention:
+- Toʻy korteji (`src/wedding/`): from 700 m, every 1,100–1,600 m, traffic is held, then
+  three decorated white cars (ribbons, garlands, balloons, music notes) arrive in one
+  lane to a generated karnay fanfare, cruise ahead for 150 m throwing sochqi (1,000/
+  5,000/10,000 soʻm, weighted 65/28/7) behind them, and drive off. Their lane is closed
+  to other spawns; notes never land on hazards or power-ups; the convoy never reaches
+  the player.
+- Second chance (`src/revival/`): after 300 m, once per drive, for 150 wallet points; it
+  removes what was hit, tops an empty tank up to 35%, and gives 45 m of grace. A 7 s
+  countdown (or Back) declines; the drive is booked once.
+- Mahalla rating (`src/rivals/`): twelve named drivers (25–2,500); passing one pays
+  20–500 once, derived from the saved best (no save change). Results name who was passed
+  (several collapse to one line) and who is next; Tasks cycles to a six-row rating.
+- Structure: `main.gd` was at 286 lines, so in-drive scoring moved to its base class
+  `DriveScoring` (`src/drive_scoring.gd`); main is 230 lines. The HUD stays at 20 public
+  methods because power-up chips now arrive with the per-frame dashboard. `RunRecords`
+  takes the rival ladder; `show_game_over` takes the booked dictionary.
+- Fixed a pre-existing flaky test: `night_test.gd` failed about one run in three because
+  GAI posts (added later) could show a notice in its quiet window; it now turns posts off.
+Existing suites changed only where the new rules apply: night and taxi suites turn off
+weddings (sochqi changes exact scores); the garage purchase test uses a score below the
+first rival so it stays about run points; the achievements screen test follows the
+switch button through the new rating list.
+Validation: `./scripts/check.sh` passed **3,884 game checks in 40 suites** plus the
+Python tooling tests, including new `wedding_test.gd` (per-frame checks, 739 in that run),
+`second_chance_test.gd` (45), and
+`rival_test.gd` (42); the new suites passed 5 repeated runs after removing a shield
+power-up flake from the test setup. Reviewed Mac renders of the convoy throwing sochqi,
+the second-chance card (uz), results with passed rivals (ru), and the rating screen
+(uz). Android and Windows were not run. Note: two render runs early in this session
+wrote a local Mac save (`~/Library/Application Support/Godot/app_userdata/*/progress.json`
+and `.bak`, best 10, wallet 40); deleting it was blocked by permissions, so it remains.
+
+Lucky wheel and weather (2026-10-12, second round of the delegated goal):
+- Omad gʻildiragi (`src/wheel/`): a pulsing **Lucky!** button beside the start-card car
+  opens one free spin a day (25/50/100/200/500 points, or a magnet, ×2, or shield for the
+  next drive). It is a shop action (`garage_action("wheel")`), saved in one write before
+  the drawn wheel eases onto the prize; the start card shows a waiting bonus, and Play or
+  Drive again activates it. Save: optional `wheel_day`, `wheel_prize`, `boost` in the
+  garage section.
+- Weather (`src/weather/`): snow (winter, 65%), showers (spring 30%, autumn 20%), leaves
+  (autumn 55%), Navruz blossom, Independence Day confetti in flag colours, and New Year
+  snow, drawn over the street (z 4) in real time. The start card greets on holidays.
+  Cosmetic only by design: a date-based points bonus would make exact-score tests depend
+  on the day they run.
+Validation: `./scripts/check.sh` passed **4,164 game checks in 42 suites**, including new
+`wheel_test.gd` (53) and `weather_test.gd` (36). Reviewed Mac renders of the start card
+with the gift button and a waiting bonus (uz/en), the wheel spinning and settled on a
+prize, the Navruz greeting, rain, snow, and autumn leaves. Android and Windows not run.
+
+Game feel (2026-10-12, third round): the drive world was at 290 lines, so its child
+references, signal translation, and dashboard moved to the base class `DriveWorldEvents`
+(no behavior change; all 42 suites passed after the split). Then `RoadEffects`
+(`src/effects/`, z 5) added rising point popups where money is collected (gold), above
+the car for close calls (blue, with the combo) and road points (red/green), a dust puff
+on a real crash, and a fading shake of the street (7 px on crashes, 3 px on potholes,
+road works, and shield saves). Popups and shake run in real time and clear each drive.
+Validation: `./scripts/check.sh` passed **4,119 game checks in 43 suites** (the wedding
+suite counts per frame, so totals vary); new `effects_test.gd` (18) passed three repeated runs.
+Reviewed a Mac render of the popups and crash dust. Android not run.
+
+Telegram sharing and three more cars (2026-10-12, fourth round):
+- Share: a **Share** button beside Garage on the results card opens Telegram (the main
+  messenger in Uzbekistan) with "I scored N points and drove M m in Mahalla Cruise…"
+  in the player's language, via `tg://msg` with a web fallback; no plugin. An optional
+  `share_link` in `default_hud.tres` is appended once a store link exists.
+- Cars: Spark (600, nimble, slightly slower than the Damas), Nexia (750, balanced,
+  roomy), and Malibu (5,000, fastest and longest) with temporary placeholder art. The
+  garage list scrolls (about four rows) and opens on the selected car.
+Existing suites changed where the roster is spelled out: roster ids/prices, factory
+paints, the garage row count, and the market's "owned cars are not offered" counts (a
+fourth car now fills the third offer). The roster-copy check now finds the Gentra by id
+instead of index 3 (which became the Nexia). A shell loop first wrote the new car files
+with wrong names; that was fixed before any check.
+Validation: `./scripts/check.sh` passed **4,345 game checks in 44 suites**, including new
+`share_test.gd` (28). Reviewed Mac renders of the scrolling garage (uz) and the
+results card with Share (uz). Android (the actual Telegram hand-off) was not run.
+
+Android emulator run, Android Back, and an automated balance playtest (2026-10-12, fifth
+round):
+- Emulator: `.venv/bin/python scripts/android.py build` passed the full gate and built the
+  APK (35.1 MiB); on the Android 15 emulator the start card (autumn leaves, Lucky!), a
+  drive to results with the rival line and Share, the Share hand-off (Chrome opened
+  Telegram's web share; no Telegram app on the image), the scrolling garage, and a wheel
+  spin (landed on 25, paid, "Ertaga yana") all worked. The first launch after install
+  exited once (`!_start_success`, the known intermittent first-launch exit); relaunching
+  worked. Found and fixed: Android Back did nothing on sub-screens; it now closes the
+  wheel, market, garage, or tasks, or declines a second chance (`android_back_test.gd`).
+  Also fixed: `scripts/android.sh` on Mac used the system Python, which lacks the pinned
+  gdtoolkit, so `build` failed at the gate; it now prefers `.venv/bin/python`.
+- Balance bot (`scripts/balance_report.gd`, 40 drives per profile, Damas): before tuning,
+  the casual bot (0.4 s re-planning, 60% steering) had median 2,629 m and 1,846 points per
+  drive; 15/40 drives ended on sheep, 7 of 15 probed drives died at the first flock
+  (~290 m, before the 300 m second chance); second chances were taken in 29–33 of 40.
+- Tuning from it: first sheep crossing 250 → 450 m and a "Sheep crossing!" warning;
+  second-chance price 150 → 150 + 25% of the drive's points; three higher rivals (Domla
+  Akbar 3,500, Chempion Ravshan 5,000, Afsona Zafar aka 7,500). After tuning the casual
+  bot's p25 drive rose from 299 m to 2,025 m, sheep endings fell 21 → 9 of 40 in
+  comparable runs, and drives average 4.9 minutes. Second chances stay frequent because the
+  bot never spends its wallet; fuel is now the main ending, partly because the bot never
+  brakes at METAN queues. Both need human playtests before further changes.
+Existing suites changed where the tuned values appear: sheep timing now reads the setting
+(450 m), the second-chance price expectations (160 for a 40-point drive), and rival
+places (three drivers above everyone else).
+Also fixed a pre-existing flake in `fuel_test.gd`: station spacing was measured from 555 m
+instead of the first station's real spawn, so a 500 m gap could read as 495 m.
+Validation: `./scripts/check.sh` passed **4,209 game checks in 45 suites**, including new
+`android_back_test.gd` (13). After the fix, `./scripts/android.sh build` worked on Mac and the rebuilt
+APK on the emulator closed the garage on Back and paused (without resuming) a drive on
+Back; the record and the day's wheel spin survived the reinstall.
 
 ## Running and Checking the Starter
 

@@ -19,7 +19,7 @@ func _run() -> void:
 	_test_cars_and_sheep_never_overlap()
 	_test_contact_and_restart()
 	_test_money_and_sheep_stay_apart()
-	_check(SHEEP.first_crossing_metres == 250.0 and SHEEP.flock_size_max == 3, "Defaults unchanged")
+	_check(SHEEP.first_crossing_metres == 450.0 and SHEEP.flock_size_max == 3, "Defaults unchanged")
 	await create_timer(0.4).timeout
 	if failures == 0:
 		print(
@@ -35,12 +35,14 @@ func _test_first_crossing() -> void:
 	var game := _new_game(false)
 	var traffic := game.world.traffic
 	var crossing := traffic.sheep_crossing
-	traffic.set_distance(249.0)
+	traffic.set_distance(SHEEP.first_crossing_metres - 1.0)
 	traffic.advance(STEP_PIXELS, FAR_AWAY)
 	_check(crossing.flock.is_empty(), "No sheep before the first crossing distance")
-	traffic.set_distance(250.0)
+	game.set_language("en")
+	traffic.set_distance(SHEEP.first_crossing_metres)
 	traffic.advance(STEP_PIXELS, FAR_AWAY)
 	_check(crossing.flock.size() >= 2 and crossing.flock.size() <= 3, "A flock of two or three")
+	_check(game.hud.drive.pickup_label.text == "Sheep crossing!", "Drivers are warned")
 	var road := game.road_settings
 	var direction := crossing.flock[0].direction
 	for sheep in crossing.flock:
@@ -67,7 +69,10 @@ func _test_first_crossing() -> void:
 			bounds.end.x < road.left_edge or bounds.position.x > road.right_edge,
 			"Sheep finish on the far sidewalk"
 		)
-	_check(crossing.next_crossing_metres >= 850.0, "The next crossing is 600–1000 m later")
+	_check(
+		crossing.next_crossing_metres >= SHEEP.first_crossing_metres + SHEEP.crossing_metres_min,
+		"The next crossing is 600–1000 m later"
+	)
 	game.free()
 
 
@@ -136,7 +141,7 @@ func _test_contact_and_restart() -> void:
 	game.start_run()
 	game.set_process(false)
 	game.world.player.set_physics_process(false)
-	game.world.traffic.set_distance(300.0)
+	game.world.traffic.set_distance(SHEEP.first_crossing_metres + 50.0)
 	game.world.traffic.advance(STEP_PIXELS, FAR_AWAY)
 	var sheep: Sheep = game.world.traffic.sheep_crossing.flock[0]
 	sheep.position = game.world.player.position - Vector2(0, 40)
@@ -149,7 +154,8 @@ func _test_contact_and_restart() -> void:
 	game.world.player.set_physics_process(false)
 	_check(game.world.traffic.sheep_crossing.flock.is_empty(), "Restart clears the flock")
 	_check(
-		game.world.traffic.sheep_crossing.next_crossing_metres == 250.0, "Restart resets crossings"
+		game.world.traffic.sheep_crossing.next_crossing_metres == SHEEP.first_crossing_metres,
+		"Restart resets crossings"
 	)
 	game.world.traffic.contacted.emit()
 	_check(

@@ -1,32 +1,23 @@
 class_name CruiseGame
-extends Node2D
-## Owns run state, scoring, and saved progress, and routes signals between the drive world,
-## the HUD, and the other features. No drawing, raw input, or road objects here.
-
-enum RunState { START, PLAYING, PAUSED, GAME_OVER }
+extends DriveScoring
+## Owns the session (start, pause, second chance, results), saved progress, and the garage,
+## and routes signals between the drive world, the HUD, and the other features. Scoring
+## during a drive lives in DriveScoring. No drawing, raw input, or road objects here.
 
 @export var road_settings: RoadSettings
 @export var traffic_settings: TrafficSettings
 @export var pickup_settings: PickupSettings
 @export var garage: GarageCatalogue
+@export var revival: RevivalSettings
+@export var rivals: RivalLadder
 
-var state: RunState = RunState.START
-var distance_metres: float = 0.0
-var is_game_over: bool:
-	get:
-		return state == RunState.GAME_OVER
-var score: int = 0
-var som_collected: int = 0
-var dollars_collected: int = 0
-var near_misses: int = 0
-var refuels: int = 0
 var car: CarDefinition
 var _focused: bool = true
+## The second chance was taken this drive, and what ended the drive while it is offered.
+var _revived: bool = false
+var _end_kind: String = "car"
 
-@onready var world: DriveWorld = $World
-@onready var pickup_feedback: PickupFeedback = $PickupFeedback
 @onready var progress: LocalProgressStore = $Progress
-@onready var hud: CruiseHUD = $HUD
 @onready var daily: DailyTasks = $DailyTasks
 @onready var achievements: Achievements = $Achievements
 @onready var audio: GameAudio = $GameAudio
@@ -34,16 +25,12 @@ var _focused: bool = true
 
 func _ready() -> void:
 	assert(road_settings and traffic_settings and pickup_settings and garage, "Missing settings")
+	assert(revival and rivals, "Missing second-chance or rival settings")
 	world.configure(road_settings, traffic_settings, pickup_settings)
 	world.crashed.connect(_end_run)
 	world.notice.connect(hud.show_feedback)
-	world.near_missed.connect(_on_near_missed)
-	world.money_collected.connect(_on_money_collected)
-	world.power_up_collected.connect(_on_power_up_collected)
-	world.power_ups_changed.connect(hud.set_power_ups)
-	world.road_points.connect(_on_road_points)
-	world.refueled.connect(_on_refueled)
 	world.dashboard_changed.connect(hud.set_dashboard)
+	_connect_scoring()
 	hud.brake_changed.connect(world.set_braking)
 	hud.restart_requested.connect(restart_run)
 	hud.play_requested.connect(start_run)
@@ -56,12 +43,15 @@ func _ready() -> void:
 	hud.language_selected.connect(set_language)
 	hud.garage_requested.connect(open_garage)
 	hud.garage_action.connect(garage_action)
+	hud.second_chance_chosen.connect(choose_second_chance)
+	hud.share_requested.connect(ShareRules.open)
 	_show_score()
 	progress.load_progress()
-	_apply_preferences()
+	PreferenceRules.apply(progress, pickup_feedback, audio, hud)
 	_apply_car()
 	daily.load_state(progress.daily)
 	achievements.load_state(progress.achievements)
+	world.choose_weather(DailyTasks.today(), randf())
 	_show_lists()
 	hud.set_best(progress.best_score)
 	world.set_driving(false, false)
@@ -92,6 +82,7 @@ func start_run() -> void:
 	world.set_driving(true)
 	hud.begin_run(first_hint)
 	audio.set_music_playing(true, true)
+	_take_boost()
 
 
 func pause_run() -> void:
@@ -147,6 +138,7 @@ func restart_run() -> void:
 	hud.reset_run()
 	_show_score()
 	hud.set_best(progress.best_score, false, progress.has_unsaved_changes)
+	_take_boost()
 
 
 func open_garage() -> void:
@@ -179,101 +171,75 @@ func _apply_car() -> void:
 	hud.set_garage(garage, GarageRules.view(garage, progress, car))
 
 
+## A power-up won on the lucky wheel starts the drive (one write to clear it).
+func _take_boost() -> void:
+	var kind := WheelRules.take_boost(progress)
+	if not kind.is_empty():
+		world.start_power_up(kind)
+		_on_power_up_collected(kind)
+		hud.set_garage(garage, GarageRules.view(garage, progress, car))
+
+
 func _reset_run() -> void:
-	distance_metres = 0.0
-	score = 0
-	som_collected = 0
-	dollars_collected = 0
-	near_misses = 0
-	refuels = 0
+	_reset_scoring()
+	_revived = false
 	world.reset_run(road_settings, traffic_settings, pickup_settings)
+	world.choose_weather(DailyTasks.today(), randf())
 	pickup_feedback.stop()
 
 
-func _on_money_collected(points: int, note: BanknoteDefinition) -> void:
-	if state != RunState.PLAYING:
-		return
-	dollars_collected += int(note.is_dollar)
-	som_collected += int(not note.is_dollar)
-	_add_points(points)
-	hud.show_pickup(points, note.display_name())
-	pickup_feedback.play_pickup(note.is_dollar)
-
-
-func _on_near_missed(points: int, combo: int) -> void:
-	if state != RunState.PLAYING:
-		return
-	near_misses += 1
-	_add_points(points)
-	if combo > 1:
-		hud.show_feedback("near_miss_combo", [combo, points])
-	else:
-		hud.show_feedback("near_miss", [points])
-	pickup_feedback.play_close_call(combo)
-
-
-func _on_power_up_collected(kind: String) -> void:
-	hud.show_feedback("power_" + kind)
-	pickup_feedback.play_pickup(true)
-
-
-## Road points outside money: hazard and camera penalties, police rewards and fines.
-func _on_road_points(points: int, text_key: String, sound: String) -> void:
-	if state != RunState.PLAYING:
-		return
-	score = maxi(0, score + points)
-	_show_score()
-	hud.show_feedback(text_key, [absi(points)])
-	pickup_feedback.play_event(sound)
-
-
-func _on_refueled() -> void:
-	if state != RunState.PLAYING:
-		return
-	refuels += 1
-	hud.show_feedback("refueled")
-	pickup_feedback.play_pickup(true)
-
-
-func _add_points(points: int) -> void:
-	score += points
-	_show_score()
-
-
-func _show_score() -> void:
-	hud.set_score(score, som_collected, dollars_collected, near_misses)
-
-
 func _show_lists() -> void:
-	hud.set_daily(daily.entries(), achievements.entries())
+	hud.set_daily(daily.entries(), achievements.entries(), rivals.entries(progress.best_score))
 
 
 func set_language(locale: String) -> void:
 	progress.set_preferences(locale, progress.sound_enabled, progress.haptics_enabled)
-	_apply_preferences()
+	PreferenceRules.apply(progress, pickup_feedback, audio, hud)
 
 
 func _set_option(enabled: bool, option: String) -> void:
 	PreferenceRules.set_option(progress, option, enabled)
-	_apply_preferences()
-
-
-func _apply_preferences() -> void:
 	PreferenceRules.apply(progress, pickup_feedback, audio, hud)
 
 
-## Ends the drive: a crash ("car" or "sheep") or an empty tank ("fuel").
+## Ends the drive: a crash ("car" or "sheep") or an empty tank ("fuel"). Far enough along,
+## once per drive, with enough in the wallet, a second chance is offered first.
 func _end_run(kind: String) -> void:
 	if state != RunState.PLAYING:
 		return
-	state = RunState.GAME_OVER
 	world.set_driving(false)
 	pickup_feedback.stop()
 	audio.set_music_playing(false)
+	_end_kind = kind
+	if revival.can_offer(_revived, distance_metres, progress.wallet, score):
+		state = RunState.SECOND_CHANCE
+		var price := revival.price_for(score)
+		hud.offer_second_chance(price, progress.wallet, revival.decide_seconds)
+	else:
+		_finish_run()
+
+
+## The second-chance card: pay from the wallet and drive on, or see the results.
+func choose_second_chance(accepted: bool) -> void:
+	if state != RunState.SECOND_CHANCE:
+		return
+	if accepted and progress.spend(revival.price_for(score), func() -> void: pass):
+		_revived = true
+		state = RunState.PLAYING
+		world.revive(revival.refuel_share, revival.grace_metres)
+		hud.resume_run()
+		hud.show_feedback("revived")
+		audio.set_music_playing(true)
+		return
+	_finish_run()
+
+
+func _finish_run() -> void:
+	state = RunState.GAME_OVER
 	var notes := som_collected + dollars_collected
 	var run := DailyTasks.summary(notes, near_misses, distance_metres, score, refuels)
-	var booked := RunRecords.finish(run, daily, achievements, progress)
+	var booked := RunRecords.finish(run, daily, achievements, progress, rivals)
 	hud.set_best(progress.best_score, booked.new_best, progress.has_unsaved_changes)
 	hud.set_garage(garage, GarageRules.view(garage, progress, car))
 	_show_lists()
-	hud.show_game_over(distance_metres, kind, score, progress.wallet, booked.tasks, booked.unlocked)
+	hud.show_game_over(distance_metres, _end_kind, score, progress.wallet, booked)

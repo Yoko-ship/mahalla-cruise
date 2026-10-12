@@ -19,7 +19,7 @@ func _run() -> void:
 	_test_hidden_saved_car()
 	for locale in ProgressData.LANGUAGES:
 		await _test_layout(locale)
-	_check(GARAGE.available().size() == 4, "Tests never remove artwork from the shared roster")
+	_check(GARAGE.available().size() == 7, "Tests never remove artwork from the shared roster")
 	_check(is_equal_approx(GARAGE.cars[1].settings.steering_speed, 780.0), "Car tuning unchanged")
 	_cleanup()
 	await create_timer(0.4).timeout
@@ -35,7 +35,9 @@ func _test_default_roster() -> void:
 	_check(game.hud.menu.garage_button.visible, "The start screen offers the garage")
 	await _click(game.hud.menu.garage_button)
 	_check(game.hud.garage_menu.visible and not game.hud.menu.visible, "Garage opens from start")
-	_check(game.hud.garage_menu.rows.get_child_count() == 4, "All four illustrated cars are listed")
+	_check(
+		game.hud.garage_menu.rows.get_child_count() == 7, "All seven illustrated cars are listed"
+	)
 	_check(not game.hud.garage_menu.note.visible, "No coming-soon note for a complete roster")
 	_check(game.hud.garage_menu.row_for("matiz").action.disabled, "An empty wallet cannot buy cars")
 	var row := game.hud.garage_menu.row_for("damas")
@@ -59,7 +61,7 @@ func _test_purchase_flow() -> void:
 	game.open_garage()
 	var menu := game.hud.garage_menu
 	_check(
-		menu.rows.get_child_count() == 4 and not menu.note.visible, "Illustrated cars are listed"
+		menu.rows.get_child_count() == 7 and not menu.note.visible, "Illustrated cars are listed"
 	)
 	_check(not menu.row_for("matiz").action.disabled, "Affordable cars can be bought")
 	_check(menu.row_for("cobalt").action.disabled, "Expensive cars wait for more points")
@@ -87,13 +89,14 @@ func _test_purchase_flow() -> void:
 	game.advance(1.0)
 	var expected := game.road_settings.scroll_speed * 0.95 / game.road_settings.pixels_per_metre
 	_check(is_equal_approx(game.distance_metres, expected), "The Matiz travels at its own speed")
-	game.score = 40
+	# Below the first mahalla rival (25); rival rewards are covered by rival_test.
+	game.score = 20
 	# Streak payouts are covered by streak_test; keep this wallet about run points only.
 	game.daily.state.streak_paid = true
 	_crash(game)
-	_check(game.progress.wallet == 140, "Finishing a drive pays into the wallet")
+	_check(game.progress.wallet == 120, "Finishing a drive pays into the wallet")
 	_check(
-		game.hud.game_over_panel.wallet_result.text == "Wallet +40 · 140 pts",
+		game.hud.game_over_panel.wallet_result.text.begins_with("Wallet +20 · 120 pts"),
 		"Results show the earnings"
 	)
 	await _click(game.hud.game_over_panel.garage_button)
@@ -103,7 +106,7 @@ func _test_purchase_flow() -> void:
 	_check(menu.visible and not game.hud.game_over_panel.visible, "The garage replaces results")
 	_check(not game.world.player.visible, "The road car waits for Play")
 	game.garage_action("car", "damas")
-	_check(game.car.id == "damas" and game.progress.wallet == 140, "Switching owned cars is free")
+	_check(game.car.id == "damas" and game.progress.wallet == 120, "Switching owned cars is free")
 	await _click(menu.back_button)
 	await _click(game.hud.menu.primary_button)
 	_check(game.state == CruiseGame.RunState.PLAYING, "Play starts after visiting the garage")
@@ -154,6 +157,11 @@ func _test_layout(locale: String) -> void:
 	await _settle()
 	var card := game.hud.garage_menu.get_node("Center/Card") as Control
 	_check(Rect2(0, 0, 432, 768).encloses(card.get_global_rect()), "Garage fits: " + locale)
+	var scroll := game.hud.garage_menu.scroll
+	_check(
+		card.get_global_rect().encloses(scroll.get_global_rect()), "The car list fits: " + locale
+	)
+	_check(scroll.get_v_scroll_bar().max_value > scroll.size.y, "Seven cars scroll: " + locale)
 	for row: GarageRow in game.hud.garage_menu.rows.get_children():
 		_check(row.action.size.y >= 48, "Car actions are touch-sized: " + locale)
 		_check(

@@ -120,7 +120,7 @@ func _test_shield() -> void:
 	game = _new_game(true)
 	_grab(game, "shield")
 	game.world.traffic.sheep_crossing.configure(game.road_settings, SHEEP)
-	game.world.traffic.set_distance(300.0)
+	game.world.traffic.set_distance(SHEEP.first_crossing_metres + 50.0)
 	game.world.traffic.advance(1.0, Rect2(-5000, -5000, 1, 1))
 	var sheep: Sheep = game.world.traffic.sheep_crossing.flock[0]
 	sheep.position = game.world.player.position - Vector2(0, 40)

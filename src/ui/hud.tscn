@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://src/ui/hud.gd" id="1"]
 
@@ -15,6 +15,8 @@
 [ext_resource type="Script" path="res://src/ui/speedometer.gd" id="12"]
 [ext_resource type="Script" path="res://src/ui/ride_chip.gd" id="13"]
 [ext_resource type="PackedScene" path="res://src/market/market_menu.tscn" id="14"]
+[ext_resource type="PackedScene" path="res://src/revival/second_chance_panel.tscn" id="15"]
+[ext_resource type="PackedScene" path="res://src/wheel/wheel_menu.tscn" id="16"]
 
 [sub_resource type="StyleBoxFlat" id="CardStyle"]
 bg_color = Color(0.12549, 0.243137, 0.219608, 1)
@@ -376,9 +378,14 @@ theme_override_styles/focus = SubResource("ButtonFocus")
 text = "restart"
 color = Color(0.12549, 0.243137, 0.219608, 1)
 
-[node name="Garage" type="Button" parent="GameOver/Card/Margin/Content"]
+[node name="Buttons" type="HBoxContainer" parent="GameOver/Card/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Garage" type="Button" parent="GameOver/Card/Margin/Content/Buttons"]
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.91, 0.64, 1)
 theme_override_colors/font_hover_color = Color(1, 0.96, 0.85, 1)
 theme_override_colors/font_pressed_color = Color(1, 0.96, 0.85, 1)
@@ -390,6 +397,23 @@ theme_override_styles/pressed = SubResource("SecondaryStyle")
 theme_override_styles/focus = SubResource("ButtonFocus")
 text = "garage"
 
+[node name="Share" type="Button" parent="GameOver/Card/Margin/Content/Buttons"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.91, 0.64, 1)
+theme_override_colors/font_hover_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.96, 0.85, 1)
+theme_override_colors/font_focus_color = Color(1, 0.91, 0.64, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("SecondaryStyle")
+theme_override_styles/hover = SubResource("SecondaryStyle")
+theme_override_styles/pressed = SubResource("SecondaryStyle")
+theme_override_styles/focus = SubResource("ButtonFocus")
+text = "share"
+
+[node name="SecondChance" parent="." instance=ExtResource("15")]
+
 [node name="RunMenu" parent="." instance=ExtResource("2")]
 
 [node name="GarageMenu" parent="." instance=ExtResource("4")]
@@ -399,3 +423,5 @@ visible = false
 visible = false
 
 [node name="MarketMenu" parent="." instance=ExtResource("14")]
+
+[node name="WheelMenu" parent="." instance=ExtResource("16")]

@@ -17,6 +17,10 @@ signal garage_action(action: String, id: String)
 signal music_toggled(enabled: bool)
 signal horn_pressed
 signal brake_changed(held: bool)
+## The second-chance card was answered (or ran out of time: declined).
+signal second_chance_chosen(accepted: bool)
+## A result to share to Telegram, with the configured link appended.
+signal share_requested(text: String)
 
 const TRANSLATIONS: Array[Translation] = [
 	preload("res://src/ui/text_uz.tres"),
@@ -40,6 +44,8 @@ var _music: bool = true
 @onready var garage_menu: GarageMenu = $GarageMenu
 @onready var daily_menu: DailyMenu = $DailyMenu
 @onready var market_menu: MarketMenu = $MarketMenu
+@onready var second_chance: SecondChancePanel = $SecondChance
+@onready var wheel_menu: WheelMenu = $WheelMenu
 
 
 func _ready() -> void:
@@ -48,6 +54,11 @@ func _ready() -> void:
 		TranslationServer.add_translation(translation)
 	game_over_panel.restart_pressed.connect(func() -> void: restart_requested.emit())
 	game_over_panel.garage_pressed.connect(func() -> void: garage_requested.emit())
+	game_over_panel.share_pressed.connect(
+		func(text: String) -> void:
+			var link := settings.share_link
+			share_requested.emit(text if link.is_empty() else text + "\n" + link)
+	)
 	menu.primary_pressed.connect(_on_menu_primary)
 	drive.pause_pressed.connect(func() -> void: pause_requested.emit())
 	drive.horn_pressed.connect(func() -> void: horn_pressed.emit())
@@ -58,6 +69,9 @@ func _ready() -> void:
 	menu.music_toggled.connect(func(enabled: bool) -> void: music_toggled.emit(enabled))
 	menu.garage_pressed.connect(func() -> void: garage_requested.emit())
 	menu.tasks_pressed.connect(_show_tasks)
+	menu.wheel_pressed.connect(_show_wheel)
+	wheel_menu.action_chosen.connect(garage_action.emit)
+	wheel_menu.closed.connect(func() -> void: menu.show_start(_best))
 	garage_menu.action_chosen.connect(garage_action.emit)
 	market_menu.action_chosen.connect(garage_action.emit)
 	menu.route_chosen.connect(func(id: String) -> void: garage_action.emit("route", id))
@@ -65,6 +79,7 @@ func _ready() -> void:
 	market_menu.closed.connect(garage_menu.open)
 	garage_menu.closed.connect(func() -> void: menu.show_start(_best))
 	daily_menu.closed.connect(func() -> void: menu.show_start(_best))
+	second_chance.chosen.connect(second_chance_chosen.emit)
 
 
 func set_playfield_offset(offset: Vector2) -> void:
@@ -81,6 +96,7 @@ func set_garage(catalogue: GarageCatalogue, view: Dictionary) -> void:
 	market_menu.set_state(catalogue, view)
 	menu.set_car(catalogue.find(view.selected).texture, view.colors[view.selected])
 	menu.set_garage(catalogue.routes, view)
+	wheel_menu.set_state(catalogue.wheel, view.wheel)
 
 
 func show_garage() -> void:
@@ -89,13 +105,21 @@ func show_garage() -> void:
 	garage_menu.open()
 
 
-func set_daily(entries: Array[Dictionary], achievements: Array[Dictionary] = []) -> void:
-	daily_menu.set_entries(entries, achievements)
+func set_daily(
+	entries: Array[Dictionary], achievements: Array[Dictionary] = [], rivals: Array[Dictionary] = []
+) -> void:
+	daily_menu.set_entries(entries, achievements, rivals)
 
 
 func _show_market() -> void:
 	garage_menu.hide()
 	market_menu.open()
+
+
+func _show_wheel() -> void:
+	drive.set_active(false)
+	menu.close()
+	wheel_menu.open()
 
 
 func _show_tasks() -> void:
@@ -140,17 +164,36 @@ func _on_menu_primary() -> void:
 func _unhandled_key_input(event: InputEvent) -> void:
 	if not event.is_action_pressed("ui_cancel") or event.is_echo():
 		return
-	if market_menu.visible:
+	if not _close_top_menu():
+		if menu.visible and menu.is_pause:
+			resume_requested.emit()
+		elif not menu.visible and not _game_over:
+			pause_requested.emit()
+	get_viewport().set_input_as_handled()
+
+
+## Android Back closes the open screen (or declines a second chance). Pausing an active
+## drive on Back stays with main, so this never resumes or pauses by itself.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_GO_BACK_REQUEST and is_node_ready():
+		_close_top_menu()
+
+
+## Closes the topmost screen over the start menu or results; false when none is open.
+func _close_top_menu() -> bool:
+	if second_chance.visible:
+		second_chance.decline()
+	elif wheel_menu.visible:
+		wheel_menu.close()
+	elif market_menu.visible:
 		market_menu.close()
 	elif garage_menu.visible:
 		garage_menu.close()
 	elif daily_menu.visible:
 		daily_menu.close()
-	elif menu.visible and menu.is_pause:
-		resume_requested.emit()
-	elif not menu.visible and not _game_over:
-		pause_requested.emit()
-	get_viewport().set_input_as_handled()
+	else:
+		return false
+	return true
 
 
 ## delta advances the first-drive hint; main passes it only while driving.
@@ -175,6 +218,8 @@ func refresh_text() -> void:
 	garage_menu.refresh_text()
 	market_menu.refresh_text()
 	daily_menu.refresh_text()
+	second_chance.refresh_text()
+	wheel_menu.refresh_text()
 	menu.set_options(_sound, _haptics, _unsaved, _music)
 
 
@@ -205,24 +250,23 @@ func show_feedback(text_key: String, values: Array = []) -> void:
 		drive.show_text(tr(text_key) % values if not values.is_empty() else tr(text_key))
 
 
-func set_power_ups(view: Dictionary) -> void:
-	drive.set_power_ups(view)
-
-
-## Fuel, speed and camera limit, and taxi ride, every frame (see DriveWorld).
+## Fuel, speed and camera limit, taxi ride, and power-ups, every frame (see DriveWorld).
 func set_dashboard(view: Dictionary) -> void:
 	drive.set_dashboard(view)
 
 
+## The drive has ended: offer to pay price from the wallet to drive on, for seconds.
+func offer_second_chance(price: int, wallet: int, seconds: float) -> void:
+	drive.dismiss_text()
+	drive.set_active(false)
+	second_chance.open(price, wallet, seconds)
+
+
+## booked: what RunRecords.finish() returned (task, achievement, and rival rewards).
 func show_game_over(
-	metres: float,
-	crash_kind: String,
-	earned: int,
-	wallet: int,
-	task_rewards: Array[int],
-	achievement_rewards: Array[int] = []
+	metres: float, crash_kind: String, earned: int, wallet: int, booked: Dictionary = {}
 ) -> void:
-	game_over_panel.set_wallet(earned, wallet, task_rewards, achievement_rewards)
+	game_over_panel.set_wallet(earned, wallet, booked)
 	_game_over = true
 	drive.dismiss_text()
 	drive.set_active(false)

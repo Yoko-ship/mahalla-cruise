@@ -1,7 +1,8 @@
 extends SceneTree
 ## Build temporary garage sprites by resizing the existing painted silver sedan.
 ## Body color comes from the runtime paint shader, so the sprites stay neutral silver.
-## Testing art only: shapes are the traffic sedan, not real Matiz, Cobalt, or Gentra bodies.
+## Testing art only: shapes are the traffic sedan, not real Matiz, Cobalt, Gentra, Spark,
+## Nexia, or Malibu bodies.
 
 const SOURCE: String = "res://assets/cars/vehicles_aligned.png"
 const OUTPUT: String = "res://assets/cars/placeholder_roster.png"
@@ -16,6 +17,9 @@ const CARS: Array[Dictionary] = [
 	{"id": "matiz", "size": Vector2i(400, 600)},
 	{"id": "cobalt", "size": Vector2i(440, 780)},
 	{"id": "gentra", "size": Vector2i(460, 800)},
+	{"id": "spark", "size": Vector2i(400, 620)},
+	{"id": "nexia", "size": Vector2i(440, 740)},
+	{"id": "malibu", "size": Vector2i(480, 840)},
 ]
 
 

@@ -16,7 +16,8 @@ var _view: Dictionary = {"owned": [], "selected": "", "wallet": 0, "paint": "", 
 @onready var paints: PaintPicker = $Center/Card/Margin/Content/Paints
 @onready var upgrade_label: Label = $Center/Card/Margin/Content/UpgradeLabel
 @onready var upgrades: UpgradePicker = $Center/Card/Margin/Content/Upgrades
-@onready var rows: VBoxContainer = $Center/Card/Margin/Content/Rows
+@onready var scroll: ScrollContainer = $Center/Card/Margin/Content/Scroll
+@onready var rows: VBoxContainer = $Center/Card/Margin/Content/Scroll/Rows
 @onready var note: Label = $Center/Card/Margin/Content/Note
 @onready var back_button: Button = $Center/Card/Margin/Content/Buttons/Back
 @onready var market_button: Button = $Center/Card/Margin/Content/Buttons/Market
@@ -41,10 +42,14 @@ func set_state(catalogue: GarageCatalogue, view: Dictionary) -> void:
 	refresh_text()
 
 
+## The car list scrolls (about four rows show); it opens on the selected car.
 func open() -> void:
 	refresh_text()
 	show()
 	back_button.grab_focus()
+	var selected := row_for(_view.selected)
+	if selected != null:
+		scroll.ensure_control_visible.call_deferred(selected)
 
 
 func close() -> void:

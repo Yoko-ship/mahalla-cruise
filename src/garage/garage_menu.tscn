@@ -93,8 +93,15 @@ layout_mode = 2
 theme_override_constants/separation = 4
 script = ExtResource("3")
 
-[node name="Rows" type="VBoxContainer" parent="Center/Card/Margin/Content"]
+[node name="Scroll" type="ScrollContainer" parent="Center/Card/Margin/Content"]
+custom_minimum_size = Vector2(0, 370)
 layout_mode = 2
+horizontal_scroll_mode = 0
+scroll_deadzone = 8
+
+[node name="Rows" type="VBoxContainer" parent="Center/Card/Margin/Content/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
 [node name="Note" type="Label" parent="Center/Card/Margin/Content"]

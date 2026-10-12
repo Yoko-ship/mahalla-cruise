@@ -121,6 +121,14 @@ func _new_game() -> CruiseGame:
 	var taxi := game.get_node("World/Taxi") as TaxiController
 	taxi.settings = taxi.settings.duplicate() as TaxiSettings
 	taxi.settings.first_order_metres = 1.0e9
+	# GAI posts would add their own notices around nightfall.
+	var police := game.get_node("World/Police") as PoliceController
+	police.settings = police.settings.duplicate() as PoliceSettings
+	police.settings.first_metres = 1.0e9
+	# Wedding convoys would add their own sochqi money.
+	var wedding := game.get_node("World/Wedding") as WeddingController
+	wedding.settings = wedding.settings.duplicate() as WeddingSettings
+	wedding.settings.first_metres = 1.0e9
 	root.add_child(game)
 	game.set_language("en")
 	game.start_run()

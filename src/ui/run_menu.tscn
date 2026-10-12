@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://src/ui/run_menu.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/cars/vehicles_aligned.png" id="2"]
@@ -40,6 +40,18 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_left = 10
 corner_radius_bottom_right = 10
+
+[sub_resource type="StyleBoxFlat" id="GiftStyle"]
+bg_color = Color(0.85, 0.33, 0.27, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.85, 0.47, 1)
+corner_radius_top_left = 30
+corner_radius_top_right = 30
+corner_radius_bottom_left = 30
+corner_radius_bottom_right = 30
 
 [sub_resource type="AtlasTexture" id="DamasAtlas"]
 atlas = ExtResource("2")
@@ -139,6 +151,48 @@ texture_filter = 4
 texture = SubResource("DamasAtlas")
 expand_mode = 1
 stretch_mode = 5
+mouse_filter = 2
+
+[node name="Gift" type="Button" parent="Center/Card/Margin/Content/Car"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -74.0
+offset_top = -30.0
+offset_right = -4.0
+offset_bottom = 30.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.97, 0.88, 1)
+theme_override_colors/font_hover_color = Color(1, 0.97, 0.88, 1)
+theme_override_colors/font_pressed_color = Color(1, 0.97, 0.88, 1)
+theme_override_colors/font_focus_color = Color(1, 0.97, 0.88, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("GiftStyle")
+theme_override_styles/hover = SubResource("GiftStyle")
+theme_override_styles/pressed = SubResource("GiftStyle")
+theme_override_styles/focus = SubResource("ButtonFocus")
+text = "wheel_button"
+
+[node name="Boost" type="Label" parent="Center/Card/Margin/Content/Car"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 2.0
+offset_top = -24.0
+offset_right = 84.0
+offset_bottom = 24.0
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.47, 1)
+theme_override_font_sizes/font_size = 13
+text = "boost_ready"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
 mouse_filter = 2
 
 [node name="Plate" type="Control" parent="Center/Card/Margin/Content"]

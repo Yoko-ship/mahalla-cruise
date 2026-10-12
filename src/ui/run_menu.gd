@@ -5,6 +5,7 @@ extends Control
 signal primary_pressed
 signal garage_pressed
 signal tasks_pressed
+signal wheel_pressed
 signal route_chosen(id: String)
 signal language_selected(locale: String)
 signal sound_toggled(enabled: bool)
@@ -15,6 +16,9 @@ var is_pause: bool = false
 var _best: int = 0
 var _points: int = 0
 var _metres: float = 0.0
+var _wheel: Dictionary = {"available": false, "boost": ""}
+var _holiday: String = ""
+var _pulse: float = 0.0
 
 @onready var title: Label = $Center/Card/Margin/Content/Title
 @onready var subtitle: Label = $Center/Card/Margin/Content/Subtitle
@@ -25,6 +29,8 @@ var _metres: float = 0.0
 @onready var primary_button: Button = $Center/Card/Margin/Content/Actions/Primary
 @onready var garage_button: Button = $Center/Card/Margin/Content/Actions/Garage
 @onready var tasks_button: Button = $Center/Card/Margin/Content/Actions/Tasks
+@onready var gift_button: Button = $Center/Card/Margin/Content/Car/Gift
+@onready var boost_label: Label = $Center/Card/Margin/Content/Car/Boost
 @onready var preferences: MenuPreferences = $Center/Card/Margin/Content/Preferences
 @onready var instructions: Label = $Center/Card/Margin/Content/Instructions
 
@@ -33,6 +39,7 @@ func _ready() -> void:
 	primary_button.pressed.connect(func() -> void: primary_pressed.emit())
 	garage_button.pressed.connect(func() -> void: garage_pressed.emit())
 	tasks_button.pressed.connect(func() -> void: tasks_pressed.emit())
+	gift_button.pressed.connect(func() -> void: wheel_pressed.emit())
 	route_picker.route_chosen.connect(func(id: String) -> void: route_chosen.emit(id))
 	# Play waits while a locked city is shown; Resume never depends on it.
 	route_picker.browsing_locked.connect(
@@ -66,7 +73,8 @@ func show_pause(points: int, metres: float) -> void:
 func refresh_text() -> void:
 	title.text = tr("paused") if is_pause else "Mahalla\nCruise"
 	title.add_theme_font_size_override("font_size", 34 if is_pause else 42)
-	subtitle.text = tr("pause_message") if is_pause else tr("tagline")
+	var greeting := "holiday_" + _holiday if not _holiday.is_empty() else "tagline"
+	subtitle.text = tr("pause_message") if is_pause else tr(greeting)
 	car.visible = not is_pause
 	plate_view.visible = not is_pause
 	route_picker.visible = not is_pause
@@ -78,6 +86,13 @@ func refresh_text() -> void:
 	garage_button.visible = not is_pause
 	tasks_button.text = tr("tasks")
 	tasks_button.visible = not is_pause
+	gift_button.text = tr("wheel_button")
+	gift_button.visible = not is_pause
+	var boost := str(_wheel.get("boost", ""))
+	boost_label.visible = not is_pause and not boost.is_empty()
+	boost_label.text = tr("boost_ready") % tr("boost_" + boost) if not boost.is_empty() else ""
+	set_process(gift_button.visible and _wheel.get("available", false))
+	gift_button.modulate = Color.WHITE if _wheel.get("available", false) else Color(1, 1, 1, 0.55)
 	instructions.text = tr("hint").replace("\\n", "\n")
 
 
@@ -95,6 +110,16 @@ func set_garage(routes: Array[RouteDefinition], view: Dictionary) -> void:
 		route_picker.setup(routes)
 	route_picker.refresh(view.routes, view.route, view.wallet)
 	plate_view.code = view.plate
+	_wheel = view.get("wheel", _wheel)
+	_holiday = view.get("holiday", "")
+	refresh_text()
+
+
+## While today's spin is free, the gift button gently pulses.
+func _process(delta: float) -> void:
+	_pulse = fposmod(_pulse + delta * 3.0, TAU)
+	gift_button.scale = Vector2.ONE * (1.0 + 0.06 * sin(_pulse))
+	gift_button.pivot_offset = gift_button.size * 0.5
 
 
 func set_options(sound: bool, haptics: bool, unsaved: bool, music: bool = true) -> void:

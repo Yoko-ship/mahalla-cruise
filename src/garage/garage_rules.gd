@@ -1,11 +1,13 @@
 class_name GarageRules
 extends RefCounted
 ## Garage purchase and selection rules. Main passes the catalogue and the store explicitly.
-## apply() is the single entry for every shop action (garage, market, plates, routes).
+## apply() is the single entry for every shop action (garage, market, plates, routes, and
+## the daily lucky wheel).
 
 
 ## action: "car", "paint", "upgrade", "route", "plate" (choose or buy), "used" (buy a
-## market car), or "repair" (the current car). Returns whether anything changed.
+## market car), "repair" (the current car), or "wheel" (today's free spin). Returns
+## whether anything changed.
 static func apply(
 	action: String,
 	id: String,
@@ -30,6 +32,8 @@ static func apply(
 			return MarketRules.buy_used(catalogue, store, id, day)
 		"repair":
 			return MarketRules.repair(catalogue, store, car)
+		"wheel":
+			return WheelRules.spin(catalogue.wheel, store, day, randf())
 	return false
 
 
@@ -132,4 +136,6 @@ static func view(
 		"repair_price": MarketRules.repair_price(catalogue, store, car),
 		"routes": store.owned_routes.duplicate(),
 		"route": route.id,
+		"wheel": WheelRules.view(store, day),
+		"holiday": WeatherRules.holiday(day),
 	}

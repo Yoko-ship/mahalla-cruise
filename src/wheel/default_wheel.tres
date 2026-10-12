@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="WheelSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/wheel/wheel_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+kinds = Array[String](["points", "magnet", "points", "double", "points", "shield", "points", "points"])
+amounts = Array[int]([25, 0, 50, 0, 100, 0, 200, 500])
+weights = Array[float]([20.0, 14.0, 18.0, 12.0, 12.0, 10.0, 9.0, 5.0])
+colors = Array[Color]([Color(0.85, 0.33, 0.27, 1), Color(0.16, 0.45, 0.62, 1), Color(0.93, 0.74, 0.3, 1), Color(0.2, 0.52, 0.38, 1), Color(0.85, 0.33, 0.27, 1), Color(0.16, 0.45, 0.62, 1), Color(0.93, 0.74, 0.3, 1), Color(0.55, 0.27, 0.6, 1)])
+spin_seconds = 3.2
+spin_turns = 5

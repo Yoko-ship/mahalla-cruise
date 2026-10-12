@@ -19,14 +19,22 @@ local collision coordinates stay unchanged; taller screens reveal more road.
 
 | Location | Responsibility |
 | --- | --- |
-| `src/main.gd` and `main.tscn` | Own run state, score, and progress; route signals between the world, HUD, and features. |
-| `src/world/` | `DriveWorld` groups everything on the street, advances it with shared travel, and signals road events. |
+| `src/main.gd` and `main.tscn` | Own the session (start, pause, second chance, results), progress, and the garage; route signals between the world, HUD, and features. |
+| `src/drive_scoring.gd` | `DriveScoring`, main's base class: run state, distance, and the counters that road events change during a drive. |
+| `src/world/` | `DriveWorld` groups everything on the street and advances it with shared travel; its base `DriveWorldEvents` owns the child references, turns child signals into world signals, and triggers effects and shake. |
+| `src/effects/` | `RoadEffects` (z 5): point popups and crash dust, in real time. |
+| `src/share/` | `ShareRules`: Telegram app and web share links; opens nothing in headless runs. |
 | `src/fuel/` | Own the methane tank, METAN stations, and refuelling. |
 | `src/hazards/` | Spawn potholes and road works and report point penalties. |
 | `src/night/` | Draw nightfall, headlights, and street lamps; own the night bonus. |
 | `src/cameras/` | Spawn speed-camera gantries, check speed under them, and report fines. |
 | `src/taxi/` | Own taxi hails, rides, drop-off bays, and fares on the right curb. |
 | `src/police/` | Spawn YHXB (GAI) posts on the left curb; report stops (reward) and fines. |
+| `src/wedding/` | Run toʻy korteji convoys: hold traffic, cruise ahead in one lane, throw sochqi notes. |
+| `src/revival/` | Second-chance tuning and the second-chance card (a HUD child). |
+| `src/rivals/` | The mahalla rating: fixed neighbourhood bests, places, and one-time passing rewards. |
+| `src/wheel/` | The daily lucky wheel: prize table, spin rules, drive boosts, and the wheel screen (a HUD child). |
+| `src/weather/` | Pick weather and holidays by date; draw weather particles over the street (z 4). |
 | `src/routes/` | Define city routes, unlock and choose them, draw sidewalk landmarks, and the start-screen picker. |
 | `src/plates/` | Uzbek number plates: rarity tiers, the daily auction, and the plate drawing. |
 | `src/market/` | The avtobozor: daily used cars, condition, the workshop, and the market screen. |
@@ -270,9 +278,11 @@ dashboard. It asks the shield before reporting a crash and skips the rest of
 the frame after one. Main never reaches into world children; tests do, via
 `game.world.<child>`.
 
-Inside one frame: traffic first (crash priority), then pickups (traffic rows and
-hazards as obstacles), hazards (traffic rows, notes, and power-ups to avoid), fuel,
-and night. Sheep wait for notes and hazards near the top; new cars wait for hazards.
+Inside one frame: traffic first (crash priority), then the wedding convoy, pickups
+(traffic rows, the convoy lane, and hazards as obstacles), hazards (the same rows,
+notes, and power-ups to avoid), fuel,
+the wedding convoy, and night. Sheep wait for notes and hazards near the top; new cars
+wait for hazards.
 `RoadPath.is_clear()` (in `src/road/`) is the shared path check for money,
 power-ups, and road-works barriers.
 
@@ -280,9 +290,109 @@ The HUD's drive-time controls live in `DriveOverlay` (`$HUD/Drive`): title,
 distance, points, record, pause, horn, power-up chips, `FuelGauge`, feedback popup,
 and the first-drive hint. The HUD remains the facade main talks to (20 public
 methods); `show_feedback(text_key, values)` replaces the separate close-call and
-power-up popups. Shop actions arrive as one `garage_action` signal and finished
-drives are booked by `RunRecords.finish()` (daily tasks, achievements, wallet, record
-in one write), so `main.gd` is 279 lines; `hud.gd` is 238.
+power-up popups, and power-up chips arrive with the per-frame dashboard. Shop actions
+arrive as one `garage_action` signal and finished drives are booked by
+`RunRecords.finish()` (daily tasks, achievements, mahalla rivals, wallet, record in one
+write). Scoring handlers live in `DriveScoring`, main's base class, so `main.gd` is 230
+lines and `drive_scoring.gd` 102 (243 for main after the wheel boost and weather);
+`hud.gd` is 260. The world was split the same way: `drive_world_events.gd` (183 lines)
+holds the children, signal translation, effects, and shake; `drive_world.gd` (160) keeps
+configuring and the per-frame order.
+
+Effects: money popups come from `PickupController.collected_at(spot, points)` with the
+same route and night bonus as the payment; close calls pop above the car in blue; all
+road points pass through `_road_points()`, which pops red or green above the car. A real
+crash adds a dust puff and a 7 px shake for 0.35 s; potholes, road works, and shield
+saves shake 3 px. The shake moves the world node only (HUD unaffected) and settles in
+real time; `configure()` clears effects and shake for every drive.
+
+## Wedding Convoys
+
+`WeddingController` (`src/wedding/`, `default_wedding.tres`, z 2 like traffic) schedules
+a toʻy korteji from 700 m, every 1,100–1,600 m. Once one is due, `wants_road()` makes
+the world set `traffic.hold_spawns`: no new cars or sheep. The convoy starts only when
+`traffic.is_clear()`, enters above the screen in one lane, slows to a cruise position
+(last car at y 250, far above the player, so it can never touch the car), and stays
+there for 150 m of travel while it emits `tossed(spot, face_value)` handfuls behind
+its last car. The world drops each through `PickupController.drop_note()` (outside the
+normal spawn rules), so sochqi pays like any note (×2, route, and night bonuses). Notes
+that would land on a hazard or power-up are skipped. While the convoy is on the road,
+`blocking_bounds()` reports its whole lane, so normal money, power-ups, and road works
+spawn in the other lanes. It then drives off upward and the hold is released.
+`arrived` becomes the world's `road_event("wedding", "karnay")`; main shows the notice
+and plays the generated karnay fanfare. `WeddingCar` draws ribbons, a garland, balloons
+on the lead car, and rising music notes over the shared sedan sprite (temporary art).
+
+## Second Chance
+
+`RevivalSettings` (`src/revival/default_revival.tres`, exported on main) sets the price
+(150 plus 25% of the drive's points so far, via `price_for(score)`), the minimum distance
+(300 m), the decision time (7 s), the refuel share (35%),
+and the grace (45 m). When the world reports a crash or an empty tank, main stops the
+drive and asks `can_offer()` (not yet revived this drive, far enough, wallet ≥ price).
+If so, the state becomes `SECOND_CHANCE` and the HUD's `SecondChancePanel` shows the
+price, wallet, and a countdown bar; restart, pause, and resize wait. Paying goes through
+`LocalProgressStore.spend()`, then `DriveWorld.revive()` removes the contacted car or
+sheep, tops up an empty tank, grants pickup grace (the shield's grace mechanism), and
+resumes driving. Declining, Back, or the timer runs `_finish_run()`, which books the
+drive exactly once.
+
+## Mahalla Rating
+
+`RivalLadder` (`src/rivals/default_rivals.tres`, exported on main) lists fifteen drivers
+with fixed best scores and rewards, easiest first. Passed drivers are worked out from
+the saved best score, so no save field is needed: `RunRecords.finish()` compares the
+old best with the drive's score, stages the rewards of newly passed drivers with
+`stage_rewards()` before the single `complete_run()` write, and returns the passed names
+and the next driver for the results. `entries(best)` gives the tasks screen up to six
+rows around the player (three ahead, the player, two passed); `DailyMenu` cycles daily
+tasks → achievements → rating.
+
+## Lucky Wheel
+
+`WheelSettings` (`src/wheel/default_wheel.tres`, linked from the garage catalogue)
+holds eight segments: kind ("points" or a power-up), amount, weight, and colour. The
+wheel is a shop action: the start card's gift button opens `WheelMenu`; Spin emits
+`garage_action("wheel")`, and `GarageRules.apply()` calls `WheelRules.spin()`, which
+saves the day, the segment, and the prize (points into the wallet, or `next_boost`) in
+one write before anything turns. The new garage view (`view.wheel`: available, prize,
+boost) reaches the menu, which eases the drawn `WheelView` onto the prize. When a drive
+starts (Play or Drive again), main takes the waiting power-up with
+`WheelRules.take_boost()` and `DriveWorld.start_power_up()` activates it as if collected.
+The save keeps `wheel_day`, `wheel_prize`, and `boost` in the garage section; invalid or
+missing values fall back individually.
+
+## Weather and Holidays
+
+`WeatherRules.holiday(day)` names Navruz, Independence Day, or New Year by date, and
+`pick(settings, day, roll)` chooses the drive's weather from the season (holidays set
+their own). Main asks the world to `choose_weather()` at startup and for every new
+drive; `WeatherView` (z 4, above night) animates rain with a grey tint, snow, leaves,
+blossom, or flag-coloured confetti in real time, plus a little drift with road travel.
+Weather is cosmetic only, so every test stays deterministic on any date. The holiday
+reaches the start card through `GarageRules.view()` and replaces the tagline.
+
+## Sharing and the Larger Roster
+
+The results card's Share button builds a localized message (score and distance); the HUD
+appends `HUDSettings.share_link` when set and emits `share_requested`, which main
+connects to `ShareRules.open()`: `tg://msg?text=…`, or `https://t.me/share/url?url=…` if
+the app cannot be opened. Headless runs only build the address, so tests never open
+anything. The roster now has seven cars in price order (Spark, Nexia, and Malibu use the
+placeholder sheet regenerated by `scripts/render_placeholder_cars.gd`; earlier regions
+are unchanged). The garage car list sits in a `ScrollContainer` (about four rows) that
+opens on the selected car; every car still trades one stat for another.
+
+## Android Back and the Balance Bot
+
+Android Back reaches every node as `NOTIFICATION_WM_GO_BACK_REQUEST`. Main pauses an
+active drive; the HUD's `_close_top_menu()` closes the topmost screen (wheel, market,
+garage, tasks) or declines a second chance, and never pauses or resumes itself, so the two
+handlers cannot undo each other. Escape on desktop shares the same helper.
+
+`scripts/balance_report.gd` is a development tool, not a test: it plays the real main
+scene with a scripted steering bot and prints aggregate results. It sets the player's x
+directly at its steering speed (physics off), as the behaviour tests do.
 
 ## Braking and Speed
 

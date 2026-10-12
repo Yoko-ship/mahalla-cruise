@@ -5,6 +5,8 @@ extends Node2D
 ## Marshrutka passengers at bus stops pay their fare as soʻm notes through `collected`.
 
 signal collected(points: int, note: BanknoteDefinition)
+## Where a road note was picked up and what it paid (before route and night bonuses).
+signal collected_at(spot: Vector2, points: int)
 signal power_up_collected(kind: String)
 ## Emitted while effects run, with PowerUpEffects.view().
 signal power_ups_changed(view: Dictionary)
@@ -87,6 +89,7 @@ func advance(
 		if previous.merge(item.collection_bounds()).intersects(player_bounds):
 			_remove_item(index)
 			collected.emit(item.points * effects.multiplier(), item.denomination)
+			collected_at.emit(item.position, item.points * effects.multiplier())
 		elif item.position.y > _settings.despawn_y + _vertical_padding:
 			_remove_item(index)
 	_distance_until_spawn = maxf(0.0, _distance_until_spawn - travel_pixels)
@@ -115,6 +118,18 @@ func absorb_crash() -> bool:
 	var absorbed := effects.absorb_crash()
 	power_ups_changed.emit(effects.view())
 	return absorbed
+
+
+## A power-up that starts the drive (a lucky-wheel prize), as if it had been collected.
+func activate(kind: String) -> void:
+	effects.activate(kind)
+	power_ups_changed.emit(effects.view())
+
+
+## A second chance: crashes are absorbed for this much travel, like a broken shield's grace.
+func grant_grace(metres: float) -> void:
+	effects.grace_metres = maxf(effects.grace_metres, metres)
+	power_ups_changed.emit(effects.view())
 
 
 func _advance_power_ups(travel_pixels: float, player_bounds: Rect2) -> void:
@@ -190,6 +205,20 @@ func _try_spawn_power_up(
 	_metres_until_power_up = _random.randf_range(
 		power_up_settings.spawn_metres_min, power_up_settings.spawn_metres_max
 	)
+
+
+## Thrown money (wedding sochqi): a soʻm note of this face value at spot, outside the normal
+## spawn rules. Returns false when the catalogue has no such note.
+func drop_note(spot: Vector2, face_value: int) -> bool:
+	for note in _settings.som_notes:
+		if note.face_value == face_value:
+			var item := MONEY_SCENE.instantiate() as MoneyPickup
+			item.position = spot
+			add_child(item)
+			item.configure(note, _settings.points_for(note), _settings.collision_half_size)
+			items.append(item)
+			return true
+	return false
 
 
 func item_bounds() -> Array[Rect2]:

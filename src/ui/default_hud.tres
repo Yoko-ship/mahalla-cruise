@@ -5,3 +5,4 @@
 [resource]
 script = ExtResource("1")
 first_hint_seconds = 6.0
+share_link = ""

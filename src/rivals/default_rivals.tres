@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="RivalLadder" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/rivals/rival_ladder.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+names = Array[String](["Sardor", "Nilufar", "Jasur", "Dilnoza opa", "Bobur", "Shahzoda", "Rustam aka", "Malika", "Akmal taksist", "Gulnora opa", "Temur aka", "Usta Bahodir", "Domla Akbar", "Chempion Ravshan", "Afsona Zafar aka"])
+scores = Array[int]([25, 60, 100, 160, 240, 350, 500, 700, 950, 1300, 1800, 2500, 3500, 5000, 7500])
+rewards = Array[int]([20, 30, 40, 50, 70, 90, 120, 150, 200, 250, 350, 500, 650, 800, 1200])

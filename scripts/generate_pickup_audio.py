@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate original pickup chimes, the close-call whoosh, the pothole bump, the speed
-camera shutter, and the police whistle using only Python's stdlib."""
+camera shutter, the police whistle, and the wedding karnay using only Python's stdlib."""
 
 import math
 import random
@@ -102,6 +102,39 @@ def write_whistle(name, duration):
     write_samples(name, samples, duration)
 
 
+def write_karnay(name, duration):
+    """A wedding fanfare: a swelling karnay drone (bright brass harmonics), a nasal surnay
+    phrase above it, and doira hits on the beat."""
+    noise = random.Random(9)
+    melody = ((0.10, 587.33), (0.42, 659.25), (0.62, 783.99), (0.92, 659.25), (1.22, 880.00))
+    samples = []
+    drone_phase = 0.0
+    reed_phase = 0.0
+    low = 0.0
+    for index in range(round(duration * RATE)):
+        time = index / RATE
+        tail = max(0.0, min(1.0, (duration - time) / 0.25))
+        swell = min(1.0, time / 0.18) * tail
+        drone_phase += math.tau * (116.54 + 1.2 * math.sin(math.tau * 5.5 * time)) / RATE
+        drone = sum(math.sin(n * drone_phase) / n for n in range(1, 9))
+        frequency = melody[0][1]
+        for start, note in melody:
+            if time >= start:
+                frequency = note
+        vibrato = 1.0 + 0.012 * math.sin(math.tau * 6.5 * time)
+        reed_phase += math.tau * frequency * vibrato / RATE
+        reed = math.tanh(2.6 * math.sin(reed_phase)) + 0.3 * math.sin(3 * reed_phase)
+        reed *= min(1.0, max(0.0, time - melody[0][0]) / 0.05) * tail
+        low += 0.12 * (noise.uniform(-1.0, 1.0) - low)
+        drum = 0.0
+        for beat in range(6):
+            elapsed = time - beat * 0.3
+            if elapsed >= 0:
+                drum += math.exp(-elapsed / 0.05) * (math.sin(math.tau * 85 * elapsed) + low)
+        samples.append(0.55 * swell * drone + 0.45 * reed + 0.6 * drum)
+    write_samples(name, samples, duration)
+
+
 def write_samples(name, samples, duration):
     peak = max(abs(value) for value in samples)
     # Leave headroom for overlapping pickups; runtime volume is lower still.
@@ -127,3 +160,4 @@ if __name__ == "__main__":
     write_bump("bump.wav", 0.22)
     write_shutter("camera_flash.wav", 0.18)
     write_whistle("police_whistle.wav", 0.48)
+    write_karnay("karnay.wav", 1.8)

@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-first_crossing_metres = 250.0
+first_crossing_metres = 450.0
 crossing_metres_min = 600.0
 crossing_metres_max = 1000.0
 flock_size_min = 2

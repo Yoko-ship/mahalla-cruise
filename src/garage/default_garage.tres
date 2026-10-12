@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GarageCatalogue" load_steps=34 format=3]
+[gd_resource type="Resource" script_class="GarageCatalogue" load_steps=44 format=3]
 
 [ext_resource type="Script" path="res://src/garage/garage_catalogue.gd" id="1"]
 [ext_resource type="Script" path="res://src/garage/car_definition.gd" id="2"]
@@ -17,6 +17,10 @@
 [ext_resource type="Resource" path="res://src/plates/default_plates.tres" id="15"]
 [ext_resource type="Resource" path="res://src/market/default_market.tres" id="16"]
 [ext_resource type="Script" path="res://src/routes/route_definition.gd" id="17"]
+[ext_resource type="Resource" path="res://src/wheel/default_wheel.tres" id="18"]
+[ext_resource type="Resource" path="res://src/garage/cars/spark_car.tres" id="19"]
+[ext_resource type="Resource" path="res://src/garage/cars/nexia_car.tres" id="20"]
+[ext_resource type="Resource" path="res://src/garage/cars/malibu_car.tres" id="21"]
 
 [sub_resource type="AtlasTexture" id="DamasAtlas"]
 atlas = ExtResource("7")
@@ -33,6 +37,18 @@ region = Rect2(480, 0, 440, 780)
 [sub_resource type="AtlasTexture" id="GentraPlaceholder"]
 atlas = ExtResource("8")
 region = Rect2(960, 0, 460, 800)
+
+[sub_resource type="AtlasTexture" id="SparkPlaceholder"]
+atlas = ExtResource("8")
+region = Rect2(1460, 0, 400, 620)
+
+[sub_resource type="AtlasTexture" id="NexiaPlaceholder"]
+atlas = ExtResource("8")
+region = Rect2(1900, 0, 440, 740)
+
+[sub_resource type="AtlasTexture" id="MalibuPlaceholder"]
+atlas = ExtResource("8")
+region = Rect2(2380, 0, 480, 840)
 
 [sub_resource type="Resource" id="paint_white"]
 script = ExtResource("9")
@@ -110,6 +126,36 @@ texture = SubResource("GentraPlaceholder")
 sprite_scale = 0.1
 factory_paint = "black"
 
+[sub_resource type="Resource" id="spark"]
+script = ExtResource("2")
+id = "spark"
+display_name = "Spark"
+price = 600
+settings = ExtResource("19")
+texture = SubResource("SparkPlaceholder")
+sprite_scale = 0.1
+factory_paint = "sky"
+
+[sub_resource type="Resource" id="nexia"]
+script = ExtResource("2")
+id = "nexia"
+display_name = "Nexia"
+price = 750
+settings = ExtResource("20")
+texture = SubResource("NexiaPlaceholder")
+sprite_scale = 0.1
+factory_paint = "gold"
+
+[sub_resource type="Resource" id="malibu"]
+script = ExtResource("2")
+id = "malibu"
+display_name = "Malibu"
+price = 5000
+settings = ExtResource("21")
+texture = SubResource("MalibuPlaceholder")
+sprite_scale = 0.1
+factory_paint = "white"
+
 [sub_resource type="Resource" id="upgrade_handling"]
 script = ExtResource("10")
 id = "handling"
@@ -134,6 +180,7 @@ script = ExtResource("1")
 routes = Array[ExtResource("17")]([ExtResource("11"), ExtResource("12"), ExtResource("13"), ExtResource("14")])
 plates = ExtResource("15")
 market = ExtResource("16")
+wheel = ExtResource("18")
 upgrades = Array[ExtResource("10")]([SubResource("upgrade_handling"), SubResource("upgrade_tank"), SubResource("upgrade_suspension")])
 paints = Array[ExtResource("9")]([SubResource("paint_white"), SubResource("paint_cherry"), SubResource("paint_black"), SubResource("paint_sky"), SubResource("paint_teal"), SubResource("paint_gold")])
-cars = Array[ExtResource("2")]([SubResource("damas"), SubResource("matiz"), SubResource("cobalt"), SubResource("gentra")])
+cars = Array[ExtResource("2")]([SubResource("damas"), SubResource("matiz"), SubResource("spark"), SubResource("nexia"), SubResource("cobalt"), SubResource("gentra"), SubResource("malibu")])

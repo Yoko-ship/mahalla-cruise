@@ -94,6 +94,14 @@ func advance(travel_pixels: float, player_bounds: Rect2, seconds: float = 0.0) -
 		ran_out.emit()
 
 
+## A second chance after running dry: at least this share of the tank, and driving resumes.
+func top_up(share_of_tank: float) -> void:
+	fuel_metres = maxf(fuel_metres, capacity_metres * clampf(share_of_tank, 0.0, 1.0))
+	_empty = fuel_metres <= 0.0
+	_warned = share() < settings.low_share
+	level_changed.emit(share(), _warned)
+
+
 func _fill() -> void:
 	capacity_metres = settings.tank_metres * _capacity_scale
 	fuel_metres = capacity_metres

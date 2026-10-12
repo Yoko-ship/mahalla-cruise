@@ -26,6 +26,11 @@ var plate: String = ProgressData.DEFAULT_PLATE
 var conditions: Dictionary = {}
 var owned_routes: Array[String] = [ProgressData.DEFAULT_ROUTE]
 var route: String = ProgressData.DEFAULT_ROUTE
+## The lucky wheel: the day of the last spin, the segment it landed on, and a power-up
+## waiting for the next drive ("" when none).
+var wheel_day: String = ""
+var wheel_prize: int = -1
+var next_boost: String = ""
 ## Saved daily task state; DailyTasks validates it against today's date and its catalogue.
 var daily: Dictionary = {}
 ## Saved lifetime totals and unlocked ids; Achievements validates them.
@@ -153,6 +158,14 @@ func _stage(key: String, state: Dictionary, rewards: Array[int]) -> void:
 	_store_garage()
 
 
+## Other one-off rewards (mahalla rivals passed) for the next write.
+func stage_rewards(rewards: Array[int]) -> void:
+	for reward in rewards:
+		wallet = mini(wallet + maxi(0, reward), ProgressData.MAX_SCORE)
+	if not rewards.is_empty():
+		_store_garage()
+
+
 static func _section(document: Dictionary, key: String) -> Dictionary:
 	var saved: Variant = document.get(key, {})
 	return saved.duplicate(true) if saved is Dictionary else {}
@@ -209,6 +222,9 @@ func _apply_garage(values: Dictionary) -> void:
 	conditions = values.conditions.duplicate()
 	owned_routes.assign(values.routes)
 	route = values.route
+	wheel_day = values.wheel_day
+	wheel_prize = values.wheel_prize
+	next_boost = values.boost
 
 
 func _store_garage() -> void:
@@ -230,6 +246,9 @@ func _store_garage() -> void:
 				"conditions": conditions.duplicate(),
 				"routes": owned_routes.duplicate(),
 				"route": route,
+				"wheel_day": wheel_day,
+				"wheel_prize": wheel_prize,
+				"boost": next_boost,
 			},
 			true
 		)

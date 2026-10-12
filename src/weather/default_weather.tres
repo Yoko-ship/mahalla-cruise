@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="WeatherSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/weather/weather_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+winter_snow_chance = 0.65
+spring_rain_chance = 0.3
+autumn_rain_chance = 0.2
+autumn_leaves_chance = 0.55
+counts = {
+"blossom": 38,
+"confetti": 40,
+"leaves": 30,
+"rain": 70,
+"snow": 110
+}
+travel_drift = 0.5

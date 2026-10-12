@@ -73,6 +73,9 @@ static func garage(document: Dictionary) -> Dictionary:
 		"conditions": {},
 		"routes": [DEFAULT_ROUTE],
 		"route": DEFAULT_ROUTE,
+		"wheel_day": "",
+		"wheel_prize": -1,
+		"boost": "",
 	}
 	var saved: Variant = document.get("garage", {})
 	if not saved is Dictionary:
@@ -107,7 +110,19 @@ static func garage(document: Dictionary) -> Dictionary:
 			var percent: Variant = saved.conditions[car]
 			if car is String and is_integer(percent) and percent >= 1 and percent < 100:
 				result.conditions[car] = int(percent)
+	_wheel(saved, result)
 	return result
+
+
+## Optional lucky-wheel fields: the last spin's day and segment, and a waiting power-up.
+static func _wheel(saved: Dictionary, result: Dictionary) -> void:
+	if saved.get("wheel_day") is String and saved.wheel_day.length() <= 10:
+		result.wheel_day = saved.wheel_day
+	var prize: Variant = saved.get("wheel_prize")
+	if is_integer(prize) and prize >= -1 and prize < 64:
+		result.wheel_prize = int(prize)
+	if saved.get("boost") is String and saved.boost in PowerUpSettings.KINDS:
+		result.boost = saved.boost
 
 
 ## Uzbek private plate code: region digits, a letter, three digits, two letters.

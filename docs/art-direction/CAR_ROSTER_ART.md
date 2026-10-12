@@ -51,3 +51,10 @@ Softly painted shaded surfaces, subtle upper-left warm light, dark blue-gray gla
    that it is distinct from traffic, then run `./scripts/check.sh`.
 4. Before a public release, review the use of real model names and look-alike
    designs (trademarks).
+
+
+## Added 2026-10-12
+
+Spark, Nexia, and Malibu joined the roster with the same temporary placeholder (the
+traffic sedan resized, colored by the paint shader). They need final rear-view art in
+the aligned atlas style like the other cars; car-name trademark review also applies.

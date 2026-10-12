@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RevivalSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/revival/revival_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+price = 150
+price_share = 0.25
+min_metres = 300.0
+decide_seconds = 7.0
+refuel_share = 0.35
+grace_metres = 45.0

@@ -37,18 +37,23 @@ func _test_roster() -> void:
 		_check(car.settings != null, "Every car has handling settings: " + car.id)
 		for rating in [car.speed_rating(), car.control_rating(), car.size_rating()]:
 			_check(rating >= 0.0 and rating <= 1.0, "Stat ratings stay in range: " + car.id)
-	_check(ids == ["damas", "matiz", "cobalt", "gentra"], "Roster is Damas, Matiz, Cobalt, Gentra")
-	_check(prices == [0, 300, 1000, 2500], "Damas is free and later cars cost more")
+	_check(
+		ids == ["damas", "matiz", "spark", "nexia", "cobalt", "gentra", "malibu"],
+		"Roster is Damas, Matiz, Spark, Nexia, Cobalt, Gentra, Malibu"
+	)
+	_check(prices == [0, 300, 600, 750, 1000, 2500, 5000], "Damas is free and later cars cost more")
 	for id in ids:
 		_check(GARAGE.find(id) != null, "Car has (placeholder) artwork: " + id)
-	var gentra_art := GARAGE.cars[3].texture
-	var hidden := GARAGE.cars[3].duplicate() as CarDefinition
+	var gentra_art := GARAGE.find("gentra").texture
+	var hidden := GARAGE.find("gentra").duplicate() as CarDefinition
 	hidden.texture = null
 	var partial := GarageCatalogue.new()
 	partial.cars = [GARAGE.cars[0], hidden]
 	_check(partial.find("gentra") == null, "Cars without artwork stay hidden")
 	_check(partial.available().size() == 1, "Only cars with artwork are offered")
-	_check(GARAGE.cars[3].texture == gentra_art, "Hiding a copy never changes the shared roster")
+	_check(
+		GARAGE.find("gentra").texture == gentra_art, "Hiding a copy never changes the shared roster"
+	)
 	for a in GARAGE.cars:
 		for b in GARAGE.cars:
 			if a == b:
@@ -60,7 +65,7 @@ func _test_roster() -> void:
 			)
 			_check(not dominates, "%s is not strictly better than %s" % [a.id, b.id])
 	var matiz := GARAGE.cars[1]
-	var gentra := GARAGE.cars[3]
+	var gentra := GARAGE.find("gentra")
 	_check(matiz.size_rating() < gentra.size_rating(), "Matiz is the compact car")
 	_check(gentra.speed_rating() > matiz.speed_rating(), "Gentra is faster than Matiz")
 

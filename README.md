@@ -33,8 +33,8 @@ many close calls the run had (when there was at least one).
 Close calls also play a rising whoosh (higher with each combo step) and, on
 Android, a 12 ms pulse; both follow the Sound/Vibration toggles.
 
-**Sheep crossing:** from 250 m, every 600–1,000 m a flock of two or three sheep
-walks across the road. One road edge always stays open; hitting a sheep ends the
+**Sheep crossing:** from 450 m, every 600–1,000 m a flock of two or three sheep
+walks across the road, announced with "Sheep crossing!". One road edge always stays open; hitting a sheep ends the
 run ("The sheep had right of way!"). The sheep are simple drawn placeholders.
 
 **Daily tasks:** open **Tasks** on the start screen. Each day draws three tasks of
@@ -107,6 +107,42 @@ officer raises the baton, pull into the STOP bay at 40 km/h or less (brake) for 
 points; driving past costs 30 and a whistle. Posts and METAN stations never share
 the curb.
 
+**Toʻy korteji (wedding convoy):** from 700 m, every 1,100–1,600 m traffic clears and a
+convoy of three white cars with ribbons, flower garlands, and balloons arrives in one
+lane to a karnay fanfare. It cruises ahead for 150 m while guests throw **sochqi**
+(1,000/5,000/10,000 soʻm notes) behind it; follow in its lane to collect them, then it
+drives off and traffic returns. The convoy never reaches your car.
+
+**Second chance:** once per drive, if a crash or an empty tank ends a drive after 300 m
+and the wallet can pay 150 plus a quarter of the drive's points so far, a card offers to
+**drive on** for that price. Paying removes
+what was hit, tops an empty tank up to 35%, and absorbs contact for the next 45 m. The
+card declines by itself after 7 seconds (or with Back), and the drive is booked once.
+
+**Mahalla rating:** fifteen neighbourhood drivers (Sardor 25 … Afsona Zafar aka 7,500)
+have fixed best scores. Beating one with your best pays their reward once (20–1,200);
+results name who you passed and who is next. **Tasks → Achievements → Mahalla rating**
+shows your place with the nearest drivers around you.
+
+**Lucky wheel (Omad gʻildiragi):** the red **Lucky!** button beside the car on the start
+screen opens one free spin a day. Prizes are 25/50/100/200/500 wallet points or a
+**Magnet**, **×2**, or **Shield** that starts your next drive (shown on the start card
+until used). The spin is saved before the wheel turns.
+
+**Weather and holidays:** the street follows the calendar: snow on most winter days,
+spring and autumn showers, falling leaves in autumn, blossom petals for Navruz (14–28
+March), flag-coloured confetti around Independence Day (30 August – 3 September), and
+snow at New Year (25 December – 7 January). Holidays also greet you on the start card.
+Weather only changes the look; it never changes points or handling.
+
+**Game feel:** collected notes, close calls, fines, and rewards float up as gold, blue,
+red, or green point popups where they happened; a crash leaves a dust puff and shakes
+the street, and potholes and shield saves give a lighter shake.
+
+**Share to Telegram:** the results card has **Share**, which opens Telegram's share
+screen with the score and distance (falling back to Telegram's web share page). A store
+or channel link can be added later in `src/ui/default_hud.tres` (`share_link`).
+
 **Car upgrades:** in the garage, each car can buy three levels of **Handling**
 (+10% steering each; 200/450/900), **Tank** (+25% fuel each; 150/350/700), and
 **Suspension** (−25% hazard penalty each; 150/350/700). Levels belong to one car.
@@ -126,9 +162,10 @@ dutar-and-doira style loop plays during drives (paused in menus) and has its own
 
 **Garage:** every finished run adds its points to a saved wallet. Open **Garage**
 from the start screen or results to buy and select cars. Each car has its own
-speed, control, and size: Damas (free), Matiz (300), Cobalt (1,000), and Gentra
-(2,500). Matiz, Cobalt, and Gentra currently use **temporary test art**: the
-traffic sedan resized to each car's size, colored by its factory paint.
+speed, control, and size: Damas (free), Matiz (300), Spark (600), Nexia (750), Cobalt
+(1,000), Gentra (2,500), and Malibu (5,000); the list scrolls. Every car except the
+Damas currently uses **temporary test art**: the traffic sedan resized to each car's
+size, colored by its factory paint.
 Car stats and prices are in `src/garage/`.
 
 Use **Pause** (or **Escape** on desktop) to freeze the run, then **Resume** to
@@ -146,6 +183,14 @@ width, menus remain centered, and resizing pauses the drive safely.
 Traffic gradually becomes
 busier from 150 m to 900 m, then stops increasing. Its speed, minimum gap, and
 three-car limit stay fixed.
+
+## Balance playtest
+
+`./scripts/godot.sh --headless --path . --script scripts/balance_report.gd -- 40 casual`
+drives the real game with a bot (`skilled` re-plans every frame; `casual` re-plans every
+0.4 s, sees less, and steers at 60%) and prints distance, points, what ended each drive,
+refuels, wedding convoys, second chances, and wallet growth. It uses a memory-only save.
+It is a rough bound for tuning, not a substitute for people playing.
 
 ## Get the project
 
@@ -258,8 +303,11 @@ CI is not configured; run the local quality gate before pushing.
 
 | Path | Purpose |
 | --- | --- |
-| `src/main.tscn`, `src/main.gd` | Own run state, scoring, and progress; route features. |
-| `src/world/` | The drive world: groups everything on the street and advances it. |
+| `src/main.tscn`, `src/main.gd` | Own the session, saved progress, and the garage; route features. |
+| `src/drive_scoring.gd` | Run state and the counters road events change during a drive (main's base class). |
+| `src/world/` | The drive world: groups everything on the street and advances it; `DriveWorldEvents` turns child signals into world signals and effects. |
+| `src/effects/` | Point popups and crash dust over the street. |
+| `src/share/` | Telegram share links for results. |
 | `src/driving/` | Car scene, input, movement, visual, and car settings. |
 | `src/road/` | Road renderer and shared route settings. |
 | `src/scenery/` | Decorative buildings and trees. |
@@ -279,6 +327,11 @@ CI is not configured; run the local quality gate before pushing.
 | `src/routes/` | City routes, unlocks, landmarks, and the start-screen picker. |
 | `src/plates/` | Number plates, rarity, the daily auction, and plate drawing. |
 | `src/market/` | Used cars, condition, the workshop, and the market screen. |
+| `src/wedding/` | Wedding convoys, their decorations, and thrown sochqi. |
+| `src/revival/` | Second-chance settings and the second-chance card. |
+| `src/rivals/` | The mahalla rating: neighbourhood drivers, places, and passing rewards. |
+| `src/wheel/` | The daily lucky wheel: prizes, the spin, drive boosts, and the wheel screen. |
+| `src/weather/` | Seasons and holidays by date, and the weather particles over the street. |
 | `src/ui/` | HUD, drive overlay (fuel, speedometer, brake pedal, ride chip), menus, and results. |
 | `tests/`, `scripts/` | Behavior checks and development commands. |
 

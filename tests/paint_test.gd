@@ -36,7 +36,7 @@ func _test_catalogue() -> void:
 	_check(ids.size() == GARAGE.paints.size() and ids.size() == 6, "Six uniquely named paints")
 	for car in GARAGE.cars:
 		_check(GARAGE.find_paint(car.factory_paint) != null, "Factory paint exists: " + car.id)
-	var factory := ["white", "cherry", "white", "black"]
+	var factory := ["white", "cherry", "sky", "gold", "white", "black", "white"]
 	for index in range(GARAGE.cars.size()):
 		_check(GARAGE.cars[index].factory_paint == factory[index], "Factory colors match the brief")
 	for id in ["cherry", "black", "sky", "teal", "gold"]:

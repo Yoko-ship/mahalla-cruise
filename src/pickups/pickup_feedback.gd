@@ -15,6 +15,7 @@ var _focused: bool = true
 @onready var bump_sound: AudioStreamPlayer = $BumpSound
 @onready var camera_sound: AudioStreamPlayer = $CameraSound
 @onready var whistle_sound: AudioStreamPlayer = $WhistleSound
+@onready var karnay_sound: AudioStreamPlayer = $KarnaySound
 
 
 func _ready() -> void:
@@ -27,6 +28,7 @@ func _ready() -> void:
 	bump_sound.volume_db = settings.volume_db
 	camera_sound.volume_db = settings.volume_db
 	whistle_sound.volume_db = settings.volume_db
+	karnay_sound.volume_db = settings.volume_db
 
 
 func play_pickup(is_dollar: bool) -> void:
@@ -55,8 +57,8 @@ func play_close_call(combo: int) -> void:
 		Input.vibrate_handheld(settings.close_call_vibration_ms, settings.vibration_strength)
 
 
-## A road event: "bump" (pothole, road works), "camera" (shutter), "whistle" (police), or
-## "chime" (a reward). Penalties also give a firmer pulse.
+## A road event: "bump" (pothole, road works), "camera" (shutter), "whistle" (police),
+## "karnay" (a wedding convoy), or "chime" (a reward). Events also give a firmer pulse.
 func play_event(sound: String) -> void:
 	if sound == "chime":
 		play_pickup(true)
@@ -65,7 +67,7 @@ func play_event(sound: String) -> void:
 		return
 	_last_feedback_ms = Time.get_ticks_msec()
 	if sound_enabled:
-		var players := {"camera": camera_sound, "whistle": whistle_sound}
+		var players := {"camera": camera_sound, "whistle": whistle_sound, "karnay": karnay_sound}
 		(players.get(sound, bump_sound) as AudioStreamPlayer).play()
 	if haptics_enabled and OS.has_feature("android"):
 		Input.vibrate_handheld(settings.bump_vibration_ms, settings.vibration_strength)
@@ -88,6 +90,7 @@ func stop() -> void:
 	bump_sound.stop()
 	camera_sound.stop()
 	whistle_sound.stop()
+	karnay_sound.stop()
 	_last_feedback_ms = -100000
 
 
