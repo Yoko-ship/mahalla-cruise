@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ctjjg453ig2k1"
-path="res://.godot/imported/placeholder_roster.png-f0a0c3a552a081e796ab16857a32f9a0.ctex"
+uid="uid://cq4nqckaucdoj"
+path="res://.godot/imported/roster_cars.png-fac9a8ee5f45d2ffd82e257b500e9597.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/cars/placeholder_roster.png"
-dest_files=["res://.godot/imported/placeholder_roster.png-f0a0c3a552a081e796ab16857a32f9a0.ctex"]
+source_file="res://assets/cars/roster_cars.png"
+dest_files=["res://.godot/imported/roster_cars.png-fac9a8ee5f45d2ffd82e257b500e9597.ctex"]
 
 [params]
 

@@ -163,9 +163,10 @@ dutar-and-doira style loop plays during drives (paused in menus) and has its own
 **Garage:** every finished run adds its points to a saved wallet. Open **Garage**
 from the start screen or results to buy and select cars. Each car has its own
 speed, control, and size: Damas (free), Matiz (300), Spark (600), Nexia (750), Cobalt
-(1,000), Gentra (2,500), and Malibu (5,000); the list scrolls. Every car except the
-Damas currently uses **temporary test art**: the traffic sedan resized to each car's
-size, colored by its factory paint.
+(1,000), Gentra (2,500), and Malibu (5,000); the list scrolls. The six cars after the
+Damas are rendered in Blender from CC-BY 3D models of the real cars (credits in
+`art_sources/car_models/CREDITS.md`) and packed into `assets/cars/roster_cars.png`. Each is
+colored by its factory paint.
 Car stats and prices are in `src/garage/`.
 
 Use **Pause** (or **Escape** on desktop) to freeze the run, then **Resume** to

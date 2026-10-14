@@ -9,3 +9,7 @@ build/
 .env
 .env.*
 !.env.example
+# Downloaded third-party car models: licenses may forbid redistribution; only renders ship.
+art_sources/car_models/*
+!art_sources/car_models/README.md
+!art_sources/car_models/CREDITS.md

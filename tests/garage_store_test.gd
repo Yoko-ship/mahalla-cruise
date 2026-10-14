@@ -1,6 +1,7 @@
 extends SceneTree
 
 const GARAGE: GarageCatalogue = preload("res://src/garage/default_garage.tres")
+const ROSTER_ART: String = "res://assets/cars/roster_cars.png"
 
 var failures: int = 0
 var checks: int = 0
@@ -14,6 +15,7 @@ func _initialize() -> void:
 func _run() -> void:
 	_path = "user://garage_store_test_%d_%d.json" % [OS.get_process_id(), Time.get_ticks_usec()]
 	_test_roster()
+	_test_artwork()
 	_test_wallet_and_purchases()
 	_test_compatibility()
 	_test_write_failure()
@@ -43,7 +45,7 @@ func _test_roster() -> void:
 	)
 	_check(prices == [0, 300, 600, 750, 1000, 2500, 5000], "Damas is free and later cars cost more")
 	for id in ids:
-		_check(GARAGE.find(id) != null, "Car has (placeholder) artwork: " + id)
+		_check(GARAGE.find(id) != null, "Car has artwork: " + id)
 	var gentra_art := GARAGE.find("gentra").texture
 	var hidden := GARAGE.find("gentra").duplicate() as CarDefinition
 	hidden.texture = null
@@ -68,6 +70,30 @@ func _test_roster() -> void:
 	var gentra := GARAGE.find("gentra")
 	_check(matiz.size_rating() < gentra.size_rating(), "Matiz is the compact car")
 	_check(gentra.speed_rating() > matiz.speed_rating(), "Gentra is faster than Matiz")
+
+
+## Roster cars come from the drawn atlas, fill their own region, and match their collision length.
+func _test_artwork() -> void:
+	var regions: Array[Rect2] = []
+	for car in GARAGE.cars:
+		if car.id == "damas":
+			continue
+		var art := car.texture as AtlasTexture
+		_check(art != null and art.atlas.resource_path == ROSTER_ART, "Drawn sprite: " + car.id)
+		if art == null:
+			continue
+		_check(not art.region in regions, "Each car has its own sprite: " + car.id)
+		regions.append(art.region)
+		var length := art.region.size.y * car.sprite_scale
+		var collision := car.settings.collision_half_size.y * 2.0
+		_check(absf(length - collision) <= 2.0, "Sprite length matches collision: " + car.id)
+		var image := art.atlas.get_image()
+		if image.is_compressed():
+			image.decompress()
+		var middle := Vector2i(art.region.get_center())
+		var corner := Vector2i(art.region.position) + Vector2i(2, 2)
+		_check(image.get_pixelv(middle).a > 0.9, "The body is opaque: " + car.id)
+		_check(image.get_pixelv(corner).a < 0.1, "The background is transparent: " + car.id)
 
 
 func _test_wallet_and_purchases() -> void:

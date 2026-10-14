@@ -1,8 +1,8 @@
 # Car Roster Artwork Brief
 
-Status: **brief only; final artwork not produced yet.** Written 2026-10-07. Matiz,
-Cobalt, and Gentra currently use temporary recolored-sedan test sprites (see
-`assets/cars/README.md`). Colors below are proposals awaiting user approval.
+Status: written 2026-10-07. Since 2026-10-12 all six cars use Blender renders of
+CC-BY models of the real cars (see `assets/cars/README.md`). This brief remains for optional painted versions
+that match the Damas more closely. Colors below are proposals awaiting user approval.
 
 ## Must match the existing cars
 
@@ -55,6 +55,6 @@ Softly painted shaded surfaces, subtle upper-left warm light, dark blue-gray gla
 
 ## Added 2026-10-12
 
-Spark, Nexia, and Malibu joined the roster with the same temporary placeholder (the
-traffic sedan resized, colored by the paint shader). They need final rear-view art in
-the aligned atlas style like the other cars; car-name trademark review also applies.
+Spark, Nexia, and Malibu joined the roster. On the same day the stretched-sedan
+placeholders for all six cars were replaced with Blender renders; car-name
+trademark review still applies.

@@ -248,7 +248,8 @@ Track asset sources and applicable usage terms when assets are added. Keep sourc
 - [x] Add Telegram sharing and the Spark, Nexia, and Malibu (temporary art).
 - [x] Run the new features on the Android emulator; add a balance bot and tune from it.
 - [ ] Add painted street artwork for Samarkand, Bukhara, and Khiva.
-- [ ] Replace the Matiz, Spark, Nexia, Cobalt, Gentra, and Malibu test sprites with final artwork.
+- [x] Replace the Matiz, Spark, Nexia, Cobalt, Gentra, and Malibu test sprites with Blender renders.
+- [ ] Optional: painted versions of the six cars that match the Damas up close.
 - [ ] Test touch controls and performance on a physical Android phone.
 - [ ] Have a few players try it without instructions and record feedback.
 
@@ -875,6 +876,59 @@ Validation: `./scripts/check.sh` passed **4,209 game checks in 45 suites**, incl
 `android_back_test.gd` (13). After the fix, `./scripts/android.sh build` worked on Mac and the rebuilt
 APK on the emulator closed the garage on Back and paused (without resuming) a drive on
 Back; the record and the day's wheel spin survived the reinstall.
+
+### 2026-10-12: Blender garage cars
+
+The user asked for asset work made by me. A first attempt drew the six cars as SVG in code;
+the user found it far below the painted Damas and asked for option 3, 3D models rendered in
+Blender. With that approval Blender 4.2.23 LTS (official build, SHA-256 checked) was
+installed in `~/Applications` as a local art tool; the game gains no dependency.
+`scripts/blender/roster_cars.py` models each car from beveled parts (body with tapered nose
+and tail, cabin with inset tinted glass, seats, lamps per model, bumper, mirrors, wheels,
+plate, chrome, spoiler, exhausts) and renders it with Cycles from a perspective camera behind
+and 34° above, warm sun upper left, physical sky. `scripts/render_roster_cars.gd` now packs
+those renders (cropped; length = collision length at scale 0.1; width capped at collision
++10 px like the Damas) into `assets/cars/roster_cars.png`; regions in `default_garage.tres`
+were updated. The SVG generator and its sources were removed. `_test_artwork()` in
+`garage_store_test.gd` checks each car's own atlas region, sprite length against collision
+length (within 2 px), and opaque bodies on a transparent background. Inspected renders:
+each car beside the Damas at full size, all seven painted at road size and 3.5×, and the
+garage list. They now read as the same family as the Damas, though simpler up close.
+Validation: `./scripts/check.sh` passed all 45 suites. Android not re-run.
+The user then judged the built-in shapes unrecognizable next to the Damas (which was made
+from real photos) and chose real downloaded 3D models in the same Blender setup. Added
+`scripts/blender/model_import.py`: a model named `<car_id>.blend/.glb/.gltf/.fbx/.obj` in
+`art_sources/car_models/` (ignored by git and by Godot import; README lists what to get and
+a sources/license table) is imported, cleaned of cameras, lights, logos and badges, turned
+lengthwise (or by a `yaw` per car), scaled to the real length, grounded, and given the shared
+paint, glass, tyre, and plate materials (by name, by per-car `materials`, or the largest
+surface as paint). Tested with a sideways, 4× scaled FBX export of the built-in Nexia with
+renamed materials and a logo part: it came out the right size and way round, re-materialed,
+logo hidden.
+The user then authorized downloading the models. Sketchfab needs a login (its sign-in is an
+Epic Games account); the user signed in and put an API token in the git-ignored `.env`.
+`scripts/fetch_car_models.py` downloads the chosen CC-BY models, refuses other licenses,
+and writes `art_sources/car_models/CREDITS.md` from each model's license file. Rejected:
+uploads that looked like re-uploaded store models (a 1996 Nexia whose source file and
+materials match a store model, the same uploader's Spark with a store watermark plate) and
+a Matiz/Spark pair with game-mod parts and an 8 m stray object; one Spark whose author bans
+AI use was skipped. Final picks: Matiz (elijahforonda631), Spark 2013 (Doniyor 3D),
+Nexia 2 and Gentra (uzb_rx7), Cobalt LTZ 2014 (Q.SARDOR), Malibu 2022 (slavanik24250794).
+`model_import.py` gained badge stripping (small loose pieces mid-rear above the bumper),
+lamp-glass detection, solid window glass, opaque kept parts, and per-car `rotate_x`, `yaw`,
+`hide`, `paint_parts`, and `materials` (ray casting found the Matiz's black roof panels).
+Inspected: each car beside the Damas at full size, all seven in factory paints at road size
+and 3.5×, and the garage list; all six are recognizable, badge-free, and recolor correctly.
+Small dark specks remain low on the Gentra and Malibu bumpers (invisible at road size).
+Gentra follow-up (user request): no cleaner stock Gentra exists on Sketchfab (one candidate
+was another store re-upload, others broken or race versions), so the current model was
+repaired: recomputed normals on painted parts (`fix_normals`) removed the dark bumper
+triangles, ray casting found the trunk-hinge brackets (hidden), the trunk strip renders as
+chrome, and a blank plate was added (`plate_z`). The same check showed the Nexia 2 shares the
+store models' standard material names, so its source needs review before release.
+**Next task:** add an in-game credits line for the six CC-BY model authors (required by the
+license) before release; review the Cobalt and Malibu sources and car-name trademarks;
+then the app icon and store graphics, more music, and road items (Blender can render them).
 
 ## Running and Checking the Starter
 

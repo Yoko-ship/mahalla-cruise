@@ -5,21 +5,45 @@ The current Damas and sedan use `vehicles_aligned.png`. See
 The previous `damas_white_rear.png` pointed diagonally and has been superseded.
 [DAMAS_REVISION.md](DAMAS_REVISION.md) preserves that version's source record.
 
-## Temporary Garage Test Art
+## Garage Roster Art
 
-`placeholder_roster.png` holds stand-in sprites for Matiz (red), Cobalt (pearl
-white), and Gentra (black), added 2026-10-07 at the user's request so car speed,
-control, and size can be tested before real artwork exists. Each is the silver
-traffic sedan from `vehicles_aligned.png`, kept neutral silver (the runtime paint
-shader supplies each car's factory color) and stretched to match the car's
-collision box at `sprite_scale` 0.1. Plates get a light cream tint so paint skips them. They are
-**not** real Matiz, Cobalt, or Gentra shapes. Rebuild them from the repository root:
+`roster_cars.png` holds the Matiz, Cobalt, Gentra, Spark, Nexia, and Malibu (2026-10-12),
+rendered in Blender 4.2 LTS (Cycles) from downloaded 3D models of the real cars. Every model
+is CC Attribution 4.0 (commercial use allowed, author must be credited); authors and links
+are in [`art_sources/car_models/CREDITS.md`](../../art_sources/car_models/CREDITS.md), and the
+game must show those credits. The model files themselves stay out of git.
+
+Pipeline, from the repository root:
 
 ```sh
-./scripts/godot.sh --headless --path . --script scripts/render_placeholder_cars.gd
+.venv/bin/python scripts/fetch_car_models.py      # needs SKETCHFAB_API_TOKEN in .env
+~/Applications/Blender.app/Contents/MacOS/Blender -b -P scripts/blender/roster_cars.py -- \
+    build/roster_renders
+./scripts/godot.sh --headless --path . --script scripts/render_roster_cars.gd
 ```
 
-Replace them with artwork made from `docs/art-direction/CAR_ROSTER_ART.md`.
+`scripts/blender/model_import.py` stands each model up, turns it nose-forward, scales it to
+the real length, deletes badges and lettering (small separate pieces in the middle of the
+rear face above the bumper, plus parts named logo/emblem/badge), and swaps body paint,
+window glass (solid dark), tyres, and plates for the shared render materials; other parts
+are made opaque so no pixel shows the road through the car. Per-car fixes (`rotate_x`,
+`yaw`, `hide`, `paint_parts`, `materials`) live in `IMPORTS` in `roster_cars.py`. The camera
+and light match the painted Damas: perspective, directly behind, 34° above the horizon, warm
+sun from the upper left. Body paint renders neutral white so the game's paint shader colors
+it. `render_roster_cars.gd` crops each render, scales its length to the collision length at
+`sprite_scale` 0.1, caps width at the collision width plus 10 game pixels (as on the Damas),
+and prints the regions used in `default_garage.tres`.
+
+Model choice: the generation sold in Uzbekistan (classic Matiz, 2013 Spark/Ravon R2,
+Nexia 2, 2011+ Cobalt, Gentra, 2016+ Malibu). Uploads that looked like re-uploaded store
+models (store file names, store watermarks) were rejected. Review before a public release:
+the Nexia 2 uses the same standard material names as those store models, the Gentra looks
+converted from a game mod, and the Cobalt and Malibu sources could not be fully confirmed;
+car-name trademarks also apply. The Gentra needed repairs (`fix_normals` for dark bumper
+triangles, hidden trunk-hinge brackets, the trunk strip as chrome, and an added plate,
+`plate_z`); its tuned diffuser remains. A small dark speck remains low on the Malibu bumper,
+not visible at road size. Painted replacements can still be made from
+`docs/art-direction/CAR_ROSTER_ART.md`.
 
 ## Superseded First Draft
 
