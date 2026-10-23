@@ -20,11 +20,14 @@ signal road_points(points: int, text_key: String, sound: String)
 signal refueled
 ## A road moment with its own sound: a wedding convoy ("wedding", "karnay").
 signal road_event(text_key: String, sound: String)
-## Dashboard values for the HUD, every frame: fuel, fuel_low, speed_kmh, limit_kmh (0 when
+## A district change sends only location (name key). Regular dashboard values:
+## fuel, fuel_low, speed_kmh, limit_kmh (0 when
 ## no camera is ahead), ride_metres (-1 without a taxi passenger), and power_ups (see
 ## PowerUpEffects.view()).
 signal dashboard_changed(view: Dictionary)
 
+var easy_settings: EasyDriveSettings
+var bump_remaining: float = 0.0
 var _road_settings: RoadSettings
 var _crashed: bool = false
 var _speed_pixels: float = 0.0
@@ -35,6 +38,7 @@ var _shake_seconds: float = 0.0
 var _shake_total: float = 1.0
 var _shake_strength: float = 0.0
 
+@onready var journey: LocationJourney = $Journey
 @onready var road: RoadView = $Road
 @onready var scenery: SceneryView = $Scenery
 @onready var landmarks: LandmarkView = $Landmarks
@@ -53,6 +57,9 @@ var _shake_strength: float = 0.0
 
 
 func _connect_events() -> void:
+	journey.location_changed.connect(
+		func(key: String) -> void: dashboard_changed.emit({"location": key})
+	)
 	traffic.contacted.connect(_on_contacted)
 	traffic.near_missed.connect(_on_near_missed)
 	traffic.sheep_started.connect(notice.emit.bind("sheep_ahead", []))
@@ -167,6 +174,12 @@ func speed_kmh() -> int:
 
 
 func _on_contacted() -> void:
+	if easy_settings != null:
+		traffic.clear_contact()
+		if bump_remaining <= 0.0:
+			bump_remaining = easy_settings.bump_seconds
+			notice.emit("easy_bump", [])
+		return
 	# A shield (or its short grace) knocks whatever was hit off the road instead.
 	if pickups.absorb_crash():
 		traffic.clear_contact()
@@ -180,5 +193,7 @@ func _on_contacted() -> void:
 
 
 func _on_out_of_fuel() -> void:
+	if easy_settings != null:
+		return
 	_crashed = true
 	crashed.emit("fuel")

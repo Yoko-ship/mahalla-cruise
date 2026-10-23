@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="LocationSequence" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://src/routes/location_sequence.gd" id="1"]
+[ext_resource type="Script" path="res://src/scenery/street_art.gd" id="art"]
+[ext_resource type="Resource" path="res://src/scenery/mahalla_art.tres" id="mahalla"]
+[ext_resource type="Resource" path="res://src/scenery/chorsu_art.tres" id="chorsu"]
+[ext_resource type="Resource" path="res://src/scenery/amir_temur_art.tres" id="amir_temur"]
+[ext_resource type="Resource" path="res://src/scenery/tashkent_city_art.tres" id="tashkent_city"]
+[ext_resource type="Resource" path="res://src/scenery/seoul_mun_art.tres" id="seoul_mun"]
+[ext_resource type="Resource" path="res://src/scenery/magic_city_art.tres" id="magic_city"]
+
+[resource]
+script = ExtResource("1")
+locations = Array[ExtResource("art")]([ExtResource("mahalla"), ExtResource("chorsu"), ExtResource("amir_temur"), ExtResource("tashkent_city"), ExtResource("seoul_mun"), ExtResource("magic_city")])
+section_metres = 550.0
+transition_metres = 48.0

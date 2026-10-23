@@ -8,12 +8,17 @@ signal pause_pressed
 signal horn_pressed
 signal brake_changed(held: bool)
 
+var _easy: bool = false
+var _active: bool = false
 var _hint_remaining: float = 0.0
 var _metres: float = 0.0
 var _points: int = 0
 var _best: int = 0
 var _playfield_offset := Vector2.ZERO
 
+@onready var collection_goal: CollectionProgress = $CollectionGoal
+@onready var steering_guide: SteeringGuide = $SteeringGuide
+@onready var location_banner: LocationBanner = $LocationBanner
 @onready var title: Label = $Title
 @onready var distance_label: Label = $Distance
 @onready var score_label: Label = $Score
@@ -44,7 +49,22 @@ func set_playfield_offset(offset: Vector2) -> void:
 	_playfield_offset = offset
 
 
+func set_easy_mode(enabled: bool) -> void:
+	_easy = enabled
+	pause_button.position = Vector2(18, 20 if _easy else 92) + _playfield_offset
+	pause_button.size = Vector2(64, 56) if _easy else Vector2(104, 48)
+	score_label.position = Vector2(294, 24 if _easy else 72) + _playfield_offset
+	location_banner.position = Vector2(96, 156 if _easy else 234) + _playfield_offset
+	pause_button.text = "Ⅱ" if _easy else tr("pause")
+	pause_button.add_theme_font_size_override("font_size", 26 if _easy else 14)
+	set_active(_active)
+	refresh_text()
+
+
 func set_active(active: bool) -> void:
+	_active = active
+	collection_goal.visible = active and _easy and collection_goal.target > 0
+	location_banner.set_active(active)
 	for control: Control in [
 		title,
 		distance_label,
@@ -59,20 +79,47 @@ func set_active(active: bool) -> void:
 		brake_pedal
 	]:
 		control.visible = active
+	if _easy:
+		for control: Control in [
+			title,
+			distance_label,
+			best_label,
+			power_up_bar,
+			fuel_gauge,
+			ride_chip,
+			speedometer,
+			brake_pedal
+		]:
+			control.hide()
 	controls_label.visible = active and _hint_remaining > 0.0
+	steering_guide.visible = _easy and controls_label.visible
+
+
+func set_collection_goal(view: Dictionary, seconds: float) -> void:
+	collection_goal.set_view(view, seconds)
+	collection_goal.visible = _active and _easy and collection_goal.target > 0
+
+
+func show_location(name_key: String, seconds: float) -> void:
+	location_banner.show_location(name_key, seconds)
 
 
 func start_hint(seconds: float) -> void:
 	_hint_remaining = seconds
-	controls_label.text = tr("hint").replace("\\n", "\n")
-	controls_label.visible = _hint_remaining > 0.0 and distance_label.visible
+	controls_label.text = tr("easy_hint" if _easy else "hint").replace("\\n", "\n")
+	controls_label.visible = _hint_remaining > 0.0 and _active
+	steering_guide.visible = _easy and controls_label.visible
 
 
 ## delta advances the first-drive hint; it is passed only while driving.
 func set_distance(metres: float, delta: float = 0.0) -> void:
+	collection_goal.advance(delta)
+	location_banner.advance(delta)
 	if delta > 0.0:
 		_hint_remaining = maxf(0.0, _hint_remaining - delta)
-		controls_label.visible = _hint_remaining > 0.0
+		controls_label.visible = _active and _hint_remaining > 0.0
+		steering_guide.visible = _easy and controls_label.visible
+		steering_guide.advance(delta)
 	_metres = metres
 	var text := tr("distance") % int(metres)
 	if distance_label.text != text:
@@ -109,10 +156,12 @@ func set_dashboard(view: Dictionary) -> void:
 
 
 func refresh_text() -> void:
+	collection_goal.refresh_text()
+	location_banner.refresh_text()
 	set_distance(_metres)
 	set_score(_points)
 	set_best(_best)
-	controls_label.text = tr("hint").replace("\\n", "\n")
+	controls_label.text = tr("easy_hint" if _easy else "hint").replace("\\n", "\n")
 	horn_button.text = tr("horn")
 	fuel_gauge.refresh_text()
 	speedometer.refresh_text()

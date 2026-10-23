@@ -9,7 +9,6 @@ signal near_missed(points: int, combo: int)
 signal sheep_started
 
 const CAR_SCENE: PackedScene = preload("res://src/traffic/traffic_car.tscn")
-const PAINTS: Array[Color] = [Color("dfceb1"), Color("a1bbcc"), Color("c0c7b1")]
 ## Extra clearance between a crossing flock and a car it might otherwise catch up with.
 const SHEEP_CAR_MARGIN: float = 50.0
 ## Money moves with the road like sheep, so a flock starts only this far from any note.
@@ -29,6 +28,9 @@ var _settings: TrafficSettings
 var _distance_until_spawn: float = 0.0
 var _next_lane: int = 0
 var _random := RandomNumberGenerator.new()
+var _appearance_random := RandomNumberGenerator.new()
+var _model_bag: Array[Texture2D] = []
+var _last_model: Texture2D
 var _vertical_padding: float = 0.0
 var _pixels_since_near_miss: float = INF
 var _metres: float = 0.0
@@ -43,6 +45,8 @@ func configure(road: RoadSettings, settings: TrafficSettings) -> void:
 	vehicles.clear()
 	_road = road
 	_settings = settings
+	_model_bag.clear()
+	_last_model = null
 	assert(settings.difficulty_full_metres > settings.difficulty_start_metres)
 	difficulty_progress = 0.0
 	near_miss_combo = 0
@@ -94,7 +98,7 @@ func advance(
 			last_contact_kind = "car"
 			contacted.emit()
 			return
-		if _track_pass(vehicle, swept_bounds, player_bounds):
+		if _settings.near_miss_points > 0 and _track_pass(vehicle, swept_bounds, player_bounds):
 			near_misses += 1
 		if vehicle.position.y > _settings.despawn_y + _vertical_padding:
 			vehicles.remove_at(index)
@@ -104,7 +108,12 @@ func advance(
 		last_contact_kind = "sheep"
 		contacted.emit()
 		return
-	if not hold_spawns and sheep_crossing.is_due(_metres) and _road_clear_for_sheep(money_bounds):
+	if (
+		_settings.sheep_enabled
+		and not hold_spawns
+		and sheep_crossing.is_due(_metres)
+		and _road_clear_for_sheep(money_bounds)
+	):
 		sheep_crossing.start(_settings.spawn_y - _vertical_padding, _metres)
 		sheep_started.emit()
 	# Awarded after the loop: a crash anywhere in this frame returns first and pays nothing.
@@ -171,7 +180,11 @@ func _road_clear_for_sheep(money_bounds: Array[Rect2]) -> bool:
 
 
 func _can_spawn(hazard_bounds: Array[Rect2]) -> bool:
-	if hold_spawns or vehicles.size() >= _settings.max_vehicles or sheep_crossing.is_due(_metres):
+	if (
+		hold_spawns
+		or vehicles.size() >= _settings.max_vehicles
+		or (_settings.sheep_enabled and sheep_crossing.is_due(_metres))
+	):
 		return false
 	var top := _settings.spawn_y - _vertical_padding
 	var reach := _settings.collision_half_size.y + 20.0
@@ -205,7 +218,7 @@ func _spawn_vehicle() -> void:
 	)
 	add_child(vehicle)
 	vehicle.configure(
-		_settings.collision_half_size, PAINTS[_random.randi_range(0, PAINTS.size() - 1)]
+		_settings.collision_half_size, _next_paint(), _next_model(), _settings.visual_size
 	)
 	vehicles.append(vehicle)
 	_next_lane = 1 - _next_lane
@@ -213,3 +226,27 @@ func _spawn_vehicle() -> void:
 		_settings.spawn_distance_min, _settings.spawn_distance_max
 	)
 	_distance_until_spawn *= lerpf(1.0, _settings.minimum_spawn_scale, difficulty_progress)
+
+
+func _next_model() -> Texture2D:
+	if _settings.models.is_empty():
+		return null
+	if _model_bag.is_empty():
+		_model_bag.assign(_settings.models)
+		for index in range(_model_bag.size() - 1, 0, -1):
+			var swap := _appearance_random.randi_range(0, index)
+			var model := _model_bag[index]
+			_model_bag[index] = _model_bag[swap]
+			_model_bag[swap] = model
+		# pop_back consumes the bag; avoid a repeated model across bag boundaries.
+		if _model_bag.size() > 1 and _model_bag.back() == _last_model:
+			_model_bag[_model_bag.size() - 1] = _model_bag[0]
+			_model_bag[0] = _last_model
+	_last_model = _model_bag.pop_back()
+	return _last_model
+
+
+func _next_paint() -> Color:
+	if _settings.paints.is_empty():
+		return Color.WHITE
+	return _settings.paints[_appearance_random.randi_range(0, _settings.paints.size() - 1)]

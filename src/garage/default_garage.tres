@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GarageCatalogue" load_steps=44 format=3]
+[gd_resource type="Resource" script_class="GarageCatalogue" load_steps=45 format=3]
 
 [ext_resource type="Script" path="res://src/garage/garage_catalogue.gd" id="1"]
 [ext_resource type="Script" path="res://src/garage/car_definition.gd" id="2"]
@@ -7,7 +7,7 @@
 [ext_resource type="Resource" path="res://src/garage/cars/cobalt_car.tres" id="5"]
 [ext_resource type="Resource" path="res://src/garage/cars/gentra_car.tres" id="6"]
 [ext_resource type="Texture2D" path="res://assets/cars/vehicles_aligned.png" id="7"]
-[ext_resource type="Texture2D" path="res://assets/cars/roster_cars.png" id="8"]
+[ext_resource type="Texture2D" path="res://assets/cars/roster_painted.png" id="8"]
 [ext_resource type="Script" path="res://src/garage/paint_definition.gd" id="9"]
 [ext_resource type="Script" path="res://src/garage/upgrade_definition.gd" id="10"]
 [ext_resource type="Resource" path="res://src/routes/tashkent.tres" id="11"]
@@ -21,6 +21,9 @@
 [ext_resource type="Resource" path="res://src/garage/cars/spark_car.tres" id="19"]
 [ext_resource type="Resource" path="res://src/garage/cars/nexia_car.tres" id="20"]
 [ext_resource type="Resource" path="res://src/garage/cars/malibu_car.tres" id="21"]
+[ext_resource type="Texture2D" path="res://src/driving/cobalt_art.tres" id="22"]
+
+[ext_resource type="Resource" path="res://src/routes/magic_city.tres" id="23"]
 
 [sub_resource type="AtlasTexture" id="DamasAtlas"]
 atlas = ExtResource("7")
@@ -29,10 +32,6 @@ region = Rect2(265, 125, 435, 640)
 [sub_resource type="AtlasTexture" id="MatizArt"]
 atlas = ExtResource("8")
 region = Rect2(40, 0, 440, 600)
-
-[sub_resource type="AtlasTexture" id="CobaltArt"]
-atlas = ExtResource("8")
-region = Rect2(520, 0, 480, 780)
 
 [sub_resource type="AtlasTexture" id="GentraArt"]
 atlas = ExtResource("8")
@@ -112,7 +111,7 @@ id = "cobalt"
 display_name = "Cobalt"
 price = 1000
 settings = ExtResource("5")
-texture = SubResource("CobaltArt")
+texture = ExtResource("22")
 sprite_scale = 0.1
 factory_paint = "white"
 
@@ -177,7 +176,7 @@ reduces = true
 
 [resource]
 script = ExtResource("1")
-routes = Array[ExtResource("17")]([ExtResource("11"), ExtResource("12"), ExtResource("13"), ExtResource("14")])
+routes = Array[ExtResource("17")]([ExtResource("11"), ExtResource("12"), ExtResource("13"), ExtResource("14"), ExtResource("23")])
 plates = ExtResource("15")
 market = ExtResource("16")
 wheel = ExtResource("18")

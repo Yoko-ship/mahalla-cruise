@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StreetArt" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/scenery/street_art.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/scenery/mahalla_street.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+name_key = "location_mahalla"
+texture = ExtResource("2")
+source_curbs = Vector2(270, 674)
+source_height = 1540.0
+repeat_distance = 720.0
+bakery_sign = true

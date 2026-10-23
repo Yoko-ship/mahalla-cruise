@@ -144,6 +144,7 @@ func _test_pick_value() -> void:
 ## traffic: keep normal traffic (crashes are absorbed); money: keep normal note spawns.
 func _new_game(traffic: bool, money: bool = false) -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = ""
 	if not traffic:
 		game.traffic_settings = game.traffic_settings.duplicate() as TrafficSettings

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="RouteDefinition" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://src/routes/route_definition.gd" id="1"]
+[ext_resource type="Resource" path="res://src/scenery/magic_city_art.tres" id="2"]
+
+[ext_resource type="Resource" path="res://src/routes/tashkent_journey.tres" id="journey"]
+
+[resource]
+script = ExtResource("1")
+id = "magic_city"
+name_key = "route_magic_city"
+price = 0
+region_code = "01"
+points_scale = 1.0
+street_art = ExtResource("2")
+journey = ExtResource("journey")
+start_location = 5

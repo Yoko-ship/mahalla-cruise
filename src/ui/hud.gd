@@ -3,6 +3,8 @@ extends CanvasLayer
 ## Displays values supplied by the game. Does not look up or change gameplay state.
 ## The drive overlay shows road-time values; menus and results are separate children.
 
+signal mode_requested(easy: bool)
+signal finish_requested
 signal restart_requested
 signal play_requested
 signal pause_requested
@@ -59,6 +61,8 @@ func _ready() -> void:
 			var link := settings.share_link
 			share_requested.emit(text if link.is_empty() else text + "\n" + link)
 	)
+	menu.mode_requested.connect(mode_requested.emit)
+	menu.finish_requested.connect(finish_requested.emit)
 	menu.primary_pressed.connect(_on_menu_primary)
 	drive.pause_pressed.connect(func() -> void: pause_requested.emit())
 	drive.horn_pressed.connect(func() -> void: horn_pressed.emit())
@@ -252,7 +256,16 @@ func show_feedback(text_key: String, values: Array = []) -> void:
 
 ## Fuel, speed and camera limit, taxi ride, and power-ups, every frame (see DriveWorld).
 func set_dashboard(view: Dictionary) -> void:
-	drive.set_dashboard(view)
+	if view.has("easy"):
+		menu.set_easy_mode(view.easy)
+		drive.set_easy_mode(view.easy)
+		game_over_panel.set_easy_mode(view.easy)
+	elif view.has("collection"):
+		drive.set_collection_goal(view.collection, settings.collection_success_seconds)
+	elif view.has("location"):
+		drive.show_location(view.location, settings.location_banner_seconds)
+	else:
+		drive.set_dashboard(view)
 
 
 ## The drive has ended: offer to pay price from the wallet to drive on, for seconds.
@@ -266,6 +279,7 @@ func offer_second_chance(price: int, wallet: int, seconds: float) -> void:
 func show_game_over(
 	metres: float, crash_kind: String, earned: int, wallet: int, booked: Dictionary = {}
 ) -> void:
+	menu.close()
 	game_over_panel.set_wallet(earned, wallet, booked)
 	_game_over = true
 	drive.dismiss_text()

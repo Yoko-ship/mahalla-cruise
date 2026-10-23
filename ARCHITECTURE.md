@@ -35,7 +35,7 @@ local collision coordinates stay unchanged; taller screens reveal more road.
 | `src/rivals/` | The mahalla rating: fixed neighbourhood bests, places, and one-time passing rewards. |
 | `src/wheel/` | The daily lucky wheel: prize table, spin rules, drive boosts, and the wheel screen (a HUD child). |
 | `src/weather/` | Pick weather and holidays by date; draw weather particles over the street (z 4). |
-| `src/routes/` | Define city routes, unlock and choose them, draw sidewalk landmarks, and the start-screen picker. |
+| `src/routes/` | Define city routes and distance-based district itineraries, unlock and choose routes, draw sidewalk landmarks, and own the start-screen picker. |
 | `src/plates/` | Uzbek number plates: rarity tiers, the daily auction, and the plate drawing. |
 | `src/market/` | The avtobozor: daily used cars, condition, the workshop, and the market screen. |
 | `src/achievements/` | Keep lifetime totals and unlocked goals; pay each goal once. |
@@ -45,7 +45,7 @@ local collision coordinates stay unchanged; taller screens reveal more road.
 | `src/driving/car_settings.gd` and `default_car.tres` | Define and store car handling values. |
 | `src/road/` | Store route settings and render scrolling lane markings above the street. |
 | `src/scenery/` | Render the connected street surface, buildings, trees, and native bakery sign. |
-| `src/traffic/` | Spawn and remove traffic, track contacts, and render sedan sprites using traffic settings. |
+| `src/traffic/` | Spawn and remove traffic, track contacts, and render varied car sprites using traffic settings. |
 | `src/pickups/` | Spawn money, detect collection, render banknotes, and own a separate feedback scene for audio/haptics. |
 | `src/progress/` | Own the versioned save document, local files, recovery, best score, wallet, and owned cars. |
 | `src/audio/` | Own background music and the horn; main starts, pauses, and stops music with the run. |
@@ -57,15 +57,32 @@ local collision coordinates stay unchanged; taller screens reveal more road.
 Keep each feature's scenes, scripts, and default resources together. Imported
 artwork and audio go under `assets/`, with source records. The Damas and sedan
 share `assets/cars/vehicles_aligned.png`, using a centered elevated rear camera
-with no diagonal heading. Player uses an AtlasTexture; traffic selects its region
-when drawing. Both visuals draw soft ground shadows separately. Keep full source
+with no diagonal heading. Player and traffic use atlas textures. Traffic uses
+`assets/cars/traffic_realistic.png` and the straight Cobalt view, selected through
+its own settings. Its six models share the Cobalt render camera and lighting.
+Both visuals draw soft ground shadows separately. Keep full source
 dimensions for atlas coordinates, mipmaps, and linear filtering.
 
-Scenery owns the connected `assets/scenery/mahalla_street.png` environment.
-Its first 1540 source rows repeat every 720 game pixels, ending at the repeated
-courtyard wall. Left sidewalk, asphalt, and right sidewalk are separate draw
-regions mapped to RoadSettings edges, so art follows steering/collision bounds.
-Scenery receives travel/reset commands from main and owns only its scroll offset.
+Scenery owns connected street textures through typed `StreetArt` resources: texture,
+source curb positions, cropped height, loop distance, and optional bakery sign. The
+original `mahalla_art.tres` uses the first 1540 rows of `mahalla_street.png` over 720
+game pixels. `magic_city_art.tres` uses its own generated street over 864 pixels.
+Left sidewalk, asphalt, and right sidewalk are separate draw regions mapped to
+RoadSettings edges, so art follows steering/collision bounds. RouteDefinition may
+reference StreetArt; main passes the route to the world, which calls its scenery
+child's `set_street_art()`. A null reference restores the original mahalla.
+`LocationSequence` optionally supplies a route's ordered StreetArt list and distances;
+`LocationJourney`, a world child under `src/routes/`, owns district index and transition
+state. The world advances it with main's actual metres, then passes current/previous
+art and progress to scenery. Tashkent and Magic City share the six-area loop, with
+different start indices; paid city routes remain static. A section lasts 550 metres,
+including a 48-metre entry from the top, rendered with a narrow feathered join.
+Scenery owns scroll phases and drawing only. Route switching/restart resets the
+itinerary and scroll; pause advances neither. Shared resources stay unchanged.
+Journey signals name changes upward; world forwards a location-only dashboard event
+through main to HUD. HUD delegates to DriveOverlay's LocationBanner child. Its
+four-second lifetime uses the driving clock, freezes during pause and refreshes on
+locale changes. Location changes never reset traffic, player, fuel, score or bonuses.
 Road draws lane markings above scenery at z=1; cars render at z=2; HUD uses a
 CanvasLayer. Assets, original prompts and source records are in `assets/ANGLED_ART.md`.
 
@@ -129,7 +146,7 @@ The main scene owns `RunState` (START, PLAYING, PAUSED, GAME_OVER).
 loads the best score, and disables steering. Only PLAYING advances the world.
 The world passes travel and the player's collision
 rectangle to `TrafficController`. Traffic never reads the player or HUD directly.
-The first contact signals upward and ends the run: the main scene stops advancing
+In Challenge mode the first unprotected contact signals upward and ends the run: the main scene stops advancing
 the world, disables player driving, and shows the final distance and restart UI.
 The scene tree stays active so buttons continue to receive input.
 
@@ -146,8 +163,14 @@ pickup controller with the player's bounds and traffic speed ratio. Pickups neve
 read sibling nodes. Spawn candidates avoid traffic along the predicted route to
 the player. Money travels with the road, uses swept collection detection, and is
 detached before its value is signalled upward, preventing duplicate awards.
+`PickupSettings.collection_side_margin` extends only the money collection rectangle
+horizontally. Easy's world configuration uses a private pickup-settings copy with
+an eight-pixel margin from `EasyDriveSettings`; Challenge retains the zero-margin
+source. Vertical timing, spawn clearance, player/traffic collision boxes, power-ups
+and bus-stop boarding use their original bounds. Mode changes and restart configure
+this afresh, without mutating shared resources.
 
-Traffic updates first. A crash skips pickup updates for that frame, so no points
+Traffic updates first. A Challenge-mode crash skips pickup updates for that frame, so no points
 can be awarded during or after the crash. Decorative bobbing advances only with
 travel and freezes with the run. The HUD clears its transient pickup feedback on
 game over and restart. Run scores reset; the best completed score persists locally.
@@ -159,6 +182,51 @@ bounded AudioStreamPlayers and brief Android vibration pulses. Focus loss also
 stops audio. HUD toggle signals route through main; runtime sound/vibration
 preferences persist through the progress store and load before the first drive.
 No sibling lookups, global audio service, or new dependency is used.
+
+## Easy and Challenge Driving
+
+The main scene exports `easy_mode = true` and an immutable `EasyDriveSettings`
+resource from `src/world/default_easy_drive.tres`. Each launch starts in Easy;
+the native start-menu button switches modes only while START and focused. The
+choice is session-only, leaving the save schema unchanged. Main passes the selected
+settings to the world and presentation mode through HUD's dashboard contract.
+Menu requests signal up through HUD to main; no sibling accesses are introduced.
+
+Easy settings build a private TrafficSettings copy: 900-pixel opening delay,
+900–1150-pixel spawn spacing, two cars maximum, 0.4 relative speed, 280-pixel
+minimum gap, no inward lane jitter, sheep or near-miss bonuses, and no spacing
+ramp. All cars have a 180-pixel/second travel cap. Shared car/catalogue/traffic
+resources remain unchanged. The world advances scenery, traffic and normal
+collectibles; fuel, fines, hazards, taxi/bus tasks, wedding convoys, power-up spawns,
+night and weather difficulty remain in Challenge. Pending wheel boosts are neither
+consumed nor shown in Easy. Mode changes reset all world children before play.
+
+Easy contact removes the touched traffic car and begins a two-second recovery from
+55% speed. Further contacts during recovery clear the obstruction without restarting
+the timer or charging points. The timer uses main's playing clock, freezes on pause,
+and clears on restart. The normal Challenge collision, shield and revival flow stays
+intact. Easy HUD shows pause, points, horn, collection target, location name and the gesture;
+advanced gauges, pedals and counters are hidden. The start screen retains Play,
+Garage, route/mode choice and preferences, hiding wheel/tasks/record/plate extras.
+
+Pause offers Finish drive in both modes. Main accepts it only while PAUSED and
+focused, then uses the existing finish transaction exactly once. It never asks for
+a paid second chance. Results use a positive completion heading, and Easy hides
+complex breakdowns and external sharing. Wallet, local records and lifetime rewards
+remain shared between modes; online competitive rankings are not implemented.
+A pictorial steering guide follows the existing onboarding timer and viewport offset.
+
+`DriveScoring` derives Easy collection progress from the run's existing soʻm/dollar
+note counters. `EasyDriveSettings` holds the five-note target and 15-point bonus.
+Each completed group adds the bonus to normal run score once; other point awards
+do not advance the target. Main configures this only for Easy. No new save fields
+or independent reward transaction are introduced. Bonuses bank with the existing
+Finish drive transaction. Restart clears progress; bumps leave it intact.
+HUD routes a partial `collection` dashboard payload through DriveOverlay to its
+`CollectionProgress` child. This presentation-only panel shows count/bar and a
+two-second success message (HUDSettings), advances only on the playing clock, and
+continues counting the next group during that message. It hides while paused and
+in Challenge, follows viewport offsets, and refreshes EN/UZ/RU translations.
 
 ## Session and Menu Flow
 
@@ -202,7 +270,20 @@ returns to START and does not restore an unfinished run.
 `src/garage/default_garage.tres` lists Damas, Matiz, Cobalt, and Gentra. Each
 `CarDefinition` holds an id, untranslated model name, price, a `CarSettings`
 resource, and optional artwork. A car without artwork is hidden from players;
-the six cars after the Damas use Blender renders packed into `assets/cars/roster_cars.png`
+five cars after the Damas use painted sprites packed into `assets/cars/roster_painted.png`.
+Cobalt uses `src/driving/cobalt_art.tres`, a `DirectionalCarTexture` extending
+`AtlasTexture`: its normal region is the straight garage/menu preview, and its five
+views share one camera, scale, and pivot in `assets/cars/cobalt_driving.png`.
+`PlayerCar` passes normalized steering to `CarVisual`, which eases between view
+indices and projects the plate onto each view's bumper. Directional cars skip the
+old flat rotation; other cars retain it. Pause freezes the view and reset centers it.
+Collision, movement, paint ownership, and saves are independent of view selection.
+Render with `scripts/blender/cobalt_driving.py`, then `scripts/pack_cobalt_views.gd`;
+packing uses uniform scale with no independent width compression.
+Their high-resolution sources and prompts are in `assets/cars/painted/` (excluded from
+runtime import by `.gdignore`). Run `scripts/render_roster_cars.gd -- --painted` to pack
+them with the same regions and collision-based sizes. The earlier Blender atlas is preserved
+as `assets/cars/roster_cars.png`
 (`scripts/fetch_car_models.py` downloads CC-BY models into the untracked
 `art_sources/car_models/`; `scripts/blender/roster_cars.py` with `model_import.py` places,
 cleans, and renders them to `build/roster_renders/`; `scripts/render_roster_cars.gd` crops,
@@ -481,14 +562,18 @@ dashboard limit while a waving officer is ahead.
 
 `RouteDefinition`s (`src/routes/*.tres`) live in the garage catalogue: Tashkent
 (free), Samarkand, Bukhara, and Khiva, with rising prices and points bonuses (+15%,
-+30%, +50%), a plate region code, a street tint, and a landmark set. `RouteRules`
++30%, +50%), plus a free Magic City inspired route with standard scoring. Each has a
+plate region code, street tint, landmark set, and optional StreetArt resource. `RouteRules`
 unlocks and chooses them; the selection is saved in the garage section. Main passes
-the route to `world.set_route()`: the scenery is tinted, `LandmarkView` (z 0 above the
+the route to `world.set_route()`: the scenery selects its artwork and tint, `LandmarkView` (z 0 above the
 street) draws code-made landmarks on alternating sidewalks every 620 px, and the
 world's `_pay()` applies the bonus before the night bonus. Landmarks are temporary
 art until each city has its own painted street. `RoutePicker` on the start card
 browses routes: an owned one is chosen at once, a locked one shows its price and
-disables Play until unlocked.
+disables Play until unlocked. Free unowned routes display Select instead of a zero
+price. Choosing Magic City uses the same saved selection/ownership fields, with no
+wallet charge or save-version change. Its generated entrance and streets are an
+adaptation for the existing road geometry, not a geographically exact park map.
 
 ## Number Plates
 
@@ -608,7 +693,13 @@ updates still perform no file I/O.
 `RoadSettings` contains road edges, scrolling speed, and distance conversion.
 The main scene supplies road bounds to the player, so road geometry has one owner.
 `TrafficSettings` contains spawning distances, spacing, vehicle limits, relative
-movement, and collision size. Player collision size belongs to
+movement, collision size, model textures, paint colors, and maximum visual size.
+Traffic owns a shuffled model bag and a separate cosmetic random generator: every
+six default spawns includes all six models, without adjacent model repeats.
+Restart clears the bag. Each visual owns its paint shader material and fits the
+texture uniformly inside 60 by 72 pixels, allowing for hatchback mirrors without
+shortening the visible body. Shadows follow sprite size; shared resources stay unchanged.
+Player collision size belongs to
 `CarSettings`. Collision rectangles use main-scene coordinates and intentionally
 ignore decorative car lean.
 

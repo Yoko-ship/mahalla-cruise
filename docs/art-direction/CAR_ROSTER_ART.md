@@ -1,8 +1,12 @@
 # Car Roster Artwork Brief
 
-Status: written 2026-10-07. Since 2026-10-12 all six cars use Blender renders of
-CC-BY models of the real cars (see `assets/cars/README.md`). This brief remains for optional painted versions
-that match the Damas more closely. Colors below are proposals awaiting user approval.
+Status: painted versions implemented 2026-10-22 in `assets/cars/roster_painted.png`,
+using the Damas as style reference and the previous CC-BY Blender renders for vehicle
+identity (see `assets/cars/painted/README.md` for exact prompts and attribution).
+This original 2026-10-07 brief is historical; current factory colors come from the
+garage catalogue and are applied by the existing paint shader.
+Later user review replaced Cobalt with five uniformly scaled Blender steering
+views; see `assets/cars/COBALT_DRIVING.md`. The other five painted cars remain active.
 
 ## Must match the existing cars
 

@@ -38,12 +38,18 @@ func _test_catalogue() -> void:
 	for route in GARAGE.routes:
 		ids.append(route.id)
 		regions.append(route.region_code)
-		_check(route.price > last_price and route.points_scale > last_scale, "Each city costs more")
-		last_price = route.price
-		last_scale = route.points_scale
+		if route.id != "magic_city":
+			_check(
+				route.price > last_price and route.points_scale > last_scale, "Each city costs more"
+			)
+			last_price = route.price
+			last_scale = route.points_scale
 		_check(not tr(route.name_key).is_empty(), "Route has a name")
-	_check(ids == ["tashkent", "samarkand", "bukhara", "khiva"], "Four cities in order")
-	_check(regions == ["01", "30", "80", "90"], "Real plate region codes")
+	_check(
+		ids == ["tashkent", "samarkand", "bukhara", "khiva", "magic_city"],
+		"Four existing cities retain their order; Magic City is added"
+	)
+	_check(regions == ["01", "30", "80", "90", "01"], "Real plate region codes")
 	_check(GARAGE.routes[0].price == 0 and GARAGE.routes[0].landmarks.is_empty(), "Tashkent free")
 	_check(GARAGE.find_route("samarkand").bonus_percent() == 15, "Bonus as a percent")
 
@@ -129,9 +135,18 @@ func _test_picker() -> void:
 	await _click(picker.previous_button)
 	_check(game.progress.route == "tashkent", "Browsing to an owned city chooses it")
 	await _click(picker.previous_button)
-	_check(picker.shown_route().id == "khiva" and play.disabled, "The arrows wrap around")
+	_check(picker.shown_route().id == "magic_city", "The arrows wrap to the new route")
+	_check(picker.choice_button.text == "Magic City\nSelect", "Free scenery offers Select")
+	await _click(picker.choice_button)
+	_check(
+		game.progress.route == "magic_city" and game.progress.wallet == 100, "Free route selects"
+	)
+	_check(not play.disabled, "The free route can be played after selecting it")
+	await _click(picker.previous_button)
+	_check(picker.shown_route().id == "khiva" and play.disabled, "Khiva still requires unlocking")
 	await _click(play)
 	_check(game.state == CruiseGame.RunState.START, "A locked city cannot be played")
+	await _click(picker.next_button)
 	await _click(picker.next_button)
 	await _click(play)
 	_check(game.state == CruiseGame.RunState.PLAYING, "Play starts the chosen city")
@@ -145,6 +160,7 @@ func _test_layout(locale: String) -> void:
 	view.size = Vector2i(432, 768)
 	root.add_child(view)
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = ""
 	view.add_child(game)
 	game.set_process(false)
@@ -169,6 +185,7 @@ func _test_layout(locale: String) -> void:
 
 func _game(path: String) -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = path
 	root.add_child(game)
 	game.set_language("en")

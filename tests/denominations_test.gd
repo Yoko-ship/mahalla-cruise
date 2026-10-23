@@ -69,6 +69,7 @@ func _test_weighted_selection() -> void:
 
 func _test_mixed_collections() -> void:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	game.pickup_settings = DEFAULTS.duplicate() as PickupSettings
 	game.pickup_settings.first_spawn_distance = 1.0
 	game.pickup_settings.spawn_distance = 1000.0

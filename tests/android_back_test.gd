@@ -12,6 +12,7 @@ func _initialize() -> void:
 
 func _run() -> void:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = ""
 	root.add_child(game)
 	game.set_process(false)

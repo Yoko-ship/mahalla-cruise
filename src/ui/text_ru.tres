@@ -2,6 +2,20 @@
 
 [resource]
 messages = {
+[&"", &"collection_goal"]: [&"Соберите %d банкнот"],
+[&"", &"collection_complete"]: [&"Цель достигнута!"],
+[&"", &"mode_easy"]: [&"Лёгкая поездка ↔"],
+[&"", &"mode_challenge"]: [&"Испытание ↔"],
+[&"", &"finish_drive"]: [&"Завершить поездку"],
+[&"", &"drive_finished"]: [&"Отличная поездка!"],
+[&"", &"easy_hint"]: [&"Ведите пальцем влево или вправо"],
+[&"", &"easy_tagline"]: [&"Рулите, собирайте, исследуйте!"],
+[&"", &"easy_bump"]: [&"Лёгкое касание — едем дальше!"],
+[&"", &"location_mahalla"]: [&"Старый Ташкент"],
+[&"", &"location_chorsu"]: [&"Базар Чорсу"],
+[&"", &"location_amir_temur"]: [&"Сквер Амира Темура"],
+[&"", &"location_tashkent_city"]: [&"Tashkent City"],
+[&"", &"location_seoul_mun"]: [&"Seoul Mun"],
 [&"", &"sheep_ahead"]: [&"Осторожно, овцы!"],
 [&"", &"share_text"]: [&"Я набрал %d очк. и проехал %d м в Mahalla Cruise! Сможешь обогнать? 🚐"],
 [&"", &"share"]: [&"Поделиться"],
@@ -33,6 +47,7 @@ messages = {
 [&"", &"revive_message"]: [&"Заплатите %d очк. из кошелька и езжайте дальше."],
 [&"", &"revive_title"]: [&"Ещё один шанс?"],
 [&"", &"wedding"]: [&"Свадьба! Езжайте следом"],
+[&"", &"route_magic_city"]: [&"Magic City"],
 [&"", &"route_tashkent"]: [&"Ташкент"],
 [&"", &"route_samarkand"]: [&"Самарканд"],
 [&"", &"route_bukhara"]: [&"Бухара"],

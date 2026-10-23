@@ -17,6 +17,7 @@ var som_collected: int = 0
 var dollars_collected: int = 0
 var near_misses: int = 0
 var refuels: int = 0
+var _collection_settings: EasyDriveSettings
 
 @onready var world: DriveWorld = $World
 @onready var pickup_feedback: PickupFeedback = $PickupFeedback
@@ -39,6 +40,7 @@ func _reset_scoring() -> void:
 	dollars_collected = 0
 	near_misses = 0
 	refuels = 0
+	_show_collection_goal(false, true)
 
 
 func _on_money_collected(points: int, note: BanknoteDefinition) -> void:
@@ -46,9 +48,35 @@ func _on_money_collected(points: int, note: BanknoteDefinition) -> void:
 		return
 	dollars_collected += int(note.is_dollar)
 	som_collected += int(not note.is_dollar)
-	_add_points(points)
+	var total := som_collected + dollars_collected
+	var complete := (
+		_collection_settings != null
+		and total % maxi(1, _collection_settings.collection_target) == 0
+	)
+	var bonus := _collection_settings.collection_bonus if complete else 0
+	_add_points(points + bonus)
 	hud.show_pickup(points, note.display_name())
-	pickup_feedback.play_pickup(note.is_dollar)
+	pickup_feedback.play_pickup(note.is_dollar or complete)
+	_show_collection_goal(complete)
+
+
+func _configure_collection_goal(settings: EasyDriveSettings) -> void:
+	_collection_settings = settings
+	_show_collection_goal(false, true)
+
+
+func _show_collection_goal(complete: bool = false, reset: bool = false) -> void:
+	var goal: Dictionary = {}
+	if _collection_settings != null:
+		var target := maxi(1, _collection_settings.collection_target)
+		goal = {
+			"target": target,
+			"collected": (som_collected + dollars_collected) % target,
+			"bonus": _collection_settings.collection_bonus,
+			"complete": complete,
+			"reset": reset,
+		}
+	hud.set_dashboard({"collection": goal})
 
 
 func _on_near_missed(points: int, combo: int) -> void:

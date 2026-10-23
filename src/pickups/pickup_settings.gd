@@ -13,6 +13,8 @@ extends Resource
 @export var spawn_y: float = -32.0
 @export var despawn_y: float = 816.0
 @export var collision_half_size := Vector2(17, 12)
+## Extra sideways reach for money only; does not enlarge vehicle or power-up bounds.
+@export_range(0.0, 30.0) var collection_side_margin: float = 0.0
 @export_range(0.0, 200.0) var traffic_clearance: float = 80.0
 
 

@@ -11,10 +11,14 @@ var _half_size := Vector2(20, 36)
 @onready var visual: TrafficVisual = $Visual
 
 
-func configure(half_size: Vector2, paint: Color) -> void:
+func configure(
+	half_size: Vector2,
+	paint: Color,
+	texture: Texture2D = null,
+	visual_size: Vector2 = Vector2(60, 72)
+) -> void:
 	_half_size = half_size
-	visual.paint = paint
-	visual.queue_redraw()
+	visual.set_appearance(texture, paint, visual_size)
 
 
 func advance(pixels: float) -> void:

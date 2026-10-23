@@ -100,6 +100,7 @@ func _audible(music: AudioStreamPlayer) -> bool:
 
 func _new_game(path: String) -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = path
 	game.traffic_settings = game.traffic_settings.duplicate() as TrafficSettings
 	game.traffic_settings.first_spawn_distance = 100000.0

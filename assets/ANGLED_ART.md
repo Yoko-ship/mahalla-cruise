@@ -5,6 +5,21 @@ angled gameplay concept. Generated using the built-in image generation tool.
 
 ## Active Assets
 
+- Four district textures (`chorsu`, `amir_temur`, `tashkent_city`, `seoul_mun`)
+  join the mahalla and Magic City in a repeating six-location drive.
+  See [sources, prompts and runtime details](scenery/LOCATIONS.md).
+
+- `scenery/magic_city_street.png`: separate realistic Magic City inspired route,
+  with an 864-pixel loop. See [sources and exact prompts](scenery/MAGIC_CITY.md).
+
+- `cars/cobalt_driving.png`: five Blender views of the existing Cobalt model,
+  with a shared orthographic camera and uniform scale. Cobalt now uses these
+  instead of the painted atlas; see [Cobalt driving art](cars/COBALT_DRIVING.md).
+- `cars/roster_painted.png`: Matiz, Cobalt, Gentra, Spark, Nexia, and Malibu,
+  added 2026-10-22 using built-in image generation, with the Damas as the style
+  reference and existing Blender renders as vehicle identity references.
+  Full prompts, sources, and attribution links: [painted car record](cars/painted/README.md).
+  Packed with the existing collision-based dimensions and neutral body paint.
 - `cars/vehicles_aligned.png`: transparent Damas/sedan atlas, 1774 × 887.
   Player and traffic face straight up, viewed from an elevated centered rear
   camera. The atlas regions are selected by Godot; originals are preserved.

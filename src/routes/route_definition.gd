@@ -10,7 +10,11 @@ extends Resource
 @export var region_code: String = "01"
 ## Multiplies money, close-call, taxi, and police points on this route.
 @export_range(1.0, 3.0) var points_scale: float = 1.0
-## Tints the street artwork until the city has its own painted street.
+## Optional route-specific scenery. Null retains the original mahalla street.
+@export var street_art: StreetArt
+@export var journey: LocationSequence
+@export_range(0, 100) var start_location: int = 0
+## Tints the street artwork.
 @export var tint := Color.WHITE
 ## Sidewalk landmarks drawn in code: "", "registan", "kalyan", or "itchan_kala".
 @export var landmarks: String = ""

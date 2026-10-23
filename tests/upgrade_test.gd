@@ -106,6 +106,7 @@ func _test_garage_buttons() -> void:
 	_cleanup()
 	_write('{"version": 1, "stats": {"best_score": 0}, "garage": {"wallet": 400}}')
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = _path
 	root.add_child(game)
 	game.set_language("en")
@@ -154,6 +155,7 @@ func _test_layout(locale: String) -> void:
 	view.size = Vector2i(432, 768)
 	root.add_child(view)
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = ""
 	view.add_child(game)
 	game.set_process(false)

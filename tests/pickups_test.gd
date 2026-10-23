@@ -28,6 +28,7 @@ func _run() -> void:
 
 func _new_game(dollars: bool = false) -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	game.pickup_settings = game.pickup_settings.duplicate() as PickupSettings
 	game.pickup_settings.first_spawn_distance = 1.0
 	game.pickup_settings.spawn_distance = 1000.0

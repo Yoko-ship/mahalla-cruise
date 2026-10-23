@@ -7,6 +7,7 @@ signal garage_pressed
 ## The player wants to share this result; text is ready to send.
 signal share_pressed(text: String)
 
+var _easy: bool = false
 var _metres: float = 0.0
 var _crash_kind: String = "car"
 var _points: int = 0
@@ -24,6 +25,7 @@ var _achievement_rewards: Array[int] = []
 var _rivals: Array = []
 var _next_rival: Dictionary = {}
 
+@onready var title_label: Label = $Card/Margin/Content/Title
 @onready var message_label: Label = $Card/Margin/Content/Message
 @onready var result_label: Label = $Card/Margin/Content/Result
 @onready var score_result: Label = $Card/Margin/Content/ScoreResult
@@ -39,6 +41,11 @@ func _ready() -> void:
 	restart_button.pressed.connect(func() -> void: restart_pressed.emit())
 	garage_button.pressed.connect(func() -> void: garage_pressed.emit())
 	share_button.pressed.connect(func() -> void: share_pressed.emit(share_text()))
+
+
+func set_easy_mode(enabled: bool) -> void:
+	_easy = enabled
+	refresh_text()
 
 
 func open(metres: float, crash_kind: String = "car") -> void:
@@ -91,7 +98,12 @@ func share_text() -> String:
 
 
 func refresh_text() -> void:
-	var messages := {"sheep": "crash_sheep", "fuel": "crash_fuel"}
+	title_label.text = tr("drive_finished" if _crash_kind == "finished" else "game_over")
+	message_label.visible = _crash_kind != "finished"
+	var messages := {"sheep": "crash_sheep", "fuel": "crash_fuel", "finished": "drive_finished"}
+	money_result.visible = not _easy
+	best_result.visible = not _easy or _unsaved
+	share_button.visible = not _easy
 	message_label.text = tr(messages.get(_crash_kind, "crash_message"))
 	result_label.text = tr("travelled") % int(_metres)
 	score_result.text = tr("points") % _points
@@ -103,6 +115,8 @@ func refresh_text() -> void:
 		best_result.text += "\n" + tr("unsaved").strip_edges()
 	share_button.text = tr("share")
 	wallet_result.text = tr("wallet_result") % [_earned, _wallet]
+	if _easy:
+		return
 	for reward in _task_rewards:
 		wallet_result.text += "\n" + tr("task_done") % reward
 	for reward in _achievement_rewards:

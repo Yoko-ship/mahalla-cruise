@@ -2,6 +2,8 @@ class_name RunMenu
 extends Control
 ## Shared start/pause presentation. The parent routes the primary action.
 
+signal mode_requested(easy: bool)
+signal finish_requested
 signal primary_pressed
 signal garage_pressed
 signal tasks_pressed
@@ -13,6 +15,7 @@ signal haptics_toggled(enabled: bool)
 signal music_toggled(enabled: bool)
 
 var is_pause: bool = false
+var _easy: bool = false
 var _best: int = 0
 var _points: int = 0
 var _metres: float = 0.0
@@ -20,6 +23,8 @@ var _wheel: Dictionary = {"available": false, "boost": ""}
 var _holiday: String = ""
 var _pulse: float = 0.0
 
+@onready var mode_button: Button = $Center/Card/Margin/Content/Mode
+@onready var finish_button: Button = $Center/Card/Margin/Content/Finish
 @onready var title: Label = $Center/Card/Margin/Content/Title
 @onready var subtitle: Label = $Center/Card/Margin/Content/Subtitle
 @onready var car: TextureRect = $Center/Card/Margin/Content/Car
@@ -36,6 +41,8 @@ var _pulse: float = 0.0
 
 
 func _ready() -> void:
+	mode_button.pressed.connect(func() -> void: mode_requested.emit(not _easy))
+	finish_button.pressed.connect(finish_requested.emit)
 	primary_button.pressed.connect(func() -> void: primary_pressed.emit())
 	garage_button.pressed.connect(func() -> void: garage_pressed.emit())
 	tasks_button.pressed.connect(func() -> void: tasks_pressed.emit())
@@ -51,6 +58,11 @@ func _ready() -> void:
 	preferences.sound_toggled.connect(func(enabled: bool) -> void: sound_toggled.emit(enabled))
 	preferences.haptics_toggled.connect(func(enabled: bool) -> void: haptics_toggled.emit(enabled))
 	preferences.music_toggled.connect(func(enabled: bool) -> void: music_toggled.emit(enabled))
+
+
+func set_easy_mode(enabled: bool) -> void:
+	_easy = enabled
+	refresh_text()
 
 
 func show_start(best: int) -> void:
@@ -71,12 +83,19 @@ func show_pause(points: int, metres: float) -> void:
 
 
 func refresh_text() -> void:
-	title.text = tr("paused") if is_pause else "Mahalla\nCruise"
-	title.add_theme_font_size_override("font_size", 34 if is_pause else 42)
+	mode_button.visible = not is_pause
+	mode_button.text = tr("mode_easy" if _easy else "mode_challenge")
+	finish_button.visible = is_pause
+	finish_button.text = tr("finish_drive")
+	detail.visible = not _easy or is_pause
+	title.text = tr("paused") if is_pause else ("Mahalla\nCruise" if _easy else "Mahalla Cruise")
+	title.add_theme_font_size_override("font_size", 34 if is_pause else (42 if _easy else 30))
 	var greeting := "holiday_" + _holiday if not _holiday.is_empty() else "tagline"
+	if _easy:
+		greeting = "easy_tagline"
 	subtitle.text = tr("pause_message") if is_pause else tr(greeting)
 	car.visible = not is_pause
-	plate_view.visible = not is_pause
+	plate_view.visible = not is_pause and not _easy
 	route_picker.visible = not is_pause
 	route_picker.refresh_text()
 	primary_button.disabled = route_picker.is_locked() and not is_pause
@@ -85,15 +104,15 @@ func refresh_text() -> void:
 	garage_button.text = tr("garage")
 	garage_button.visible = not is_pause
 	tasks_button.text = tr("tasks")
-	tasks_button.visible = not is_pause
+	tasks_button.visible = not is_pause and not _easy
 	gift_button.text = tr("wheel_button")
-	gift_button.visible = not is_pause
+	gift_button.visible = not is_pause and not _easy
 	var boost := str(_wheel.get("boost", ""))
-	boost_label.visible = not is_pause and not boost.is_empty()
+	boost_label.visible = not is_pause and not _easy and not boost.is_empty()
 	boost_label.text = tr("boost_ready") % tr("boost_" + boost) if not boost.is_empty() else ""
 	set_process(gift_button.visible and _wheel.get("available", false))
 	gift_button.modulate = Color.WHITE if _wheel.get("available", false) else Color(1, 1, 1, 0.55)
-	instructions.text = tr("hint").replace("\\n", "\n")
+	instructions.text = tr("easy_hint" if _easy else "hint").replace("\\n", "\n")
 
 
 func set_car(texture: Texture2D, paint: Color) -> void:

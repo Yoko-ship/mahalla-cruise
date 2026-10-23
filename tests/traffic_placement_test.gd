@@ -126,6 +126,7 @@ func _test_steerable_run(frames_per_second: int) -> void:
 	view.size = Vector2i(432, 912)
 	root.add_child(view)
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = ""
 	view.add_child(game)
 	game.set_process(false)

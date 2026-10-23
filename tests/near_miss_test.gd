@@ -159,6 +159,7 @@ func _test_close_call_sound() -> void:
 
 func _new_game() -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = ""
 	game.traffic_settings = game.traffic_settings.duplicate() as TrafficSettings
 	game.traffic_settings.first_spawn_distance = 100000.0

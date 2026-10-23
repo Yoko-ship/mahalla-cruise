@@ -7,6 +7,23 @@ The previous `damas_white_rear.png` pointed diagonally and has been superseded.
 
 ## Garage Roster Art
 
+Cobalt now uses [five consistent Blender steering views](COBALT_DRIVING.md) in
+`cobalt_driving.png`, with natural proportions and a projected plate. Its painted
+versions remain as history; the other five cars still use the painted atlas below.
+
+The active garage atlas is now `roster_painted.png` (2026-10-22), with six painted
+adaptations matching the Damas. Original PNGs, exact prompts, reference roles, and
+generation paths are in [painted/README.md](painted/README.md). They use the existing
+Blender renders as identity references, so the model author attributions below
+remain applicable. The Damas, car tuning, factory paints, and atlas regions are unchanged.
+High-resolution sources are excluded from runtime import; the packed atlas uses mipmaps.
+
+```sh
+./scripts/godot.sh --headless --path . --script scripts/render_roster_cars.gd -- --painted
+```
+
+### Preserved Blender Version
+
 `roster_cars.png` holds the Matiz, Cobalt, Gentra, Spark, Nexia, and Malibu (2026-10-12),
 rendered in Blender 4.2 LTS (Cycles) from downloaded 3D models of the real cars. Every model
 is CC Attribution 4.0 (commercial use allowed, author must be credited); authors and links
@@ -70,3 +87,6 @@ Style/medium: clean hand illustrated mobile game sprite, confident simple silhou
 Composition/framing: strictly directly overhead orthographic view, roof seen from straight above. Front at 12 o'clock. Bilaterally symmetric vertical silhouette, no diagonal rotation, no perspective or isometric view. Car length about twice body width. One centered vehicle, whole vehicle and mirrors fully visible, tight framing with small transparent margins.
 Lighting: subtle upper-left highlight within body. No external cast shadow (game renders shadow).
 Constraints: one sprite only, actual alpha transparency, no checkerboard painted in image, no text, no logos, no watermarks, no labels, no sheet, no scenery. This must depict a Damas microvan, not a long-hood sedan or generic delivery truck.
+
+Regular AI traffic now uses the [consistent rendered traffic atlas](TRAFFIC_REALISTIC.md)
+and the Cobalt straight view. Player/garage sprites retain their existing artwork.

@@ -196,6 +196,7 @@ func _test_money_and_sheep_stay_apart() -> void:
 
 func _new_game(with_cars: bool) -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = ""
 	if not with_cars:
 		game.traffic_settings = game.traffic_settings.duplicate() as TrafficSettings

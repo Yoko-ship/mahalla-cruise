@@ -12,6 +12,7 @@ func _initialize() -> void:
 
 func _run() -> void:
 	var scene := MAIN_SCENE.instantiate() as CruiseGame
+	scene.easy_mode = false  # Exercise the original Challenge rules.
 	(scene.get_node("Progress") as LocalProgressStore).save_path = ""
 	# The hour-long frame below would empty the tank; fuel is tested elsewhere.
 	var fuel := scene.get_node("World/Fuel") as FuelController
@@ -83,7 +84,7 @@ func _run() -> void:
 	_check(
 		(
 			scene.world.scenery.scroll_offset >= 0.0
-			and scene.world.scenery.scroll_offset < SceneryView.REPEAT_DISTANCE
+			and scene.world.scenery.scroll_offset < SceneryView.DEFAULT_ART.repeat_distance
 		),
 		"Scenery scrolling wraps over long sessions"
 	)
@@ -167,6 +168,7 @@ func _test_emulated_mouse_is_ignored(car: PlayerCar) -> void:
 
 func _test_resource_configuration() -> void:
 	var scene := MAIN_SCENE.instantiate() as CruiseGame
+	scene.easy_mode = false  # Exercise the original Challenge rules.
 	var car := scene.get_node("World/PlayerCar") as PlayerCar
 	var original_settings := car.settings
 	var variant := original_settings.duplicate() as CarSettings
@@ -232,10 +234,10 @@ func _test_scenery_cycle() -> void:
 	var settings := RoadSettings.new()
 	root.add_child(scenery)
 	scenery.configure(settings)
-	scenery.advance(SceneryView.REPEAT_DISTANCE - 0.5)
+	scenery.advance(SceneryView.DEFAULT_ART.repeat_distance - 0.5)
 	scenery.advance(1.0)
 	_check(is_equal_approx(scenery.scroll_offset, 0.5), "Scenery wraps across frame boundaries")
-	scenery.advance(SceneryView.REPEAT_DISTANCE * 1000.0 + 25.0)
+	scenery.advance(SceneryView.DEFAULT_ART.repeat_distance * 1000.0 + 25.0)
 	_check(is_equal_approx(scenery.scroll_offset, 25.5), "Large travel preserves scenery phase")
 	scenery.configure(settings)
 	_check(is_zero_approx(scenery.scroll_offset), "Restart returns the scenery to its first block")

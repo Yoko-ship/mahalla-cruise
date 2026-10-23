@@ -2,6 +2,20 @@
 
 [resource]
 messages = {
+[&"", &"collection_goal"]: [&"Collect %d banknotes"],
+[&"", &"collection_complete"]: [&"Target reached!"],
+[&"", &"mode_easy"]: [&"Easy drive ↔"],
+[&"", &"mode_challenge"]: [&"Challenge ↔"],
+[&"", &"finish_drive"]: [&"Finish drive"],
+[&"", &"drive_finished"]: [&"Nice drive!"],
+[&"", &"easy_hint"]: [&"Slide left or right to steer"],
+[&"", &"easy_tagline"]: [&"Steer, collect and explore!"],
+[&"", &"easy_bump"]: [&"A little bump — keep going!"],
+[&"", &"location_mahalla"]: [&"Old Tashkent"],
+[&"", &"location_chorsu"]: [&"Chorsu Bazaar"],
+[&"", &"location_amir_temur"]: [&"Amir Temur Square"],
+[&"", &"location_tashkent_city"]: [&"Tashkent City"],
+[&"", &"location_seoul_mun"]: [&"Seoul Mun"],
 [&"", &"sheep_ahead"]: [&"Sheep crossing!"],
 [&"", &"share_text"]: [&"I scored %d points and drove %d m in Mahalla Cruise! Can you beat me? 🚐"],
 [&"", &"share"]: [&"Share"],
@@ -33,6 +47,7 @@ messages = {
 [&"", &"revive_message"]: [&"Pay %d points from your wallet and drive on."],
 [&"", &"revive_title"]: [&"One more chance?"],
 [&"", &"wedding"]: [&"Wedding convoy! Follow it"],
+[&"", &"route_magic_city"]: [&"Magic City"],
 [&"", &"route_tashkent"]: [&"Tashkent"],
 [&"", &"route_samarkand"]: [&"Samarkand"],
 [&"", &"route_bukhara"]: [&"Bukhara"],

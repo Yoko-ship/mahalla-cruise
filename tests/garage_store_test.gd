@@ -1,7 +1,7 @@
 extends SceneTree
 
 const GARAGE: GarageCatalogue = preload("res://src/garage/default_garage.tres")
-const ROSTER_ART: String = "res://assets/cars/roster_cars.png"
+const ROSTER_ART: String = "res://assets/cars/roster_painted.png"
 
 var failures: int = 0
 var checks: int = 0
@@ -74,26 +74,48 @@ func _test_roster() -> void:
 
 ## Roster cars come from the drawn atlas, fill their own region, and match their collision length.
 func _test_artwork() -> void:
-	var regions: Array[Rect2] = []
+	var regions: Dictionary = {}
 	for car in GARAGE.cars:
 		if car.id == "damas":
 			continue
 		var art := car.texture as AtlasTexture
-		_check(art != null and art.atlas.resource_path == ROSTER_ART, "Drawn sprite: " + car.id)
+		var expected_art := ROSTER_ART
+		if car.id == "cobalt":
+			expected_art = "res://assets/cars/cobalt_driving.png"
+		_check(art != null and art.atlas.resource_path == expected_art, "Car sprite: " + car.id)
 		if art == null:
 			continue
-		_check(not art.region in regions, "Each car has its own sprite: " + car.id)
-		regions.append(art.region)
+		var previous: Array = regions.get(expected_art, [])
+		_check(not art.region in previous, "Each car has its own sprite: " + car.id)
+		for other: Rect2 in previous:
+			_check(not art.region.intersects(other), "Car regions never overlap: " + car.id)
+		previous.append(art.region)
+		regions[expected_art] = previous
 		var length := art.region.size.y * car.sprite_scale
 		var collision := car.settings.collision_half_size.y * 2.0
 		_check(absf(length - collision) <= 2.0, "Sprite length matches collision: " + car.id)
 		var image := art.atlas.get_image()
 		if image.is_compressed():
 			image.decompress()
+		_check(image.has_mipmaps(), "Car art keeps mipmaps for phone scale: " + car.id)
+		_check(
+			Rect2(Vector2.ZERO, image.get_size()).encloses(art.region),
+			"The full sprite region fits inside the atlas: " + car.id
+		)
 		var middle := Vector2i(art.region.get_center())
 		var corner := Vector2i(art.region.position) + Vector2i(2, 2)
 		_check(image.get_pixelv(middle).a > 0.9, "The body is opaque: " + car.id)
 		_check(image.get_pixelv(corner).a < 0.1, "The background is transparent: " + car.id)
+		var visible_rows := 0
+		for y in range(int(art.region.position.y), int(art.region.end.y), 4):
+			for x in range(int(art.region.position.x), int(art.region.end.x), 4):
+				if image.get_pixel(x, y).a > 0.5:
+					visible_rows += 4
+					break
+		_check(
+			visible_rows * car.sprite_scale >= collision - 4.0,
+			"Visible car fills its collision length without faint-alpha padding: " + car.id
+		)
 
 
 func _test_wallet_and_purchases() -> void:

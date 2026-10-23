@@ -155,6 +155,7 @@ func _drive_until_done(game: CruiseGame, post: PolicePost) -> void:
 ## wave: the officers' wave chance; stations: keep METAN stations (with an endless tank).
 func _new_game(wave: float, stations: bool) -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = ""
 	game.traffic_settings = game.traffic_settings.duplicate() as TrafficSettings
 	game.traffic_settings.first_spawn_distance = 1.0e9

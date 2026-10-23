@@ -140,6 +140,7 @@ func _add(game: CruiseGame, kind: String) -> RoadHazard:
 
 func _new_game(quiet: bool) -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = ""
 	var traffic := game.get_node("World/Traffic") as TrafficController
 	traffic.sheep_settings = traffic.sheep_settings.duplicate() as SheepSettings

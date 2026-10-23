@@ -28,6 +28,7 @@ func _run() -> void:
 
 func _new_game(path: String = "") -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = path
 	root.add_child(game)
 	game.set_language("en")

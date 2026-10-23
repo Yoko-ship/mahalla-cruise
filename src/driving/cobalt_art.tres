@@ -1,0 +1,32 @@
+[gd_resource type="AtlasTexture" script_class="DirectionalCarTexture" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://src/driving/directional_car_texture.gd" id="1"]
+
+[ext_resource type="Texture2D" path="res://assets/cars/cobalt_driving.png" id="2"]
+
+[sub_resource type="AtlasTexture" id="view0"]
+atlas = ExtResource("2")
+region = Rect2(0, 0, 594, 795)
+
+[sub_resource type="AtlasTexture" id="view1"]
+atlas = ExtResource("2")
+region = Rect2(602, 0, 594, 795)
+
+[sub_resource type="AtlasTexture" id="view2"]
+atlas = ExtResource("2")
+region = Rect2(1204, 0, 594, 795)
+
+[sub_resource type="AtlasTexture" id="view3"]
+atlas = ExtResource("2")
+region = Rect2(1806, 0, 594, 795)
+
+[sub_resource type="AtlasTexture" id="view4"]
+atlas = ExtResource("2")
+region = Rect2(2408, 0, 594, 795)
+
+[resource]
+script = ExtResource("1")
+atlas = ExtResource("2")
+region = Rect2(1253.618, 2.977, 496.183, 780.000)
+views = Array[Texture2D]([SubResource("view0"), SubResource("view1"), SubResource("view2"), SubResource("view3"), SubResource("view4")])
+plate_quads = Array[PackedVector2Array]([PackedVector2Array(331.483, 746.620, 462.912, 732.352, 462.912, 754.599, 331.483, 768.866), PackedVector2Array(281.170, 747.083, 414.118, 739.922, 414.118, 762.169, 281.170, 769.330), PackedVector2Array(230.982, 744.845, 364.438, 744.845, 364.438, 767.092, 230.982, 767.092), PackedVector2Array(181.302, 739.923, 314.250, 747.084, 314.250, 769.330, 181.302, 762.169), PackedVector2Array(132.508, 732.353, 263.937, 746.621, 263.937, 768.867, 132.508, 754.599)])

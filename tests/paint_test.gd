@@ -82,6 +82,7 @@ func _test_garage_flow() -> void:
 	_cleanup()
 	_write('{"version": 1, "stats": {"best_score": 0}, "garage": {"wallet": 200}}')
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = _path
 	root.add_child(game)
 	game.set_language("en")

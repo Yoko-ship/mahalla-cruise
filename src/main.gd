@@ -4,6 +4,8 @@ extends DriveScoring
 ## and routes signals between the drive world, the HUD, and the other features. Scoring
 ## during a drive lives in DriveScoring. No drawing, raw input, or road objects here.
 
+@export var easy_mode: bool = true
+@export var easy_settings: EasyDriveSettings = preload("res://src/world/default_easy_drive.tres")
 @export var road_settings: RoadSettings
 @export var traffic_settings: TrafficSettings
 @export var pickup_settings: PickupSettings
@@ -26,11 +28,16 @@ var _end_kind: String = "car"
 func _ready() -> void:
 	assert(road_settings and traffic_settings and pickup_settings and garage, "Missing settings")
 	assert(revival and rivals, "Missing second-chance or rival settings")
+	world.easy_settings = easy_settings if easy_mode else null
 	world.configure(road_settings, traffic_settings, pickup_settings)
 	world.crashed.connect(_end_run)
 	world.notice.connect(hud.show_feedback)
 	world.dashboard_changed.connect(hud.set_dashboard)
 	_connect_scoring()
+	hud.mode_requested.connect(set_easy_mode)
+	hud.finish_requested.connect(finish_drive)
+	hud.set_dashboard({"easy": easy_mode})
+	_configure_collection_goal(easy_settings if easy_mode else null)
 	hud.brake_changed.connect(world.set_braking)
 	hud.restart_requested.connect(restart_run)
 	hud.play_requested.connect(start_run)
@@ -70,6 +77,26 @@ func _layout_world() -> void:
 	world.set_view(Rect2(-position, viewport_size), position.y)
 	pause_run()
 	hud.set_playfield_offset(position)
+
+
+func set_easy_mode(enabled: bool) -> void:
+	if state != RunState.START or not _focused:
+		return
+	easy_mode = enabled
+	world.easy_settings = easy_settings if easy_mode else null
+	world.reset_run(road_settings, traffic_settings, pickup_settings)
+	_apply_car()
+	world.choose_weather(DailyTasks.today(), randf())
+	world.set_driving(false, false)
+	hud.set_dashboard({"easy": easy_mode})
+	_configure_collection_goal(easy_settings if easy_mode else null)
+
+
+func finish_drive() -> void:
+	if state != RunState.PAUSED or not _focused:
+		return
+	_end_kind = "finished"
+	_finish_run()
 
 
 func start_run() -> void:
@@ -173,6 +200,8 @@ func _apply_car() -> void:
 
 ## A power-up won on the lucky wheel starts the drive (one write to clear it).
 func _take_boost() -> void:
+	if easy_mode:
+		return
 	var kind := WheelRules.take_boost(progress)
 	if not kind.is_empty():
 		world.start_power_up(kind)

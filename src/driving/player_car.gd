@@ -57,6 +57,9 @@ func advance(delta: float) -> void:
 		(position.x - previous_x) * settings.lean_per_pixel, -settings.max_lean, settings.max_lean
 	)
 	rotation = lerpf(rotation, lean, 1.0 - exp(-settings.lean_response * delta))
+	visual.set_steering(lean / maxf(settings.max_lean, 0.001), delta)
+	if visual.has_directional_art():
+		rotation = 0.0
 
 
 func _on_steering_delta(pixels: float) -> void:
@@ -97,5 +100,6 @@ func set_driving_enabled(enabled: bool) -> void:
 func reset_run(start_position: Vector2) -> void:
 	position = start_position
 	rotation = 0.0
+	visual.reset_steering()
 	speed_share = 1.0
 	set_driving_enabled(true)

@@ -171,6 +171,7 @@ func _test_failed_write_retry() -> void:
 
 func _test_save_warning() -> void:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	var store := game.get_node("Progress") as LocalProgressStore
 	store.save_path = _directory.path_join("absent/progress.json")
 	root.add_child(game)
@@ -190,6 +191,7 @@ func _test_save_warning() -> void:
 
 func _new_game() -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = _path
 	root.add_child(game)
 	game.set_process(false)

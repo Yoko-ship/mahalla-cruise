@@ -89,7 +89,7 @@ func _update() -> void:
 		return
 	var text := tr(route.name_key)
 	if is_locked():
-		text += "\n" + tr("unlock") % route.price
+		text += "\n" + (tr("select") if route.price == 0 else tr("unlock") % route.price)
 	elif route.bonus_percent() > 0:
 		text += "\n" + tr("route_bonus") % route.bonus_percent()
 	choice_button.text = text

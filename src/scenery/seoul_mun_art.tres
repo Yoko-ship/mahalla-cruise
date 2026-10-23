@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="StreetArt" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/scenery/street_art.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/scenery/seoul_mun_street.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+name_key = "location_seoul_mun"
+texture = ExtResource("2")
+source_curbs = Vector2(253, 634)
+repeat_distance = 864.0

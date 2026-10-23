@@ -18,15 +18,19 @@ func _ready() -> void:
 ## Clears the street for a new drive with these settings; the player keeps its place.
 func configure(route: RoadSettings, cars: TrafficSettings, money: PickupSettings) -> void:
 	_road_settings = route
-	_traffic_settings = cars
+	_traffic_settings = easy_settings.traffic_for(cars) if easy_settings != null else cars
+	bump_remaining = 0.0
 	_crashed = false
 	_clear_effects()
 	road.configure(route)
 	scenery.configure(route)
+	journey.configure(_route)
+	scenery.set_street_art(journey.current)
 	landmarks.configure(route, _route.landmarks if _route != null else "")
-	traffic.configure(route, cars)
+	traffic.configure(route, _traffic_settings)
 	wedding.configure(route)
-	pickups.configure(route, money)
+	pickups.simple_mode = easy_settings != null
+	pickups.configure(route, easy_settings.pickups_for(money) if easy_settings != null else money)
 	hazards.configure(route)
 	fuel.configure(route)
 	police.configure(route)
@@ -76,7 +80,9 @@ func revive(refuel_share: float, grace_metres: float) -> void:
 
 ## Weather for day (see WeatherRules.pick); it only changes the look of the street.
 func choose_weather(day: String, roll: float) -> void:
-	weather.set_weather(WeatherRules.pick(weather.settings, day, roll))
+	weather.set_weather(
+		"clear" if easy_settings != null else WeatherRules.pick(weather.settings, day, roll)
+	)
 
 
 ## A lucky-wheel power-up for the drive that is starting.
@@ -89,6 +95,8 @@ func start_power_up(kind: String) -> void:
 func set_route(route: RouteDefinition) -> void:
 	_route = route
 	scenery.modulate = route.tint
+	journey.configure(route)
+	scenery.set_street_art(journey.current)
 	landmarks.configure(_road_settings, route.landmarks)
 
 
@@ -101,6 +109,11 @@ func set_braking(held: bool) -> void:
 func travel_pixels(delta: float) -> float:
 	var share := player.update_speed(delta)
 	_speed_pixels = _road_settings.scroll_speed * player.settings.travel_speed_scale * share
+	if easy_settings != null:
+		_speed_pixels = minf(_speed_pixels, easy_settings.speed_limit_pixels)
+		var progress := bump_remaining / easy_settings.bump_seconds
+		_speed_pixels *= lerpf(1.0, easy_settings.bump_speed_share, progress)
+		bump_remaining = maxf(0.0, bump_remaining - delta)
 	return _speed_pixels * delta
 
 
@@ -122,6 +135,8 @@ func set_view(bounds: Rect2, vertical_padding: float) -> void:
 
 func advance(travel_pixels: float, metres: float) -> void:
 	road.advance(travel_pixels)
+	journey.advance(metres)
+	scenery.set_location(journey.current, journey.previous, journey.transition)
 	scenery.advance(travel_pixels)
 	landmarks.advance(travel_pixels)
 	traffic.set_distance(metres)
@@ -135,6 +150,11 @@ func advance(travel_pixels: float, metres: float) -> void:
 	if _crashed:
 		return
 	var speed := _traffic_settings.relative_speed
+	if easy_settings != null:
+		pickups.hold_stops = true
+		pickups.advance(travel_pixels, player_bounds, traffic.blocking_bounds(), speed)
+		_emit_dashboard()
+		return
 	var landing := hazard_bounds.duplicate()
 	for power_up in pickups.power_ups:
 		landing.append(power_up.collection_bounds())

@@ -1,10 +1,51 @@
 # Mahalla Cruise Project Tracker
 
-Last updated: 2026-10-12
+Last updated: 2026-10-23
 
 Mahalla Cruise is a planned 2D Android game for people in Uzbekistan. The goal is a simple, relaxing time killer: open the game, steer with one finger, and enjoy a familiar neighborhood without puzzles or complicated decisions. Development should stay manageable for a first version.
 
 ## Current Status
+
+Easy driving update (2026-10-22): launches now default to a forgiving Easy mode.
+Traffic is slower and more widely spaced, with a quiet opening stretch. Bumps
+briefly slow the car, then it recovers automatically without losing points or ending
+the drive. The road HUD shows pause, points, horn, location names, a collection
+target and the first-drive steering gesture. Fuel management, fines and complex roadside tasks
+remain available through the start screen's Challenge mode. Finish drive in the
+pause menu banks rewards and shows a positive result. The existing six-location
+journey and garage remain available. Easy now awards +15 points for each five
+banknotes collected, with a progress bar and brief success message. Targets repeat
+within the drive; bumps preserve progress. Close banknote passes now count in Easy
+with eight pixels of extra reach per side; notes in adjacent lanes still need steering.
+The user clarified that picture-based UI alone does not make the game fun for children. Player feedback on this collection
+loop and physical-phone validation remain pending.
+
+
+Six-location drive (2026-10-22): Tashkent now cycles through Old Tashkent mahalla,
+Chorsu Bazaar, Amir Temur Square, Tashkent City, Seoul Mun and Magic City every
+550 metres (about 50 seconds in the default car). New scenery enters from the top
+with a feathered join and a localized name banner. Selecting Magic City starts
+there and continues around the same loop. Four new generated street textures
+match the existing driving view. These are place-inspired adaptations, not exact
+street maps. Paid city routes keep their current scenery and bonuses.
+Validation: all 49 suites and the full quality gate passed; Mac captures reviewed.
+[Preview](docs/art-direction/locations-preview.png). Android remains untested for this change.
+
+Traffic realism update (2026-10-22): regular AI traffic now uses six consistently
+3D-rendered sprites (Matiz, Spark, Nexia, Cobalt, Gentra, Malibu), matching the
+Cobalt camera and lighting. The painted Damas remains a player option and is excluded
+from regular traffic. A shuffled rotation and seven restrained paint colors provide
+variety. Movement and collision tuning stay the same. See the latest work-log entry.
+
+Latest asset update (2026-10-22): Matiz, Spark, Nexia, Cobalt, Gentra, and Malibu now
+use painted sprites matching the Damas, with the previous Blender atlas preserved.
+Follow-up: Cobalt now uses five consistently rendered Blender steering views with
+uniform scaling, after the user rejected its flat/stretched appearance while driving.
+The other five cars keep their painted sprites. See the latest work-log entry.
+The existing paint shader supplies factory and purchased colors. See the latest
+work-log entry for validation; gameplay settings and save data are unchanged.
+User review identified an inaccurate Cobalt; its trunk, segmented lamps, and low
+bumper plate were corrected from real-car photographs on the same date.
 
 **Stage: Uzbek-market growth rounds (feature choice delegated by the user on 2026-10-12)
 on top of the localized Android build.** Latest round: wedding convoys with sochqi, a
@@ -73,7 +114,13 @@ describes the boundaries, `AGENTS.md` defines the AI workflow, and
 `./scripts/check.sh` runs the local quality gate. Development tooling uses
 gdtoolkit 4.5.0 in `.venv`.
 
-**Next task:** continue the 2026-10-12 goal (the user delegated feature choice) with
+**Next task:** playtest the more forgiving pickup reach and five-banknote loop.
+Then consider clearer progress toward the next garage car on the results screen
+(proposed, not implemented). Verify touch controls,
+scenery memory/performance and readable UI on Android. Extend the Cobalt's steering-view treatment to other player
+cars only after user review. Before release, complete the existing model attribution/provenance review;
+the painted versions use those renders as references. Broader roadmap: continue the
+2026-10-12 goal (the user delegated feature choice) with
 the next improvement round, then playtest (wedding convoys, second chance, mahalla
 rating, city routes, number plates, the car market, METAN queues, GAI posts, plus the
 brake, cameras, taxi, and earlier features) and tune by feel: convoy frequency and
@@ -83,7 +130,7 @@ wait time, police frequency, reward, and fine, and earlier values. Painted stree
 for Samarkand, Bukhara, and Khiva would replace the code-drawn landmarks.
 Check whether holding the brake all the time makes drives too easy (it costs nothing
 today). The two-finger pedal plus steering needs a real phone to judge.
-Replace the temporary car and sheep art with final artwork
+Replace the temporary sheep art with final artwork; review the new painted cars
 ([docs/art-direction/CAR_ROSTER_ART.md](docs/art-direction/CAR_ROSTER_ART.md)). Car-name
 trademark review remains open before a public release. No Android device is
 currently available, so phone testing is paused.
@@ -249,7 +296,7 @@ Track asset sources and applicable usage terms when assets are added. Keep sourc
 - [x] Run the new features on the Android emulator; add a balance bot and tune from it.
 - [ ] Add painted street artwork for Samarkand, Bukhara, and Khiva.
 - [x] Replace the Matiz, Spark, Nexia, Cobalt, Gentra, and Malibu test sprites with Blender renders.
-- [ ] Optional: painted versions of the six cars that match the Damas up close.
+- [x] Create and integrate painted versions of the six cars matching the Damas.
 - [ ] Test touch controls and performance on a physical Android phone.
 - [ ] Have a few players try it without instructions and record feedback.
 
@@ -929,6 +976,311 @@ store models' standard material names, so its source needs review before release
 **Next task:** add an in-game credits line for the six CC-BY model authors (required by the
 license) before release; review the Cobalt and Malibu sources and car-name trademarks;
 then the app icon and store graphics, more music, and road items (Blender can render them).
+
+### 2026-10-22: Painted cars matching the Damas
+
+Created and integrated painted Matiz, Spark, Nexia, Cobalt, Gentra, and Malibu
+sprites with the built-in image tool. The Damas atlas supplied style/camera and
+the previous Blender renders supplied vehicle identity. The original renders
+remain available. Exact prompts, generation paths, source PNGs, and attribution
+links are in `assets/cars/painted/`; `.gdignore` excludes those source PNGs from
+runtime import. `roster_painted.png` is now the garage atlas, with mipmaps and the
+same regions, scales, paint shader, tuning, and save format.
+
+The packer's `--painted` option crops to the solid silhouette with a two-pixel
+antialiased margin: near-invisible generated alpha specks initially made the cars
+appear too small. Extended `garage_store_test.gd` to check visible car length,
+mipmaps, atlas bounds, and nonoverlapping regions; its 179 checks pass.
+
+Validation: `./scripts/check.sh` passed all 45 behavior suites plus the Python
+tooling tests, formatting, lint, import, and parsing. The packing script separately
+passed formatter/lint checks. Inspected the seven-car comparison in factory paints
+at road size and 3x, all six new cars on the road, garage previews, and the Malibu
+start card using Mac Compatibility rendering. Preview scenes used memory-only
+progress storage. The comparison is saved in
+`docs/art-direction/painted-roster-preview.png`; individual captures are under
+`build/painted-*.png`. Android and Windows were not run.
+
+Next: user review of car likeness/style and Android readability. Existing CC-BY
+attribution and model-source review remain open before release because these
+painted adaptations use the earlier renders as references.
+
+### 2026-10-22: Correct Cobalt likeness after review
+
+The user reported that the painted Cobalt did not match the car. Compared it with
+Chevrolet's official exterior/lamp brochure and a real rear-view photograph, then
+used the built-in image tool to correct the lamp segments, broad plain trunk with
+keyhole, low bumper plate recess, and horizontal bumper trim. Reference links and
+the exact revision prompt are in `assets/cars/painted/COBALT_REVISION.md`. Repacked
+the active atlas and updated the saved roster comparison. A pixel comparison
+confirmed that every atlas pixel outside the Cobalt region is unchanged.
+
+Validation: `./scripts/check.sh` passed all 45 behavior suites and the Python tooling
+checks; the existing 179-check garage/store suite covers atlas bounds, transparency,
+mipmaps, and visible size. Inspected Mac renders of the corrected car in the garage,
+on the start card, and on the road. Android and Windows were not run. Prepared a
+playable Cobalt preview using memory-only progress so reviewing it does not change
+the user's saved purchases. Next: user review of the corrected likeness, followed
+by Android readability checks.
+
+### 2026-10-22: Natural Cobalt proportions and steering views
+
+The user disliked both the Cobalt's appearance and its flat steering. Replaced its
+painted road sprite with five views rendered from the existing licensed Cobalt
+model at -10/-5/0/5/10 degrees. The Blender setup uses a fixed orthographic camera,
+AgX, soft lights, coated paint, dark reflective glass, segmented rear lenses, and
+one stock wheel set (the model contained overlapping copies). Packing applies one
+uniform scale; it no longer squeezes this car to fit an arbitrary width.
+
+`DirectionalCarTexture` extends the existing atlas texture contract with views,
+plate projections, steering response, and shadow size. `PlayerCar` sends steering
+to its visual child; `CarVisual` eases through the views and draws the plate on the
+projected bumper. Cobalt skips the previous flat rotation. Other cars keep their
+current sprites and behavior. Collision sizes, handling, paints, and saves are
+unchanged; all runtime state stays on nodes.
+
+Validation: `./scripts/check.sh` passed all 46 suites and tooling checks. New
+`directional_car_test.gd` passes 67 checks for actual steering, view selection,
+frame/plate bounds, pause, reset, collision preservation, and static-car fallback.
+Garage artwork checks remain active, grouped by atlas now that Cobalt has its own.
+The packer separately passed formatting/lint; the Blender script compiled and
+rendered all five views successfully. Inspected Mac road views for left/straight/
+right and a sequence of steering with a scrolling street. An initial capture was
+obscured by automatic focus-loss pause; the capture-only harness was corrected,
+with production pause behavior unchanged. Saved the motion preview at
+`docs/art-direction/cobalt-driving-preview.gif`. Android and Windows were not run.
+
+Next: user review of the Cobalt in motion before extending this treatment to the
+other cars; then Android readability/performance checks. Model attribution and
+source-provenance review remain required before release.
+
+### 2026-10-22: Varied AI traffic models and paint
+
+Replaced the single tinted sedan in regular traffic with seven existing vehicle
+assets: Damas, Matiz, Spark, Nexia, Cobalt, Gentra, and Malibu. Traffic settings own
+the texture list and a white/silver/charcoal/blue/red/beige/teal palette. The controller
+uses a separate cosmetic random generator and a shuffled model bag; each seven-car
+rotation includes the complete roster, with no adjacent model repeat across rotations.
+Restart clears the bag. Per-car shader materials recolor body paint while preserving
+glass and lamps. Sprites fit uniformly inside 52 by 72 pixels, preserving proportions.
+No new artwork or dependencies were needed. Collision boxes, lane placement rules,
+spawn intervals, speed, difficulty, and wedding convoy art remain unchanged.
+
+Validation: the new traffic appearance suite passed 125 checks covering live spawns,
+complete rotations, adjacent repeats, varied paints, restart, immutable settings,
+independent materials, aspect ratio, collision size, and empty-roster fallback.
+Inspected Mac road captures covering all seven models and colors at native game size;
+example: `docs/art-direction/traffic-variety-preview.png`. `./scripts/check.sh` passed
+all 47 behavior suites plus formatting, lint, import, parsing, and tooling checks.
+Launched a playable traffic preview with memory-only progress for user review.
+Android and Windows were not run. Next: user play review and Android readability/
+performance checks.
+
+### 2026-10-22: Consistent realistic traffic sprites
+
+The user rejected the mixed painted traffic appearance and explicitly chose realistic
+sprites within the current 2D game. Rendered Matiz, Spark, Nexia, Gentra, and Malibu
+from the existing source models with the Cobalt's orthographic camera, lighting,
+coated paint, and reflective windows. Traffic reuses the Cobalt straight view as the
+sixth model. Removed the painted Damas from regular traffic to keep one rendering
+style; the player/garage roster is unchanged. Added a reproducible Blender renderer,
+uniform-scale atlas packer, mipmapped atlas, and five traffic-owned atlas resources.
+See `assets/cars/TRAFFIC_REALISTIC.md` for rebuilding and source credits.
+
+The palette is less saturated and rear lamps no longer use artificial daytime glow.
+Shadows are tighter and scale to the sprite. Expanded the visual width allowance from
+52 to 60 pixels for the hatchbacks' mirrors, retaining the 72-pixel visual length
+without squeezing proportions. Collision boxes remain 40 by 72, and all movement,
+spawn, difficulty, and scoring settings remain unchanged. The shuffled rotation now
+covers six models. Runtime rendering remains 2D with no new dependencies.
+
+Validation: `./scripts/check.sh` passed all 47 behavior suites and all tooling checks.
+The updated appearance suite passed 139 checks, including
+rendered-atlas selection, mipmaps, bounds, visible body length, all previous rotation/
+paint/restart checks, and collision-size preservation. The packer passed standalone
+format/lint checks and the Blender script compiled and rendered all five cars. Inspected
+Mac road screenshots of all six models and a scrolling-drive sequence with passing cars.
+The desktop capture stopped advancing after 28 frames; those frames are retained in
+`docs/art-direction/traffic-realistic-preview.gif`, alongside a still PNG. Launched the
+updated playable preview using memory-only progress; it exited with two ObjectDB
+instances and one resource reported during cleanup. The full quality gate exited cleanly.
+Android and Windows were not run.
+Next: user review of realistic traffic in motion, then Android readability/performance checks.
+
+### 2026-10-22: Magic City inspired street route
+
+The user requested realistic streets based on recognizable places such as Magic City.
+Added a free Magic City route to the existing selector. The generated background uses
+its blue-roof towers and arched entrance, fountain plaza, themed facades, planting and
+stone sidewalks around a clear asphalt road. It adapts the park's architecture to the
+existing straight driving layout; it is not a surveyed recreation or a claim about
+public vehicle access inside the park. References, both exact generation prompts,
+asset dimensions and provenance are in `assets/scenery/MAGIC_CITY.md`.
+
+Added typed StreetArt resources owned by scenery for texture, source curb positions,
+loop crop/distance and the old bakery-sign overlay. RouteDefinition can reference one;
+the world passes it to scenery, retaining parent-to-child communication. Null art
+restores the original mahalla, so other routes keep their prior look. Resources remain
+read-only; each scenery node owns scroll state. Magic City uses an 864-pixel loop and
+maps its curbs to the unchanged road bounds. Traffic, scoring, steering and collision
+geometry are unchanged. Selection persists in the existing save fields; free routes
+show Select rather than a zero-price unlock. All three locales include the route name.
+
+Validation: `./scripts/check.sh` passed all 48 behavior suites plus formatting, lint,
+import, parsing and tooling checks. Magic City tests pass 32 checks for free selection, persistence,
+art selection, source geometry, mipmaps, isolated scroll state, wrapping, pause and
+restart. Existing route tests pass 91 checks, retaining paid-city pricing, bonuses,
+selection and layout checks while covering the new free entry. Inspected Mac road
+renders at the start, mid-loop and wrap boundary; preview saved at
+`docs/art-direction/magic-city-preview.png`. Also inspected the mid-loop join at
+432 × 912; the street fills the tall view and retains aligned curbs. Launched a
+Magic City/Cobalt preview with memory-only progress. Android and Windows were not
+run. Next: user review of Magic City in play, then Android checks.
+
+### 2026-10-22: Six districts in one continuous drive
+
+Implemented the approved sequence: mahalla → Chorsu Bazaar → Amir Temur Square →
+Tashkent City → Seoul Mun → Magic City → repeat. Added four built-in generated
+textures using photographs for architectural identity and the existing Magic City
+texture for layout/light. Original prompts, reference links, generation paths and
+asset hashes are in `assets/scenery/LOCATIONS.md` and `journey-prompts.json`.
+
+`LocationSequence` holds immutable locations, 550-metre sections and a 48-metre
+entry distance. `LocationJourney`, a world child, derives the current district and
+entry progress from actual travelled metres. The world routes these to scenery,
+which draws the incoming district from the top with a 32-pixel feathered boundary.
+A localized four-second banner receives name changes through the existing world →
+main → HUD presentation channel. Pause freezes distance, entry and banner time;
+braking slows entry; restart returns to the selected starting district. Magic City
+starts at index five; paid city routes retain their static art, pricing and bonuses.
+Traffic, scoring, player movement, fuel and save format are unaffected.
+
+Validation: `./scripts/check.sh` passed all 49 behavior suites and tooling checks,
+formatting, lint, imports and parsing. New `location_journey_test.gd` passed 124
+checks for six-area order, repeated cycles, exact boundaries, large steps, art and
+locale coverage, continued traffic/score, braking, pause/resume and restart. Prior
+Magic City and route selection/persistence tests still pass. Inspected all six
+Mac road renders, a mahalla-to-Chorsu join at 432 × 768, and Tashkent City-to-Seoul
+Mun at 432 × 912. Saved `docs/art-direction/locations-preview.png`. A backgrounded
+capture initially stalled; flushing rendering in the capture-only harness resolved
+it and final capture exited cleanly. Opened a six-location preview with memory-only
+progress. Android and Windows were not run.
+
+Next: user review of district likeness and pacing, then Android memory/performance
+and touch/readability validation. Existing vehicle model credits/provenance remain
+open before release.
+
+### 2026-10-22: Forgiving Easy mode and a simpler driving screen
+
+The user prioritized easy, immediately understandable play, including for children,
+and approved the first Easy-mode pass. New launches start in Easy, with a session-only
+start-menu switch to the original Challenge rules. `EasyDriveSettings` owns the speed
+cap (180 px/s), two-second bump recovery from 55% speed, and gentle traffic spacing.
+The world creates a private traffic settings copy rather than modifying shared data.
+All garage cars respect the Easy cap. Repeated bumps do not restart recovery; pause
+freezes it, restart clears it, and collected points are preserved.
+
+Easy advances the six-area scenery journey, slow traffic and normal collectibles.
+Fuel, police/camera fines, hazards, sheep, taxi/bus jobs, wedding convoys, power-up
+spawns and night/weather difficulty are inactive. Pending wheel boosts remain saved
+for Challenge. The Easy road HUD keeps pause, points, horn and location names. A
+finger-and-arrows guide supplements the short first-drive hint. Easy menus hide
+record/plate/task/wheel extras, and results hide complex breakdowns and external
+sharing. All new labels are localized in Uzbek Latin, Russian and English.
+
+Pause now includes Finish drive. It routes through main's existing result/record
+transaction, pays earned points once, and shows “Nice drive!” rather than a failure
+heading. Challenge retains its original systems and can also finish voluntarily.
+Both modes share the existing wallet and local progression; no backend, dependency,
+engine, save-format or real-money monetization changes were made.
+
+Validation: `./scripts/check.sh` passed all 50 behavior suites, formatting, lint,
+imports, parsing and tooling tests. New `easy_drive_test.gd` passes 77 checks for
+default mode, immutable tuning, speed caps, quiet opening, real traffic collisions,
+recovery, pause, repeated contacts, long drives through the locations, UI, locale
+layout, mode switching and one-time reward booking. Existing integration suites
+explicitly select Challenge to retain their original assertions; none were removed.
+Visual review caught and fixed an overflowing Challenge menu and the failure heading
+on voluntary completion. Reviewed Mac captures of start, drive, pause, results,
+Russian Challenge and the tall layout. Capture-only focus handling keeps the sample
+in its requested state while production focus-loss pausing remains intact. Saved
+`docs/art-direction/easy-mode-preview.png`. Android/Windows and child playtests were
+not run. A memory-only playable preview is available for review.
+
+Next at this stage: usability review and Android validation, followed by a simple
+collection goal. The follow-up below records the approved implementation.
+Existing vehicle attribution/provenance work remains open before release.
+
+### 2026-10-22: Repeatable collection target in Easy driving
+
+The user clarified that a picture-based interface alone does not establish appeal
+for children, then approved a simple objective with forgiving challenge. Easy now
+asks the player to collect five banknotes. Every completed group adds 15 points to
+normal pickup value, fills the progress bar and briefly shows a localized success
+message with the brighter existing pickup sound. The next group starts immediately,
+including pickups received during success feedback, so the drive continues through
+all six locations. Bumps preserve earned progress. Pause freezes feedback time;
+restart clears the count. Challenge keeps its original scoring and presentation.
+
+`DriveScoring` derives progress from the existing note counters. Goal/bonus tuning
+lives in `EasyDriveSettings`; the success duration lives in `HUDSettings`. The new
+native `CollectionProgress` panel receives presentation data through main → HUD →
+DriveOverlay, fits the existing palette and follows the viewport offset. No new
+save fields or reward transaction were needed: Finish drive banks the bonus as
+part of the run score once. Realistic car/street assets are unchanged.
+
+Validation: focused `collection_goal_test.gd` passes 55 checks, using actual pickup
+and traffic collisions. Covers mixed currencies, repeated bonuses, unrelated point
+awards, progress through bumps, pause/late events, success timing, restart, one-time
+banking, Challenge, custom immutable tuning, locale layouts and tall viewport offset.
+Full `./scripts/check.sh` passed all 51 behavior suites, formatting, lint,
+imports, parsing and tooling checks. Inspected rendered initial, 4/5, success,
+next-target, Russian and tall Uzbek states on Mac; saved
+`docs/art-direction/collection-goal-preview.png`. Opened a playable preview with
+memory-only progress. Android/Windows and player enjoyment have not been validated.
+
+Next: user play review of collection pacing and satisfaction, followed by Android
+touch/readability/performance checks. Avoid treating illustration style as evidence
+of child appeal. Existing model attribution/provenance work remains open for release.
+
+### 2026-10-22: Forgiving sideways banknote collection
+
+Implemented the approved easier-pickup pass. Easy gives banknotes eight extra pixels
+of collection reach on each side of the car. This applies only to money: vertical
+arrival timing, actual traffic collision boxes, power-up reach and spawn clearance
+retain their existing behavior. Challenge retains the original reach. Collected
+notes feed the normal score, sounds and five-banknote target once, with no new input
+or tutorial. The world makes a private PickupSettings copy using EasyDriveSettings;
+reconfiguration/reset cannot leak the allowance into shared resources or Challenge.
+
+Focused `pickup_reach_test.gd` passes 52 checks: both sides, outside-boundary misses,
+vertical gaps, pause/resume, large-frame swept collection, duplicate prevention,
+collection-target progress, restart, mode switching, immutable source tuning, custom
+margins, nearby traffic, real collisions, power-ups, and all seven garage cars. The
+initial wider allowance failed the adjacent-lane check; reduced it to eight pixels
+and verified close passes and adjacent-lane misses across the roster. No assertions
+were removed. Full `./scripts/check.sh` passed all 52 behavior suites, formatting, lint,
+imports, parsing and tooling checks.
+
+Inspected the Mac render before/after a close pass: the nearby note awards one point
+and advances the target, while the adjacent-lane note remains on the road. Saved
+`docs/art-direction/pickup-reach-preview.png`. Android/Windows and physical touch
+feel have not been checked for this change.
+
+Next: user play review of pickup forgiveness, followed by physical Android touch
+checks. Steering-feedback refinements and visible next-car progress remain proposals.
+
+### 2026-10-23: Prepare completed updates for GitHub
+
+User requested pushing the completed work to `Yoko-ship/mahalla-cruise` on `main`.
+Fetched origin and confirmed no incoming commits before preparing the commit.
+Included the car/traffic artwork, six-location journey, Easy driving, collection
+bonuses, forgiving pickup reach, regression tests and supporting documentation.
+The latest full quality gate passed all 52 behavior suites and tooling checks;
+rendered Mac reviews are recorded above. Build outputs, credentials, caches and
+the orphan temporary render-script UID stay local. Android validation remains pending.
+
+Next: user play review and physical Android touch/readability/performance checks.
 
 ## Running and Checking the Starter
 

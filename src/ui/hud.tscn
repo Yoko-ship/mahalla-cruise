@@ -1,6 +1,9 @@
-[gd_scene load_steps=23 format=3]
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://src/ui/hud.gd" id="1"]
+[ext_resource type="PackedScene" path="res://src/ui/collection_progress.tscn" id="19"]
+[ext_resource type="Script" path="res://src/ui/location_banner.gd" id="17"]
+[ext_resource type="Script" path="res://src/ui/steering_guide.gd" id="18"]
 
 [ext_resource type="PackedScene" path="res://src/ui/run_menu.tscn" id="2"]
 [ext_resource type="Resource" path="res://src/ui/default_hud.tres" id="3"]
@@ -259,6 +262,36 @@ theme_override_font_sizes/font_size = 13
 text = "Drag to steer\nArrow keys also work"
 horizontal_alignment = 1
 mouse_filter = 2
+
+[node name="CollectionGoal" parent="Drive" instance=ExtResource("19")]
+visible = false
+offset_left = 96.0
+offset_top = 88.0
+offset_right = 336.0
+offset_bottom = 144.0
+
+[node name="SteeringGuide" type="Control" parent="Drive"]
+visible = false
+offset_left = 140.0
+offset_top = 648.0
+offset_right = 292.0
+offset_bottom = 704.0
+mouse_filter = 2
+script = ExtResource("18")
+
+[node name="LocationBanner" type="Label" parent="Drive"]
+visible = false
+offset_left = 96.0
+offset_top = 234.0
+offset_right = 336.0
+offset_bottom = 270.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.85, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("DistanceStyle")
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("17")
 
 [node name="GameOver" type="Control" parent="."]
 visible = false

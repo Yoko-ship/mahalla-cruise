@@ -21,6 +21,7 @@ const BUS_STOP_SCENE: PackedScene = preload("res://src/pickups/bus_stop.tscn")
 @export var power_up_settings: PowerUpSettings
 @export var passenger_settings: PassengerSettings
 
+var simple_mode: bool = false
 var items: Array[MoneyPickup] = []
 var power_ups: Array[PowerUp] = []
 var effects: PowerUpEffects
@@ -80,13 +81,15 @@ func advance(
 	effects.advance(travel_pixels / _road.pixels_per_metre)
 	_advance_power_ups(travel_pixels, player_bounds)
 	_advance_bus_stops(travel_pixels, player_bounds)
+	var margin := _settings.collection_side_margin
+	var money_bounds := player_bounds.grow_individual(margin, 0.0, margin, 0.0)
 	for index in range(items.size() - 1, -1, -1):
 		var item := items[index]
 		var previous := item.collection_bounds()
 		item.advance(travel_pixels)
 		if effects.magnet_active():
 			_pull(item, player_bounds.get_center(), travel_pixels)
-		if previous.merge(item.collection_bounds()).intersects(player_bounds):
+		if previous.merge(item.collection_bounds()).intersects(money_bounds):
 			_remove_item(index)
 			collected.emit(item.points * effects.multiplier(), item.denomination)
 			collected_at.emit(item.position, item.points * effects.multiplier())
@@ -99,7 +102,7 @@ func advance(
 	if _distance_until_spawn <= 0.0 and items.size() < _settings.max_pickups:
 		_try_spawn(player_bounds, obstacles, traffic_speed_ratio)
 	_metres_until_power_up -= travel_pixels / _road.pixels_per_metre
-	if _metres_until_power_up <= 0.0 and power_ups.is_empty():
+	if not simple_mode and _metres_until_power_up <= 0.0 and power_ups.is_empty():
 		_try_spawn_power_up(player_bounds, traffic_bounds, traffic_speed_ratio)
 	_metres_until_stop -= travel_pixels / _road.pixels_per_metre
 	# Without a matching fare note in the catalogue, stops are simply not offered.

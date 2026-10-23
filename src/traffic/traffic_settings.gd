@@ -2,6 +2,11 @@ class_name TrafficSettings
 extends Resource
 ## Gentle traffic and contact tuning; shared resources remain read-only in play.
 
+## Cosmetic choices are independent of movement and collision tuning.
+@export var models: Array[Texture2D] = []
+@export var paints: Array[Color] = [Color.WHITE]
+@export var sheep_enabled: bool = true
+@export var visual_size := Vector2(60, 72)
 @export_range(1.0, 2000.0) var first_spawn_distance: float = 150.0
 @export_range(1.0, 2000.0) var spawn_distance_min: float = 550.0
 @export_range(1.0, 2000.0) var spawn_distance_max: float = 720.0

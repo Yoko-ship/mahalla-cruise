@@ -213,6 +213,17 @@ autowrap_mode = 2
 layout_mode = 2
 script = ExtResource("route_picker")
 
+[node name="Mode" type="Button" parent="Center/Card/Margin/Content"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.85, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("SecondaryStyle")
+theme_override_styles/hover = SubResource("SecondaryHover")
+theme_override_styles/pressed = SubResource("SecondaryHover")
+theme_override_styles/focus = SubResource("ButtonFocus")
+text = "mode_easy"
+
 [node name="Actions" type="HBoxContainer" parent="Center/Card/Margin/Content"]
 layout_mode = 2
 theme_override_constants/separation = 8
@@ -262,6 +273,18 @@ theme_override_styles/hover = SubResource("SecondaryHover")
 theme_override_styles/pressed = SubResource("SecondaryHover")
 theme_override_styles/focus = SubResource("ButtonFocus")
 text = "tasks"
+
+[node name="Finish" type="Button" parent="Center/Card/Margin/Content"]
+visible = false
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.96, 0.85, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("SecondaryStyle")
+theme_override_styles/hover = SubResource("SecondaryHover")
+theme_override_styles/pressed = SubResource("SecondaryHover")
+theme_override_styles/focus = SubResource("ButtonFocus")
+text = "finish_drive"
 
 [node name="Instructions" type="Label" parent="Center/Card/Margin/Content"]
 layout_mode = 2

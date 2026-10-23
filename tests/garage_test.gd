@@ -145,6 +145,7 @@ func _test_layout(locale: String) -> void:
 	view.size = Vector2i(432, 768)
 	root.add_child(view)
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = ""
 	view.add_child(game)
 	game.set_process(false)
@@ -178,6 +179,7 @@ func _test_layout(locale: String) -> void:
 
 func _new_game(catalogue: GarageCatalogue) -> CruiseGame:
 	var game := MAIN_SCENE.instantiate() as CruiseGame
+	game.easy_mode = false  # Exercise the original Challenge rules.
 	(game.get_node("Progress") as LocalProgressStore).save_path = _path
 	if catalogue != null:
 		game.garage = catalogue

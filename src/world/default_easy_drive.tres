@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EasyDriveSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://src/world/easy_drive_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+collection_target = 5
+collection_bonus = 15
+collection_side_margin = 8.0
+speed_limit_pixels = 180.0
+bump_speed_share = 0.55
+bump_seconds = 2.0
+first_car_pixels = 900.0
+car_gap = Vector2(900, 1150)
+traffic_speed = 0.4
+max_cars = 2
+minimum_gap = 280.0
